@@ -76,9 +76,7 @@
                             <td>1</td>
                             <td>Monsky</td>
                             <td>monsky@gmail.com</td>
-                            <td>
-                                <span class="badge badge-sm badge-soft'">Super Admin</span>
-                            </td>
+                            <td class="font-mono text-sm">Super Admin</td>
                             <td>
                                 2025-09-29 00:00:00 <br>
                                 <span class="badge badge-info badge-sm badge-soft">127.0.0.1</span>

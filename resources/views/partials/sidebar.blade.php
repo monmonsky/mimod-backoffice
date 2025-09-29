@@ -31,12 +31,12 @@
         <div data-simplebar class="size-full">
             <div class="mb-3 space-y-0.5 px-2.5">
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Overview</p>
-                <a class="menu-item false {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                <a class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <span class="iconify lucide--monitor-dot size-4"></span>
                     <span class="grow">Dashboard</span>
                 </a>
-                
-                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Manage</p>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Catalog</p>
                 <div class="group collapse">
                     <input
                         aria-label="Sidemenu item trigger"
@@ -52,23 +52,35 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-orders.html">
+                                class="menu-item"
+                                href="#">
                                 <span class="grow">All Products</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Add New</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Add Product</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-customers.html">
+                                class="menu-item"
+                                href="#">
                                 <span class="grow">Categories</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Brands</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Variants</span>
                             </a>
                         </div>
                     </div>
                 </div>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Sales</p>
                 <div class="group collapse">
                     <input
                         aria-label="Sidemenu item trigger"
@@ -76,7 +88,7 @@
                         class="peer"
                         name="sidebar-menu-parent-item" />
                     <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--receipt-text size-4"></span>
+                        <span class="iconify lucide--shopping-cart size-4"></span>
                         <span class="grow">Orders</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
@@ -84,43 +96,89 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-orders.html">
+                                class="menu-item"
+                                href="#">
                                 <span class="grow">All Orders</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Return</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Pending Orders</span>
                             </a>
-                            
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Processing</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Shipped</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Delivered</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Returns</span>
+                            </a>
                         </div>
                     </div>
                 </div>
-                <a class="menu-item" href="./apps-chat.html">
+                <a class="menu-item" href="#">
+                    <span class="iconify lucide--credit-card size-4"></span>
+                    <span class="grow">Payments</span>
+                </a>
+                <a class="menu-item" href="#">
+                    <span class="iconify lucide--truck size-4"></span>
+                    <span class="grow">Shipments</span>
+                </a>
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--shopping-bag size-4"></span>
+                        <span class="grow">Carts</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Active Carts</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Abandoned Carts</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Customers</p>
+                <a class="menu-item" href="#">
                     <span class="iconify lucide--users size-4"></span>
-                    <span class="grow">Customers</span>
+                    <span class="grow">All Customers</span>
                 </a>
-                <a class="menu-item" href="./apps-chat.html">
-                    <span class="iconify lucide--warehouse size-4"></span>
-                    <span class="grow">Inventory</span>
+                <a class="menu-item" href="#">
+                    <span class="iconify lucide--map-pin size-4"></span>
+                    <span class="grow">Addresses</span>
                 </a>
-                <a class="menu-item" href="./apps-chat.html">
-                    <span class="iconify lucide--dollar-sign size-4"></span>
-                    <span class="grow">Payouts</span>
-                </a>
-
-                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Management</p>
-                <a class="menu-item false {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}">
-                    <span class="iconify lucide--user size-4"></span>
-                    <span class="grow">User</span>
-                </a>
-                <a class="menu-item false" target="_blank" href="./landing.html">
-                    <span class="iconify lucide--component size-4"></span>
-                    <span class="grow">Role</span>
+                <a class="menu-item" href="#">
+                    <span class="iconify lucide--bell size-4"></span>
+                    <span class="grow">Notifications</span>
                 </a>
 
-                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Setting</p>
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Marketing</p>
                 <div class="group collapse">
                     <input
                         aria-label="Sidemenu item trigger"
@@ -128,27 +186,154 @@
                         class="peer"
                         name="sidebar-menu-parent-item" />
                     <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--store size-4"></span>
-                        <span class="grow">Store</span>
+                        <span class="iconify lucide--ticket size-4"></span>
+                        <span class="grow">Promotions</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-orders.html">
-                                <span class="grow">General</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Coupons</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Page</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Coupon Usage</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">SEO</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Campaigns</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Analytics</p>
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--bar-chart-2 size-4"></span>
+                        <span class="grow">Reports</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Sales Report</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Product Performance</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Customer Analytics</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Payment Report</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Inventory Report</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Access Control</p>
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--shield size-4"></span>
+                        <span class="grow">User Management</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item {{ request()->routeIs('user.*') ? 'active' : '' }}"
+                                href="{{ route('user.index') }}">
+                                <span class="grow">Users</span>
+                            </a>
+                            <a
+                                class="menu-item {{ request()->routeIs('role.*') ? 'active' : '' }}"
+                                href="{{ route('role.index') }}">
+                                <span class="grow">Roles</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Permissions</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Activity Logs</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Sessions</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Settings</p>
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--settings size-4"></span>
+                        <span class="grow">General</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Store Info</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Email Settings</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">SEO & Meta</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">System Config</span>
                             </a>
                         </div>
                     </div>
@@ -161,27 +346,60 @@
                         class="peer"
                         name="sidebar-menu-parent-item" />
                     <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--unplug size-4"></span>
-                        <span class="grow">Service</span>
+                        <span class="iconify lucide--wallet size-4"></span>
+                        <span class="grow">Payment</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-orders.html">
-                                <span class="grow">Payment</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Payment Methods</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Shipping</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Midtrans Config</span>
                             </a>
                             <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Maps</span>
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Tax Settings</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--truck size-4"></span>
+                        <span class="grow">Shipping</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Shipping Methods</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">RajaOngkir Config</span>
+                            </a>
+                            <a
+                                class="menu-item"
+                                href="#">
+                                <span class="grow">Origin Address</span>
                             </a>
                         </div>
                     </div>
