@@ -6,13 +6,76 @@
 
 @section('content')
 <div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Role List</p>
+    <p class="text-lg font-medium">Role Management</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
         <ul>
             <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Management</li>
+            <li>Access Control</li>
             <li class="opacity-80">Roles</li>
         </ul>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Total Roles</p>
+                    <p class="text-2xl font-semibold mt-1">9</p>
+                    <p class="text-xs text-base-content/60 mt-1">All defined roles</p>
+                </div>
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <span class="iconify lucide--shield size-5 text-primary"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Active Roles</p>
+                    <p class="text-2xl font-semibold mt-1 text-success">9</p>
+                    <p class="text-xs text-base-content/60 mt-1">Currently in use</p>
+                </div>
+                <div class="bg-success/10 p-3 rounded-lg">
+                    <span class="iconify lucide--check-circle size-5 text-success"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">System Roles</p>
+                    <p class="text-2xl font-semibold mt-1 text-warning">4</p>
+                    <p class="text-xs text-base-content/60 mt-1">Protected roles</p>
+                </div>
+                <div class="bg-warning/10 p-3 rounded-lg">
+                    <span class="iconify lucide--lock size-5 text-warning"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Users Assigned</p>
+                    <p class="text-2xl font-semibold mt-1 text-info">1,267</p>
+                    <p class="text-xs text-base-content/60 mt-1">Total assignments</p>
+                </div>
+                <div class="bg-info/10 p-3 rounded-lg">
+                    <span class="iconify lucide--users size-5 text-info"></span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

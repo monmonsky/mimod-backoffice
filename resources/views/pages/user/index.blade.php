@@ -2,17 +2,80 @@
 
 @section('title', 'Users')
 @section('page_title', 'User')
-@section('page_subtitle', 'User Index')
+@section('page_subtitle', 'User Management')
 
 @section('content')
 <div class="flex items-center justify-between">
-    <p class="text-lg font-medium">User List</p>
+    <p class="text-lg font-medium">User Management</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
         <ul>
-            <li><a href="./dashboards-ecommerce.html">Nexus</a></li>
-            <li>Management</li>
-            <li class="opacity-80">User</li>
+            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
+            <li>Access Control</li>
+            <li class="opacity-80">Users</li>
         </ul>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Total Users</p>
+                    <p class="text-2xl font-semibold mt-1">1,267</p>
+                    <p class="text-xs text-base-content/60 mt-1">All registered users</p>
+                </div>
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <span class="iconify lucide--users size-5 text-primary"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Active Users</p>
+                    <p class="text-2xl font-semibold mt-1 text-success">1,245</p>
+                    <p class="text-xs text-base-content/60 mt-1">98.3% of total</p>
+                </div>
+                <div class="bg-success/10 p-3 rounded-lg">
+                    <span class="iconify lucide--user-check size-5 text-success"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Admin Users</p>
+                    <p class="text-2xl font-semibold mt-1 text-info">22</p>
+                    <p class="text-xs text-base-content/60 mt-1">Staff & managers</p>
+                </div>
+                <div class="bg-info/10 p-3 rounded-lg">
+                    <span class="iconify lucide--shield size-5 text-info"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">New This Month</p>
+                    <p class="text-2xl font-semibold mt-1 text-warning">87</p>
+                    <p class="text-xs text-base-content/60 mt-1">↑ 23% from last month</p>
+                </div>
+                <div class="bg-warning/10 p-3 rounded-lg">
+                    <span class="iconify lucide--user-plus size-5 text-warning"></span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

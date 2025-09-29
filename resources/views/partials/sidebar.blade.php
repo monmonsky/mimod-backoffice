@@ -282,18 +282,18 @@
                                 <span class="grow">Roles</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('permission.*') ? 'active' : '' }}"
+                                href="{{ route('permission.index') }}">
                                 <span class="grow">Permissions</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('activity-log.*') ? 'active' : '' }}"
+                                href="{{ route('activity-log.index') }}">
                                 <span class="grow">Activity Logs</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('session.*') ? 'active' : '' }}"
+                                href="{{ route('session.index') }}">
                                 <span class="grow">Sessions</span>
                             </a>
                         </div>
