@@ -498,7 +498,7 @@
                     class="btn btn-ghost flex items-center gap-2 px-1.5">
                     <div class="avatar">
                         <div class="bg-base-200 mask mask-squircle w-8">
-                            <img src="./images/avatars/1.png" alt="Avatar" />
+                            <img src="{{ asset('assets/images/avatars/1.png') }}" alt="Avatar" />
                         </div>
                     </div>
                     <div class="text-start">

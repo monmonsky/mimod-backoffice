@@ -15,14 +15,7 @@
 <div id="layout-sidebar" class="sidebar-menu sidebar-menu-activation">
     <div class="flex min-h-16 items-center justify-between gap-3 ps-5 pe-4">
         <a href="./dashboards-ecommerce.html">
-            <img
-                alt="logo-dark"
-                class="hidden h-5.5 dark:inline"
-                src="./images/logo/logo-dark.png" />
-            <img
-                alt="logo-light"
-                class="h-5.5 dark:hidden"
-                src="./images/logo/logo-light.png" />
+            @include('partials.logo')
         </a>
         <label
             for="layout-sidebar-hover-trigger"
@@ -38,12 +31,12 @@
         <div data-simplebar class="size-full">
             <div class="mb-3 space-y-0.5 px-2.5">
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Overview</p>
-                <a class="menu-item false active" href="{{ route('dashboard') }}">
+                <a class="menu-item false {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <span class="iconify lucide--monitor-dot size-4"></span>
                     <span class="grow">Dashboard</span>
                 </a>
                 
-                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Apps</p>
+                <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Manage</p>
                 <div class="group collapse">
                     <input
                         aria-label="Sidemenu item trigger"
@@ -51,8 +44,8 @@
                         class="peer"
                         name="sidebar-menu-parent-item" />
                     <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--shopping-bag size-4"></span>
-                        <span class="grow">Ecommerce</span>
+                        <span class="iconify lucide--package size-4"></span>
+                        <span class="grow">Products</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
@@ -61,33 +54,64 @@
                             <a
                                 class="menu-item false"
                                 href="./apps-ecommerce-orders.html">
-                                <span class="grow">Orders</span>
+                                <span class="grow">All Products</span>
                             </a>
                             <a
                                 class="menu-item false"
                                 href="./apps-ecommerce-products.html">
-                                <span class="grow">Category</span>
-                            </a>
-                            <a
-                                class="menu-item false"
-                                href="./apps-ecommerce-products.html">
-                                <span class="grow">Products</span>
+                                <span class="grow">Add New</span>
                             </a>
                             <a
                                 class="menu-item false"
                                 href="./apps-ecommerce-customers.html">
-                                <span class="grow">Customers</span>
+                                <span class="grow">Categories</span>
                             </a>
                         </div>
                     </div>
                 </div>
+                <div class="group collapse">
+                    <input
+                        aria-label="Sidemenu item trigger"
+                        type="checkbox"
+                        class="peer"
+                        name="sidebar-menu-parent-item" />
+                    <div class="collapse-title px-2.5 py-1.5">
+                        <span class="iconify lucide--receipt-text size-4"></span>
+                        <span class="grow">Orders</span>
+                        <span
+                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                    </div>
+                    <div class="collapse-content ms-6.5 !p-0">
+                        <div class="mt-0.5 space-y-0.5">
+                            <a
+                                class="menu-item false"
+                                href="./apps-ecommerce-orders.html">
+                                <span class="grow">All Orders</span>
+                            </a>
+                            <a
+                                class="menu-item false"
+                                href="./apps-ecommerce-products.html">
+                                <span class="grow">Return</span>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
                 <a class="menu-item" href="./apps-chat.html">
-                    <span class="iconify lucide--messages-square size-4"></span>
-                    <span class="grow">Chat</span>
+                    <span class="iconify lucide--users size-4"></span>
+                    <span class="grow">Customers</span>
+                </a>
+                <a class="menu-item" href="./apps-chat.html">
+                    <span class="iconify lucide--warehouse size-4"></span>
+                    <span class="grow">Inventory</span>
+                </a>
+                <a class="menu-item" href="./apps-chat.html">
+                    <span class="iconify lucide--dollar-sign size-4"></span>
+                    <span class="grow">Payouts</span>
                 </a>
 
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Management</p>
-                <a class="menu-item false" target="_blank" href="./landing.html">
+                <a class="menu-item false {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}">
                     <span class="iconify lucide--user size-4"></span>
                     <span class="grow">User</span>
                 </a>
