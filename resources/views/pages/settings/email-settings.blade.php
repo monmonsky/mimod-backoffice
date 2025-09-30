@@ -214,56 +214,6 @@
 
 @section('customjs')
 <script>
-    // Toast Notification Function
-    function showToast(message, type = 'success') {
-        const existing = document.querySelector('.custom-toast-container');
-        if (existing) existing.remove();
-
-        const toastContainer = document.createElement('div');
-        toastContainer.className = 'custom-toast-container';
-        toastContainer.style.cssText = 'position: fixed; top: 1.5rem; right: 1.5rem; z-index: 99999;';
-
-        const borderColor = type === 'error' ? 'border-error' : 'border-success';
-        const textColor = type === 'error' ? 'text-error' : 'text-success';
-        const iconClass = type === 'error' ? 'lucide--circle-x' : 'lucide--circle-check';
-
-        toastContainer.innerHTML = `
-            <div class="bg-base-100 border-l-4 ${borderColor} rounded shadow-md flex items-center gap-3 px-4 py-3 min-w-[300px] max-w-md">
-                <span class="iconify ${iconClass} size-5 ${textColor} flex-shrink-0"></span>
-                <span class="text-sm text-base-content flex-1">${message}</span>
-                <button type="button" class="btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100" onclick="this.closest('.custom-toast-container').remove()">
-                    <span class="iconify lucide--x size-4"></span>
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(toastContainer);
-
-        requestAnimationFrame(() => {
-            toastContainer.style.animation = 'slideIn 0.2s ease-out';
-        });
-
-        setTimeout(() => {
-            if (toastContainer.parentElement) {
-                toastContainer.style.opacity = '0';
-                toastContainer.style.transition = 'opacity 0.2s ease-out';
-                setTimeout(() => toastContainer.remove(), 200);
-            }
-        }, 4000);
-    }
-
-    // Add CSS animation
-    if (!document.querySelector('#toast-animations')) {
-        const style = document.createElement('style');
-        style.id = 'toast-animations';
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(20px); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
 
     // Wait for DOM to be ready
     if (document.readyState === 'loading') {
