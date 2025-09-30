@@ -1,0 +1,242 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ModuleSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $modules = [
+            // Dashboard
+            [
+                'name' => 'dashboard',
+                'display_name' => 'Dashboard',
+                'description' => 'Main dashboard overview',
+                'icon' => 'home',
+                'parent_id' => null,
+                'route' => '/dashboard',
+                'component' => 'Dashboard',
+                'sort_order' => 1,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // User Management
+            [
+                'name' => 'user_management',
+                'display_name' => 'User Management',
+                'description' => 'Manage system users',
+                'icon' => 'users',
+                'parent_id' => null,
+                'route' => '/admin/users',
+                'component' => 'UserManagement',
+                'sort_order' => 2,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'users',
+                'display_name' => 'Users',
+                'description' => 'Manage users',
+                'icon' => 'user',
+                'parent_id' => 2,
+                'route' => '/admin/users',
+                'component' => 'Users',
+                'sort_order' => 1,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'roles',
+                'display_name' => 'Roles',
+                'description' => 'Manage roles',
+                'icon' => 'shield',
+                'parent_id' => 2,
+                'route' => '/admin/roles',
+                'component' => 'Roles',
+                'sort_order' => 2,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'permissions',
+                'display_name' => 'Permissions',
+                'description' => 'Manage permissions',
+                'icon' => 'key',
+                'parent_id' => 2,
+                'route' => '/admin/permissions',
+                'component' => 'Permissions',
+                'sort_order' => 3,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Product Management
+            [
+                'name' => 'product_management',
+                'display_name' => 'Product Management',
+                'description' => 'Manage products and categories',
+                'icon' => 'box',
+                'parent_id' => null,
+                'route' => '/products',
+                'component' => 'ProductManagement',
+                'sort_order' => 3,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'products',
+                'display_name' => 'Products',
+                'description' => 'Manage products',
+                'icon' => 'package',
+                'parent_id' => 6,
+                'route' => '/products',
+                'component' => 'Products',
+                'sort_order' => 1,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'categories',
+                'display_name' => 'Categories',
+                'description' => 'Manage categories',
+                'icon' => 'folder',
+                'parent_id' => 6,
+                'route' => '/categories',
+                'component' => 'Categories',
+                'sort_order' => 2,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Order Management
+            [
+                'name' => 'order_management',
+                'display_name' => 'Order Management',
+                'description' => 'Manage orders and transactions',
+                'icon' => 'shopping-cart',
+                'parent_id' => null,
+                'route' => '/orders',
+                'component' => 'OrderManagement',
+                'sort_order' => 4,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders',
+                'display_name' => 'Orders',
+                'description' => 'Manage orders',
+                'icon' => 'file-text',
+                'parent_id' => 9,
+                'route' => '/orders',
+                'component' => 'Orders',
+                'sort_order' => 1,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'customers',
+                'display_name' => 'Customers',
+                'description' => 'Manage customers',
+                'icon' => 'users',
+                'parent_id' => 9,
+                'route' => '/customers',
+                'component' => 'Customers',
+                'sort_order' => 2,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Reports
+            [
+                'name' => 'reports',
+                'display_name' => 'Reports',
+                'description' => 'View system reports',
+                'icon' => 'bar-chart',
+                'parent_id' => null,
+                'route' => '/reports',
+                'component' => 'Reports',
+                'sort_order' => 5,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'sales_report',
+                'display_name' => 'Sales Report',
+                'description' => 'View sales reports',
+                'icon' => 'trending-up',
+                'parent_id' => 12,
+                'route' => '/reports/sales',
+                'component' => 'SalesReport',
+                'sort_order' => 1,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'financial_report',
+                'display_name' => 'Financial Report',
+                'description' => 'View financial reports',
+                'icon' => 'dollar-sign',
+                'parent_id' => 12,
+                'route' => '/reports/financial',
+                'component' => 'FinancialReport',
+                'sort_order' => 2,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings
+            [
+                'name' => 'settings',
+                'display_name' => 'Settings',
+                'description' => 'System settings',
+                'icon' => 'settings',
+                'parent_id' => null,
+                'route' => '/settings',
+                'component' => 'Settings',
+                'sort_order' => 6,
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        DB::table('modules')->insert($modules);
+    }
+}
