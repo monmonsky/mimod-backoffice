@@ -7,6 +7,8 @@
     name="description"
     content="Start your next project with Nexus, designed for effortless customization to streamline your development process" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <link rel="shortcut icon" href="{{ asset('assets/images/favicon-dark.png') }}" media="(prefers-color-scheme: dark)" />
 <link rel="shortcut icon" href="{{ asset('assets/images/favicon-light.png') }}" media="(prefers-color-scheme: light)" />
 

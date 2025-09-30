@@ -1,13 +1,24 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import { globSync } from 'glob';
+import { readFileSync } from 'node:fs';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: [
+                ...globSync('resources/css/**/*.css'),
+                ...globSync('resources/js/**/*.js')
+            ],
             refresh: true,
         }),
-        tailwindcss(),
     ],
+    server: {
+        host: 'mimod-bo.aksarahati.space',
+        https: {
+            key: readFileSync('/home/vlasusu/ssl/mimod-bo/privkey.pem'),
+            cert: readFileSync('/home/vlasusu/ssl/mimod-bo/fullchain.pem'),
+        },
+        cors: true,
+    }
 });
