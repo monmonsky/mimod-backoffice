@@ -262,7 +262,8 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-parent-item"
+                        {{ request()->routeIs('user.*', 'role.*', 'permission.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--shield size-4"></span>
                         <span class="grow">User Management</span>
@@ -316,23 +317,23 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.store-info') ? 'active' : '' }}"
+                                href="{{ route('settings.store-info') }}">
                                 <span class="grow">Store Info</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.email-settings') ? 'active' : '' }}"
+                                href="{{ route('settings.email-settings') }}">
                                 <span class="grow">Email Settings</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.seo-meta') ? 'active' : '' }}"
+                                href="{{ route('settings.seo-meta') }}">
                                 <span class="grow">SEO & Meta</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.system-config') ? 'active' : '' }}"
+                                href="{{ route('settings.system-config') }}">
                                 <span class="grow">System Config</span>
                             </a>
                         </div>
@@ -354,18 +355,18 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.payment-methods') ? 'active' : '' }}"
+                                href="{{ route('settings.payment-methods') }}">
                                 <span class="grow">Payment Methods</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.midtrans-config') ? 'active' : '' }}"
+                                href="{{ route('settings.midtrans-config') }}">
                                 <span class="grow">Midtrans Config</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.tax-settings') ? 'active' : '' }}"
+                                href="{{ route('settings.tax-settings') }}">
                                 <span class="grow">Tax Settings</span>
                             </a>
                         </div>
@@ -387,18 +388,18 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.shipping.shipping-methods') ? 'active' : '' }}"
+                                href="{{ route('settings.shipping.shipping-methods') }}">
                                 <span class="grow">Shipping Methods</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.shipping.rajaongkir-config') ? 'active' : '' }}"
+                                href="{{ route('settings.shipping.rajaongkir-config') }}">
                                 <span class="grow">RajaOngkir Config</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('settings.shipping.origin-address') ? 'active' : '' }}"
+                                href="{{ route('settings.shipping.origin-address') }}">
                                 <span class="grow">Origin Address</span>
                             </a>
                         </div>
