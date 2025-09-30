@@ -4,6 +4,126 @@
 @section('page_title', 'Settings')
 @section('page_subtitle', 'Store Information')
 
+@push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Select2 DaisyUI Integration */
+    .select2-container--default .select2-selection--single {
+        height: 3rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.5rem !important;
+        background-color: #ffffff !important;
+        padding: 0.5rem 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-container--default .select2-selection--single:hover {
+        border-color: #9ca3af !important;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #3b82f6 !important;
+        outline: 2px solid #3b82f630 !important;
+        outline-offset: 2px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #1f2937 !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #9ca3af !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 3rem !important;
+        right: 0.75rem !important;
+    }
+
+    .select2-dropdown {
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.5rem !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        z-index: 9999 !important;
+    }
+
+    .select2-search--dropdown {
+        padding: 0.75rem !important;
+        background-color: #ffffff !important;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+        padding: 0.5rem 0.75rem !important;
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-results {
+        background-color: #ffffff !important;
+    }
+
+    .select2-results__options {
+        max-height: 300px !important;
+    }
+
+    .select2-container--default .select2-results__option {
+        padding: 0.75rem 1.5rem !important;
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+        line-height: 1.5 !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #dbeafe !important;
+        color: #1e40af !important;
+    }
+
+    .select2-container--default .select2-results__option--disabled {
+        color: #9ca3af !important;
+        background-color: #f9fafb !important;
+    }
+
+    /* Dark mode support */
+    [data-theme="dark"] .select2-container--default .select2-selection--single {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-dropdown {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-results__option {
+        background-color: #1f2937 !important;
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Store Information</p>
@@ -104,38 +224,68 @@
                 <div class="divider"></div>
 
                 <!-- Address Information -->
-                <h3 class="text-lg font-medium">Address Information</h3>
+                <h3 class="text-lg font-medium flex items-center gap-2">
+                    <span class="iconify lucide--map-pin size-5"></span>
+                    Address Information
+                </h3>
+
+                <!-- Province -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Province <span class="text-error">*</span></span>
+                    </label>
+                    <select class="select select-bordered w-full" id="store-province" name="province_code" required>
+                        <option value="">Select Province</option>
+                    </select>
+                    <input type="hidden" name="province_name" id="province-name">
+                </div>
+
+                <!-- Regency / City -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">City / Regency <span class="text-error">*</span></span>
+                    </label>
+                    <select class="select select-bordered w-full" id="store-regency" name="regency_code" required disabled>
+                        <option value="">Select province first</option>
+                    </select>
+                    <input type="hidden" name="regency_name" id="regency-name">
+                </div>
+
+                <!-- District -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">District / Kecamatan <span class="text-error">*</span></span>
+                    </label>
+                    <select class="select select-bordered w-full" id="store-district" name="district_code" required disabled>
+                        <option value="">Select regency first</option>
+                    </select>
+                    <input type="hidden" name="district_name" id="district-name">
+                </div>
+
+                <!-- Village -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Village / Kelurahan</span>
+                    </label>
+                    <select class="select select-bordered w-full" id="store-village" name="village_code" disabled>
+                        <option value="">Select district first</option>
+                    </select>
+                    <input type="hidden" name="village_name" id="village-name">
+                </div>
 
                 <!-- Street Address -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Street Address <span class="text-error">*</span></span>
                     </label>
-                    <textarea name="street" placeholder="Street address" class="textarea w-full">{{ $storeAddress['street'] ?? 'Jl. Sudirman No. 123' }}</textarea>
-                </div>
-
-                <!-- City & State -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">City <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="city" placeholder="City" class="input input-bordered w-full" value="{{ $storeAddress['city'] ?? 'Jakarta' }}" />
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">State/Province <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="state" placeholder="State" class="input input-bordered w-full" value="{{ $storeAddress['state'] ?? 'DKI Jakarta' }}" />
-                    </div>
+                    <textarea name="street" placeholder="Street address, building number, etc." class="textarea textarea-bordered w-full h-24" required>{{ $storeAddress['street'] ?? 'Jl. Sudirman No. 123' }}</textarea>
                 </div>
 
                 <!-- Postal Code & Country -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Postal Code <span class="text-error">*</span></span>
+                            <span class="label-text">Postal Code</span>
                         </label>
                         <input type="text" name="postal_code" placeholder="12345" class="input input-bordered w-full" value="{{ $storeAddress['postal_code'] ?? '12180' }}" />
                     </div>
@@ -144,7 +294,7 @@
                         <label class="label">
                             <span class="label-text">Country</span>
                         </label>
-                        <input type="text" name="country" placeholder="Country" class="input input-bordered w-full" value="{{ $storeAddress['country'] ?? 'Indonesia' }}" />
+                        <input type="text" name="country" placeholder="Country" class="input input-bordered w-full" value="{{ $storeAddress['country'] ?? 'Indonesia' }}" readonly />
                     </div>
                 </div>
 
@@ -240,12 +390,195 @@
 @endsection
 
 @section('customjs')
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <!-- CDN for FilePond -->
 <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
 <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
 <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
 <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 <script>
+    // Initialize Select2 first
+    $(document).ready(function() {
+        initializeSelect2();
+        loadProvinces();
+        setupCascadeHandlers();
+        loadSavedValues();
+    });
+
+    function initializeSelect2() {
+        $('#store-province, #store-regency, #store-district, #store-village').select2({
+            placeholder: 'Select an option',
+            allowClear: false,
+            width: '100%',
+            minimumResultsForSearch: 5,
+            theme: 'default',
+            dropdownAutoWidth: true
+        });
+    }
+
+    async function loadProvinces() {
+        const $provinceSelect = $('#store-province');
+        $provinceSelect.empty().append('<option value="">Loading provinces...</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch('/settings/shipping/api/wilayah/provinces');
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $provinceSelect.empty().append('<option value="">Select Province</option>');
+                data.data.forEach(province => {
+                    $provinceSelect.append(new Option(province.name, province.code));
+                });
+                $provinceSelect.prop('disabled', false);
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
+            $provinceSelect.empty().append('<option value="">Error loading provinces</option>');
+        }
+    }
+
+    async function loadRegencies(provinceCode) {
+        const $regencySelect = $('#store-regency');
+        $regencySelect.empty().append('<option value="">Loading regencies...</option>').prop('disabled', true);
+        $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+        $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/regencies/${provinceCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $regencySelect.empty().append('<option value="">Select Regency</option>');
+                data.data.forEach(regency => {
+                    $regencySelect.append(new Option(regency.name, regency.code));
+                });
+                $regencySelect.prop('disabled', false);
+            }
+        } catch (error) {
+            console.error('Error loading regencies:', error);
+            $regencySelect.empty().append('<option value="">Error loading regencies</option>');
+        }
+    }
+
+    async function loadDistricts(regencyCode) {
+        const $districtSelect = $('#store-district');
+        $districtSelect.empty().append('<option value="">Loading districts...</option>').prop('disabled', true);
+        $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/districts/${regencyCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $districtSelect.empty().append('<option value="">Select District</option>');
+                data.data.forEach(district => {
+                    $districtSelect.append(new Option(district.name, district.code));
+                });
+                $districtSelect.prop('disabled', false);
+            }
+        } catch (error) {
+            console.error('Error loading districts:', error);
+            $districtSelect.empty().append('<option value="">Error loading districts</option>');
+        }
+    }
+
+    async function loadVillages(districtCode) {
+        const $villageSelect = $('#store-village');
+        $villageSelect.empty().append('<option value="">Loading villages...</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/villages/${districtCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $villageSelect.empty().append('<option value="">Select Village (Optional)</option>');
+                data.data.forEach(village => {
+                    $villageSelect.append(new Option(village.name, village.code));
+                });
+                $villageSelect.prop('disabled', false);
+            }
+        } catch (error) {
+            console.error('Error loading villages:', error);
+            $villageSelect.empty().append('<option value="">Error loading villages</option>');
+        }
+    }
+
+    function setupCascadeHandlers() {
+        $('#store-province').on('change', function() {
+            const provinceCode = $(this).val();
+            const provinceName = $(this).find('option:selected').text();
+            $('#province-name').val(provinceName);
+
+            if (provinceCode && provinceCode !== '') {
+                loadRegencies(provinceCode);
+            } else {
+                $('#store-regency').empty().append('<option value="">Select province first</option>').prop('disabled', true);
+                $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        $('#store-regency').on('change', function() {
+            const regencyCode = $(this).val();
+            const regencyName = $(this).find('option:selected').text();
+            $('#regency-name').val(regencyName);
+
+            if (regencyCode && regencyCode !== '' && !regencyCode.includes('Loading')) {
+                loadDistricts(regencyCode);
+            } else {
+                $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        $('#store-district').on('change', function() {
+            const districtCode = $(this).val();
+            const districtName = $(this).find('option:selected').text();
+            $('#district-name').val(districtName);
+
+            if (districtCode && districtCode !== '' && !districtCode.includes('Loading')) {
+                loadVillages(districtCode);
+            } else {
+                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        $('#store-village').on('change', function() {
+            const villageName = $(this).find('option:selected').text();
+            $('#village-name').val(villageName);
+        });
+    }
+
+    function loadSavedValues() {
+        @if(isset($storeAddress['province_code']) && $storeAddress['province_code'])
+            setTimeout(() => {
+                $('#store-province').val('{{ $storeAddress["province_code"] }}').trigger('change');
+
+                @if(isset($storeAddress['regency_code']) && $storeAddress['regency_code'])
+                    setTimeout(() => {
+                        $('#store-regency').val('{{ $storeAddress["regency_code"] }}').trigger('change');
+
+                        @if(isset($storeAddress['district_code']) && $storeAddress['district_code'])
+                            setTimeout(() => {
+                                $('#store-district').val('{{ $storeAddress["district_code"] }}').trigger('change');
+
+                                @if(isset($storeAddress['village_code']) && $storeAddress['village_code'])
+                                    setTimeout(() => {
+                                        $('#store-village').val('{{ $storeAddress["village_code"] }}').trigger('change');
+                                    }, 500);
+                                @endif
+                            }, 500);
+                        @endif
+                    }, 500);
+                @endif
+            }, 500);
+        @endif
+    }
+
     // Register FilePond plugins
     FilePond.registerPlugin(FilePondPluginImagePreview);
 

@@ -77,30 +77,43 @@ Route::group(['prefix' => 'settings'], function () {
     Route::post('/system-config', 'App\Http\Controllers\Settings\GeneralController@updateSystemConfig')->name('settings.system-config.update');
 
     // Payment Settings Routes
-    Route::get('/payment-methods', 'App\Http\Controllers\Settings\PaymentController@paymentMethods')->name('settings.payment-methods');
+    Route::prefix('payment')->group(function () {
+        Route::get('/methods', 'App\Http\Controllers\Settings\PaymentController@paymentMethods')->name('settings.payment.methods');
 
-    Route::get('/midtrans-config', 'App\Http\Controllers\Settings\PaymentController@midtransConfig')->name('settings.midtrans-config');
-    Route::post('/midtrans-config/api', 'App\Http\Controllers\Settings\PaymentController@updateMidtransApi')->name('settings.midtrans-config.api.update');
-    Route::post('/midtrans-config/methods', 'App\Http\Controllers\Settings\PaymentController@updateMidtransPaymentMethods')->name('settings.midtrans-config.methods.update');
-    Route::post('/midtrans-config/transaction', 'App\Http\Controllers\Settings\PaymentController@updateMidtransTransaction')->name('settings.midtrans-config.transaction.update');
-    Route::post('/midtrans-config/test', 'App\Http\Controllers\Settings\PaymentController@testMidtransConnection')->name('settings.midtrans-config.test');
-    Route::post('/midtrans-config/sync', 'App\Http\Controllers\Settings\PaymentController@syncMidtransPaymentMethods')->name('settings.midtrans-config.sync');
+        Route::get('/midtrans-config', 'App\Http\Controllers\Settings\PaymentController@midtransConfig')->name('settings.payment.midtrans-config');
+        Route::post('/midtrans-config/api', 'App\Http\Controllers\Settings\PaymentController@updateMidtransApi')->name('settings.payment.midtrans-config.api.update');
+        Route::post('/midtrans-config/methods', 'App\Http\Controllers\Settings\PaymentController@updateMidtransPaymentMethods')->name('settings.payment.midtrans-config.methods.update');
+        Route::post('/midtrans-config/transaction', 'App\Http\Controllers\Settings\PaymentController@updateMidtransTransaction')->name('settings.payment.midtrans-config.transaction.update');
+        Route::post('/midtrans-config/test', 'App\Http\Controllers\Settings\PaymentController@testMidtransConnection')->name('settings.payment.midtrans-config.test');
+        Route::post('/midtrans-config/sync', 'App\Http\Controllers\Settings\PaymentController@syncMidtransPaymentMethods')->name('settings.payment.midtrans-config.sync');
 
-    Route::get('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@taxSettings')->name('settings.tax-settings');
-    Route::post('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@updateTaxSettings')->name('settings.tax-settings.update');
+        Route::get('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@taxSettings')->name('settings.payment.tax-settings');
+        Route::post('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@updateTaxSettings')->name('settings.payment.tax-settings.update');
+    });
 
     // Shipping Settings Routes
-    Route::get('/shipping-methods', 'App\Http\Controllers\Settings\ShippingController@shippingMethods')->name('settings.shipping.shipping-methods');
+    Route::prefix('shipping')->group(function () {
+        Route::get('/methods', 'App\Http\Controllers\Settings\ShippingController@shippingMethods')->name('settings.shipping.methods');
 
-    Route::get('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@rajaongkirConfig')->name('settings.shipping.rajaongkir-config');
-    Route::post('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@updateRajaongkirConfig')->name('settings.shipping.rajaongkir-config.update');
-    Route::post('/rajaongkir-config/test', 'App\Http\Controllers\Settings\ShippingController@testRajaongkirConnection')->name('settings.shipping.rajaongkir-config.test');
+        Route::get('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@rajaongkirConfig')->name('settings.shipping.rajaongkir-config');
+        Route::post('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@updateRajaongkirConfig')->name('settings.shipping.rajaongkir-config.update');
+        Route::post('/rajaongkir-config/test', 'App\Http\Controllers\Settings\ShippingController@testRajaongkirConnection')->name('settings.shipping.rajaongkir-config.test');
+        Route::post('/rajaongkir-config/sync-locations', 'App\Http\Controllers\Settings\ShippingController@syncLocations')->name('settings.shipping.rajaongkir-config.sync-locations');
 
-    Route::get('/origin-address', 'App\Http\Controllers\Settings\ShippingController@originAddress')->name('settings.shipping.origin-address');
-    Route::post('/origin-address', 'App\Http\Controllers\Settings\ShippingController@updateOriginAddress')->name('settings.shipping.origin-address.update');
+        Route::get('/origin-address', 'App\Http\Controllers\Settings\ShippingController@originAddress')->name('settings.shipping.origin-address');
+        Route::post('/origin-address', 'App\Http\Controllers\Settings\ShippingController@updateOriginAddress')->name('settings.shipping.origin-address.update');
 
-    // Shipping API Routes (untuk dropdown & calculations)
-    Route::get('/api/provinces', 'App\Http\Controllers\Settings\ShippingController@getProvinces')->name('settings.shipping.api.provinces');
-    Route::get('/api/cities/{provinceId}', 'App\Http\Controllers\Settings\ShippingController@getCities')->name('settings.shipping.api.cities');
-    Route::post('/api/calculate-shipping', 'App\Http\Controllers\Settings\ShippingController@calculateShippingCost')->name('settings.shipping.api.calculate');
+        // Shipping API Routes (untuk dropdown & calculations)
+        Route::get('/api/provinces', 'App\Http\Controllers\Settings\ShippingController@getProvinces')->name('settings.shipping.api.provinces');
+        Route::get('/api/cities', 'App\Http\Controllers\Settings\ShippingController@getAllCities')->name('settings.shipping.api.all-cities');
+        Route::get('/api/cities/{provinceId}', 'App\Http\Controllers\Settings\ShippingController@getCities')->name('settings.shipping.api.cities');
+        Route::get('/api/districts/{cityId}', 'App\Http\Controllers\Settings\ShippingController@getDistricts')->name('settings.shipping.api.districts');
+        Route::post('/api/calculate-shipping', 'App\Http\Controllers\Settings\ShippingController@calculateShippingCost')->name('settings.shipping.api.calculate');
+
+        // Wilayah.id API Routes (untuk origin address)
+        Route::get('/api/wilayah/provinces', 'App\Http\Controllers\Settings\ShippingController@getWilayahProvinces')->name('settings.shipping.api.wilayah.provinces');
+        Route::get('/api/wilayah/regencies/{provinceCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahRegencies')->name('settings.shipping.api.wilayah.regencies');
+        Route::get('/api/wilayah/districts/{regencyCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahDistricts')->name('settings.shipping.api.wilayah.districts');
+        Route::get('/api/wilayah/villages/{districtCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahVillages')->name('settings.shipping.api.wilayah.villages');
+    });
 });

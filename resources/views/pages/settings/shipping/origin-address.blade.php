@@ -4,6 +4,126 @@
 @section('page_title', 'Settings')
 @section('page_subtitle', 'Origin Address')
 
+@push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Select2 DaisyUI Integration */
+    .select2-container--default .select2-selection--single {
+        height: 3rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.5rem !important;
+        background-color: #ffffff !important;
+        padding: 0.5rem 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-container--default .select2-selection--single:hover {
+        border-color: #9ca3af !important;
+    }
+
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: #3b82f6 !important;
+        outline: 2px solid #3b82f630 !important;
+        outline-offset: 2px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #1f2937 !important;
+        line-height: 1.5 !important;
+        padding: 0 !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+        color: #9ca3af !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 3rem !important;
+        right: 0.75rem !important;
+    }
+
+    .select2-dropdown {
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.5rem !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        z-index: 9999 !important;
+    }
+
+    .select2-search--dropdown {
+        padding: 0.75rem !important;
+        background-color: #ffffff !important;
+    }
+
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+        padding: 0.5rem 0.75rem !important;
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+    }
+
+    .select2-results {
+        background-color: #ffffff !important;
+    }
+
+    .select2-results__options {
+        max-height: 300px !important;
+    }
+
+    .select2-container--default .select2-results__option {
+        padding: 0.75rem 1.5rem !important;
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+        line-height: 1.5 !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #dbeafe !important;
+        color: #1e40af !important;
+    }
+
+    .select2-container--default .select2-results__option--disabled {
+        color: #9ca3af !important;
+        background-color: #f9fafb !important;
+    }
+
+    /* Dark mode support */
+    [data-theme="dark"] .select2-container--default .select2-selection--single {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-dropdown {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-results__option {
+        background-color: #1f2937 !important;
+        color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #3b82f6 !important;
+        color: #ffffff !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Origin Address Configuration</p>
@@ -23,7 +143,7 @@
         <span class="iconify lucide--info size-5"></span>
         <div class="flex-1">
             <h4 class="font-medium">Origin Address for Shipping Calculation</h4>
-            <p class="text-sm">Configure the warehouse or store address used as the origin point for shipping cost calculations with RajaOngkir</p>
+            <p class="text-sm">Configure the warehouse or store address used as the origin point for shipping cost calculations. Data will be retrieved from Wilayah.id API.</p>
         </div>
     </div>
 
@@ -33,418 +153,418 @@
             <h2 class="card-title text-lg">Primary Origin Address</h2>
             <p class="text-sm text-base-content/70 mb-4">Main warehouse or store address for shipping</p>
 
-            <form class="space-y-6">
+            <form id="originAddressForm" class="space-y-6">
+                @csrf
+
                 <!-- Location Name -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Location Name <span class="text-error">*</span></span>
+                        <span class="label-text">Location Name</span>
                     </label>
-                    <input type="text" placeholder="e.g., Main Warehouse" class="input input-bordered w-full" value="Main Warehouse - Jakarta" />
+                    <input type="text" name="location_name" placeholder="e.g., Main Warehouse"
+                           class="input input-bordered w-full"
+                           value="{{ $origin['location_name'] ?? 'Main Warehouse' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Internal name for this location</span>
                     </label>
                 </div>
 
-                <!-- Contact Information -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Contact Person <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" placeholder="Enter contact name" class="input input-bordered w-full" value="John Doe" />
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Phone Number <span class="text-error">*</span></span>
-                        </label>
-                        <input type="tel" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="+62 812 3456 7890" />
-                    </div>
-                </div>
-
                 <div class="divider"></div>
 
                 <!-- Address Information -->
-                <h3 class="font-medium">Address Details</h3>
+                <h3 class="font-medium flex items-center gap-2">
+                    <span class="iconify lucide--map-pin size-5"></span>
+                    Address Details
+                </h3>
 
-                <!-- Province & City -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Province <span class="text-error">*</span></span>
-                        </label>
-                        <select class="select select-bordered w-full" id="province">
-                            <option disabled>Select Province</option>
-                            <option value="6" selected>DKI Jakarta</option>
-                            <option value="9">Jawa Barat</option>
-                            <option value="10">Jawa Tengah</option>
-                            <option value="11">Jawa Timur</option>
-                        </select>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Province ID: <span class="font-mono">6</span></span>
-                        </label>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">City / Regency <span class="text-error">*</span></span>
-                        </label>
-                        <select class="select select-bordered w-full" id="city">
-                            <option disabled>Select City</option>
-                            <option value="151" selected>Jakarta Selatan</option>
-                            <option value="152">Jakarta Pusat</option>
-                            <option value="153">Jakarta Utara</option>
-                            <option value="154">Jakarta Barat</option>
-                            <option value="155">Jakarta Timur</option>
-                        </select>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">City ID: <span class="font-mono">151</span></span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Subdistrict -->
+                <!-- Province -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Subdistrict (Kecamatan)</span>
+                        <span class="label-text">Province <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full">
-                        <option disabled>Select Subdistrict</option>
-                        <option selected>Kebayoran Baru</option>
-                        <option>Kebayoran Lama</option>
-                        <option>Cilandak</option>
-                        <option>Pasar Minggu</option>
-                        <option>Mampang Prapatan</option>
+                    <select class="select select-bordered w-full" id="origin-province" name="province_code" required>
+                        <option value="">Select Province</option>
                     </select>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Optional: Used for more accurate shipping calculations</span>
-                    </label>
+                    <input type="hidden" name="province_name" id="province-name">
                 </div>
 
-                <!-- Street Address -->
+                <!-- Regency / City -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Street Address <span class="text-error">*</span></span>
+                        <span class="label-text">City / Regency <span class="text-error">*</span></span>
                     </label>
-                    <textarea class="textarea textarea-bordered" rows="3" placeholder="Enter complete street address">Jl. Sudirman No. 123, Kebayoran Baru</textarea>
+                    <select class="select select-bordered w-full" id="origin-regency" name="regency_code" required disabled>
+                        <option value="">Select province first</option>
+                    </select>
+                    <input type="hidden" name="regency_name" id="regency-name">
+                </div>
+
+                <!-- District -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">District / Kecamatan <span class="text-error">*</span></span>
+                    </label>
+                    <select class="select select-bordered w-full" id="origin-district" name="district_code" required disabled>
+                        <option value="">Select regency first</option>
+                    </select>
+                    <input type="hidden" name="district_name" id="district-name">
+                </div>
+
+                <!-- Village -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Village / Kelurahan</span>
+                    </label>
+                    <select class="select select-bordered w-full" id="origin-village" name="village_code" disabled>
+                        <option value="">Select district first</option>
+                    </select>
+                    <input type="hidden" name="village_name" id="village-name">
                 </div>
 
                 <!-- Postal Code -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Postal Code <span class="text-error">*</span></span>
+                        <span class="label-text">Postal Code</span>
                     </label>
-                    <input type="text" placeholder="12180" class="input input-bordered w-full" value="12180" />
+                    <input type="text" name="postal_code" placeholder="e.g., 12345"
+                           class="input input-bordered w-full"
+                           value="{{ $origin['postal_code'] ?? '' }}" />
                 </div>
 
-                <!-- Coordinates (Optional) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Latitude (Optional)</span>
-                        </label>
-                        <input type="text" placeholder="-6.2088" class="input input-bordered w-full" value="-6.2088" />
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Longitude (Optional)</span>
-                        </label>
-                        <input type="text" placeholder="106.8456" class="input input-bordered w-full" value="106.8456" />
-                    </div>
-                </div>
-
-                <div class="alert alert-warning">
-                    <span class="iconify lucide--map-pin size-5"></span>
-                    <div class="flex-1">
-                        <p class="text-sm">Use Google Maps to find exact coordinates of your warehouse location</p>
-                    </div>
-                    <a href="https://www.google.com/maps" target="_blank" class="btn btn-sm btn-outline">
-                        <span class="iconify lucide--external-link size-4"></span>
-                        Open Maps
-                    </a>
+                <!-- Full Address -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Full Address <span class="text-error">*</span></span>
+                    </label>
+                    <textarea name="address" placeholder="Street address, building number, etc."
+                              class="textarea textarea-bordered w-full h-24" required>{{ $origin['address'] ?? '' }}</textarea>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">Detailed street address</span>
+                    </label>
                 </div>
 
                 <div class="divider"></div>
 
-                <!-- Additional Settings -->
-                <h3 class="font-medium">Additional Settings</h3>
+                <!-- Contact Information -->
+                <h3 class="font-medium flex items-center gap-2">
+                    <span class="iconify lucide--user size-5"></span>
+                    Contact Information
+                </h3>
 
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">Set as default origin</span>
-                            <p class="text-xs text-base-content/60">Use this address as the default shipping origin</p>
-                        </div>
-                    </label>
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Contact Person</span>
+                        </label>
+                        <input type="text" name="contact_person" placeholder="Enter contact name"
+                               class="input input-bordered w-full"
+                               value="{{ $origin['contact_person'] ?? '' }}" />
+                    </div>
 
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="checkbox checkbox-primary" checked />
-                        <span class="label-text">Active</span>
-                    </label>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Phone Number</span>
+                        </label>
+                        <input type="tel" name="phone" placeholder="+62 812 3456 7890"
+                               class="input input-bordered w-full"
+                               value="{{ $origin['phone'] ?? '' }}" />
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
+                <div class="card-actions justify-end pt-4">
+                    <button type="button" class="btn btn-ghost" onclick="window.location.reload()">
+                        <span class="iconify lucide--rotate-ccw size-5"></span>
+                        Reset
+                    </button>
                     <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
+                        <span class="iconify lucide--save size-5"></span>
                         Save Origin Address
                     </button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- Additional Origin Addresses -->
-    <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="card-title text-lg">Additional Origin Addresses</h2>
-                    <p class="text-sm text-base-content/70">Manage multiple warehouse or store locations</p>
-                </div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="add_origin_modal.showModal()">
-                    <span class="iconify lucide--plus size-4"></span>
-                    Add Origin Address
-                </button>
-            </div>
-
-            <!-- Origin Address List -->
-            <div class="space-y-3">
-                <!-- Secondary Warehouse -->
-                <div class="border border-base-300 rounded-lg p-4">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <h3 class="font-medium">Secondary Warehouse - Bandung</h3>
-                                <span class="badge badge-outline badge-sm">Secondary</span>
-                            </div>
-                            <div class="space-y-1 text-sm text-base-content/70">
-                                <p><span class="iconify lucide--map-pin size-3.5 inline"></span> Jl. Asia Afrika No. 45, Bandung</p>
-                                <p><span class="iconify lucide--building-2 size-3.5 inline"></span> Bandung, Jawa Barat (23) - City ID: 23</p>
-                                <p><span class="iconify lucide--phone size-3.5 inline"></span> +62 822 3456 7890</p>
-                            </div>
-                            <div class="flex gap-2 mt-3">
-                                <span class="badge badge-success badge-xs">Active</span>
-                            </div>
-                        </div>
-                        <div class="inline-flex gap-1">
-                            <button class="btn btn-square btn-ghost btn-sm">
-                                <span class="iconify lucide--pencil size-4"></span>
-                            </button>
-                            <button class="btn btn-square btn-ghost btn-sm">
-                                <span class="iconify lucide--copy size-4"></span>
-                            </button>
-                            <button class="btn btn-square btn-error btn-outline btn-sm border-transparent">
-                                <span class="iconify lucide--trash size-4"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Store Surabaya -->
-                <div class="border border-base-300 rounded-lg p-4">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <h3 class="font-medium">Store - Surabaya</h3>
-                                <span class="badge badge-outline badge-sm">Store</span>
-                            </div>
-                            <div class="space-y-1 text-sm text-base-content/70">
-                                <p><span class="iconify lucide--map-pin size-3.5 inline"></span> Jl. Tunjungan No. 88, Surabaya</p>
-                                <p><span class="iconify lucide--building-2 size-3.5 inline"></span> Surabaya, Jawa Timur (444) - City ID: 444</p>
-                                <p><span class="iconify lucide--phone size-3.5 inline"></span> +62 831 3456 7890</p>
-                            </div>
-                            <div class="flex gap-2 mt-3">
-                                <span class="badge badge-error badge-xs">Inactive</span>
-                            </div>
-                        </div>
-                        <div class="inline-flex gap-1">
-                            <button class="btn btn-square btn-ghost btn-sm">
-                                <span class="iconify lucide--pencil size-4"></span>
-                            </button>
-                            <button class="btn btn-square btn-ghost btn-sm">
-                                <span class="iconify lucide--copy size-4"></span>
-                            </button>
-                            <button class="btn btn-square btn-error btn-outline btn-sm border-transparent">
-                                <span class="iconify lucide--trash size-4"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Testing Tool -->
-    <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <h2 class="card-title text-lg">Test Shipping Cost Calculation</h2>
-            <p class="text-sm text-base-content/70 mb-4">Test shipping cost from your origin address to any destination</p>
-
-            <form class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Origin</span>
-                        </label>
-                        <select class="select select-bordered w-full">
-                            <option selected>Main Warehouse - Jakarta (151)</option>
-                            <option>Secondary Warehouse - Bandung (23)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Destination City ID</span>
-                        </label>
-                        <input type="number" placeholder="e.g., 444" class="input input-bordered w-full" value="444" />
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Weight (gram)</span>
-                        </label>
-                        <input type="number" placeholder="1000" class="input input-bordered w-full" value="1000" />
-                    </div>
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Courier</span>
-                    </label>
-                    <select class="select select-bordered w-full">
-                        <option selected>JNE</option>
-                        <option>J&T Express</option>
-                        <option>SiCepat</option>
-                        <option>All Couriers</option>
-                    </select>
-                </div>
-
-                <div class="flex gap-2">
-                    <button type="button" class="btn btn-primary">
-                        <span class="iconify lucide--calculator size-4"></span>
-                        Calculate Shipping Cost
-                    </button>
-                </div>
-
-                <!-- Test Results -->
-                <div class="alert alert-success hidden" id="test-results">
-                    <div class="flex-1">
-                        <h4 class="font-medium mb-2">Shipping Cost Results</h4>
-                        <div class="space-y-1 text-sm">
-                            <p>• JNE REG: Rp 15,000 (3-4 days)</p>
-                            <p>• JNE YES: Rp 35,000 (1-2 days)</p>
-                            <p>• JNE OKE: Rp 12,000 (4-5 days)</p>
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
-
-<!-- Modal: Add Origin Address -->
-<dialog id="add_origin_modal" class="modal">
-    <div class="modal-box max-w-2xl">
-        <div class="flex items-center justify-between text-lg font-medium mb-4">
-            Add Origin Address
-            <form method="dialog">
-                <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
-                    <span class="iconify lucide--x size-4"></span>
-                </button>
-            </form>
-        </div>
-
-        <form class="space-y-4">
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Location Name <span class="text-error">*</span></span>
-                </label>
-                <input type="text" placeholder="e.g., Warehouse 2 - Medan" class="input input-bordered w-full" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Contact Person</span>
-                    </label>
-                    <input type="text" placeholder="Contact name" class="input input-bordered w-full" />
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Phone</span>
-                    </label>
-                    <input type="tel" placeholder="+62 812 3456 7890" class="input input-bordered w-full" />
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Province <span class="text-error">*</span></span>
-                    </label>
-                    <select class="select select-bordered w-full">
-                        <option disabled selected>Select Province</option>
-                        <option>DKI Jakarta</option>
-                        <option>Jawa Barat</option>
-                        <option>Jawa Tengah</option>
-                    </select>
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">City <span class="text-error">*</span></span>
-                    </label>
-                    <select class="select select-bordered w-full">
-                        <option disabled selected>Select City</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Street Address <span class="text-error">*</span></span>
-                </label>
-                <textarea class="textarea textarea-bordered" placeholder="Complete street address"></textarea>
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Postal Code</span>
-                </label>
-                <input type="text" placeholder="12180" class="input input-bordered w-full" />
-            </div>
-
-            <div class="modal-action">
-                <form method="dialog">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                </form>
-                <button type="submit" class="btn btn-primary">
-                    <span class="iconify lucide--plus size-4"></span>
-                    Add Address
-                </button>
-            </div>
-        </form>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
-
 @endsection
 
 @section('customjs')
+<!-- jQuery (required for Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-    // Province and City selection logic
-    document.getElementById('province')?.addEventListener('change', function() {
-        // Fetch cities based on province
-        console.log('Province changed:', this.value);
+    $(document).ready(function() {
+        // Initialize Select2
+        initializeSelect2();
+
+        // Load provinces on page load
+        loadProvinces();
+
+        // Cascade event handlers
+        setupCascadeHandlers();
+
+        // Form submission
+        setupFormSubmission();
+
+        // Load saved values if exists
+        loadSavedValues();
     });
+
+    function initializeSelect2() {
+        $('#origin-province, #origin-regency, #origin-district, #origin-village').select2({
+            placeholder: 'Select an option',
+            allowClear: false,
+            width: '100%',
+            minimumResultsForSearch: 5,
+            theme: 'default',
+            dropdownAutoWidth: true
+        });
+    }
+
+    async function loadProvinces() {
+        const $provinceSelect = $('#origin-province');
+        $provinceSelect.empty().append('<option value="">Loading provinces...</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch('/settings/shipping/api/wilayah/provinces');
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $provinceSelect.empty().append('<option value="">Select Province</option>');
+
+                data.data.forEach(province => {
+                    $provinceSelect.append(new Option(province.name, province.code));
+                });
+
+                $provinceSelect.prop('disabled', false);
+                console.log(`Loaded ${data.data.length} provinces`);
+            } else {
+                showMessage('error', 'Failed to load provinces: ' + (data.message || 'Unknown error'));
+                $provinceSelect.empty().append('<option value="">Failed to load provinces</option>');
+            }
+        } catch (error) {
+            console.error('Error loading provinces:', error);
+            showMessage('error', 'Error loading provinces: ' + error.message);
+            $provinceSelect.empty().append('<option value="">Error loading provinces</option>');
+        }
+    }
+
+    async function loadRegencies(provinceCode) {
+        const $regencySelect = $('#origin-regency');
+        $regencySelect.empty().append('<option value="">Loading regencies...</option>').prop('disabled', true);
+
+        // Clear dependent dropdowns
+        $('#origin-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+        $('#origin-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/regencies/${provinceCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $regencySelect.empty().append('<option value="">Select Regency</option>');
+
+                data.data.forEach(regency => {
+                    $regencySelect.append(new Option(regency.name, regency.code));
+                });
+
+                $regencySelect.prop('disabled', false);
+                console.log(`Loaded ${data.data.length} regencies for province ${provinceCode}`);
+            } else {
+                showMessage('error', 'Failed to load regencies: ' + (data.message || 'Unknown error'));
+                $regencySelect.empty().append('<option value="">Failed to load regencies</option>');
+            }
+        } catch (error) {
+            console.error('Error loading regencies:', error);
+            showMessage('error', 'Error loading regencies: ' + error.message);
+            $regencySelect.empty().append('<option value="">Error loading regencies</option>');
+        }
+    }
+
+    async function loadDistricts(regencyCode) {
+        const $districtSelect = $('#origin-district');
+        $districtSelect.empty().append('<option value="">Loading districts...</option>').prop('disabled', true);
+
+        // Clear dependent dropdown
+        $('#origin-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/districts/${regencyCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $districtSelect.empty().append('<option value="">Select District</option>');
+
+                data.data.forEach(district => {
+                    $districtSelect.append(new Option(district.name, district.code));
+                });
+
+                $districtSelect.prop('disabled', false);
+                console.log(`Loaded ${data.data.length} districts for regency ${regencyCode}`);
+            } else {
+                showMessage('error', 'Failed to load districts: ' + (data.message || 'Unknown error'));
+                $districtSelect.empty().append('<option value="">Failed to load districts</option>');
+            }
+        } catch (error) {
+            console.error('Error loading districts:', error);
+            showMessage('error', 'Error loading districts: ' + error.message);
+            $districtSelect.empty().append('<option value="">Error loading districts</option>');
+        }
+    }
+
+    async function loadVillages(districtCode) {
+        const $villageSelect = $('#origin-village');
+        $villageSelect.empty().append('<option value="">Loading villages...</option>').prop('disabled', true);
+
+        try {
+            const response = await fetch(`/settings/shipping/api/wilayah/villages/${districtCode}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                $villageSelect.empty().append('<option value="">Select Village (Optional)</option>');
+
+                data.data.forEach(village => {
+                    $villageSelect.append(new Option(village.name, village.code));
+                });
+
+                $villageSelect.prop('disabled', false);
+                console.log(`Loaded ${data.data.length} villages for district ${districtCode}`);
+            } else {
+                showMessage('error', 'Failed to load villages: ' + (data.message || 'Unknown error'));
+                $villageSelect.empty().append('<option value="">Failed to load villages</option>');
+            }
+        } catch (error) {
+            console.error('Error loading villages:', error);
+            showMessage('error', 'Error loading villages: ' + error.message);
+            $villageSelect.empty().append('<option value="">Error loading villages</option>');
+        }
+    }
+
+    function setupCascadeHandlers() {
+        // Province change
+        $('#origin-province').on('change', function() {
+            const provinceCode = $(this).val();
+            const provinceName = $(this).find('option:selected').text();
+
+            $('#province-name').val(provinceName);
+
+            if (provinceCode && provinceCode !== '') {
+                loadRegencies(provinceCode);
+            } else {
+                $('#origin-regency').empty().append('<option value="">Select province first</option>').prop('disabled', true);
+                $('#origin-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+                $('#origin-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        // Regency change
+        $('#origin-regency').on('change', function() {
+            const regencyCode = $(this).val();
+            const regencyName = $(this).find('option:selected').text();
+
+            $('#regency-name').val(regencyName);
+
+            if (regencyCode && regencyCode !== '' && !regencyCode.includes('Loading')) {
+                loadDistricts(regencyCode);
+            } else {
+                $('#origin-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
+                $('#origin-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        // District change
+        $('#origin-district').on('change', function() {
+            const districtCode = $(this).val();
+            const districtName = $(this).find('option:selected').text();
+
+            $('#district-name').val(districtName);
+
+            if (districtCode && districtCode !== '' && !districtCode.includes('Loading')) {
+                loadVillages(districtCode);
+            } else {
+                $('#origin-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
+            }
+        });
+
+        // Village change
+        $('#origin-village').on('change', function() {
+            const villageName = $(this).find('option:selected').text();
+            $('#village-name').val(villageName);
+        });
+    }
+
+    function setupFormSubmission() {
+        $('#originAddressForm').on('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitButton = $(this).find('button[type="submit"]');
+
+            submitButton.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Saving...');
+
+            try {
+                const response = await fetch('/settings/shipping/origin-address', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('success', data.message || 'Origin address saved successfully');
+                } else {
+                    showMessage('error', data.message || 'Failed to save origin address');
+                }
+            } catch (error) {
+                console.error('Error saving origin address:', error);
+                showMessage('error', 'Error saving origin address: ' + error.message);
+            } finally {
+                submitButton.prop('disabled', false).html('<span class="iconify lucide--save size-5"></span> Save Origin Address');
+            }
+        });
+    }
+
+    function loadSavedValues() {
+        // Load saved values from backend if exists
+        @if(isset($origin['province_code']) && $origin['province_code'])
+            setTimeout(() => {
+                $('#origin-province').val('{{ $origin["province_code"] }}').trigger('change');
+
+                @if(isset($origin['regency_code']) && $origin['regency_code'])
+                    setTimeout(() => {
+                        $('#origin-regency').val('{{ $origin["regency_code"] }}').trigger('change');
+
+                        @if(isset($origin['district_code']) && $origin['district_code'])
+                            setTimeout(() => {
+                                $('#origin-district').val('{{ $origin["district_code"] }}').trigger('change');
+
+                                @if(isset($origin['village_code']) && $origin['village_code'])
+                                    setTimeout(() => {
+                                        $('#origin-village').val('{{ $origin["village_code"] }}').trigger('change');
+                                    }, 500);
+                                @endif
+                            }, 500);
+                        @endif
+                    }, 500);
+                @endif
+            }, 500);
+        @endif
+    }
+
+    function showMessage(type, message) {
+        // toast.js format: showToast(message, type, duration)
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, type, 4000);
+        } else {
+            console.warn('Toast function not loaded, using fallback');
+            console.log(`Toast [${type}]: ${message}`);
+        }
+    }
 </script>
 @endsection

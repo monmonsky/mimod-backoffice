@@ -143,11 +143,17 @@ class GeneralController extends Controller
 
             // Update store.address
             $this->settingsRepo->updateValue('store.address', [
+                'province_code' => $request->province_code,
+                'province_name' => $request->province_name,
+                'regency_code' => $request->regency_code,
+                'regency_name' => $request->regency_name,
+                'district_code' => $request->district_code,
+                'district_name' => $request->district_name,
+                'village_code' => $request->village_code,
+                'village_name' => $request->village_name,
                 'street' => $request->street,
-                'city' => $request->city,
-                'state' => $request->state,
                 'postal_code' => $request->postal_code,
-                'country' => $request->country,
+                'country' => $request->country ?? 'Indonesia',
             ]);
 
             // Update store.social

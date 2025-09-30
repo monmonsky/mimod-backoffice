@@ -11,6 +11,7 @@
 <link rel="shortcut icon" href="{{ asset('assets/images/favicon-light.png') }}" media="(prefers-color-scheme: light)" />
 
 <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}" />
+@stack('styles')
 <script>
     try {
         const localStorageItem = localStorage.getItem("__NEXUS_CONFIG_v3.0__")

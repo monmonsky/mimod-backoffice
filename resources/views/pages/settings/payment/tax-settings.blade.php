@@ -24,7 +24,7 @@
             <h2 class="card-title text-lg">General Tax Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure tax calculation and display settings</p>
 
-            <form id="taxConfigForm" action="{{ route('settings.tax-settings.update') }}" method="POST" class="space-y-6">
+            <form id="taxConfigForm" action="{{ route('settings.payment.tax-settings.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Enable Tax -->
                 <div class="form-control">
