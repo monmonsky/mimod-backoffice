@@ -22,13 +22,14 @@
             <h2 class="card-title text-lg">Basic Information</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure your store's basic details and contact information</p>
 
-            <form class="space-y-6 mt-3">
+            <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.store-info.update') }}" method="POST">
+                @csrf
                 <!-- Store Name -->
                 <div class="form-control">
                     <label class="fieldset-label" for="name">
                         <span class="label-text">Store Name <span class="text-error">*</span></span>
                     </label>
-                    <input type="text" placeholder="Enter store name" class="input input-bordered w-full" value="Minimoda" />
+                    <input type="text" name="store_name" placeholder="Enter store name" class="input input-bordered w-full" value="{{ $storeInfo['name'] ?? 'Minimoda' }}" required />
                 </div>
 
                 <!-- Store Description -->
@@ -36,7 +37,15 @@
                     <label class="fieldset-label" for="name">
                         <span class="label-text">Store Description</span>
                     </label>
-                    <textarea placeholder="Description" id="description" class="textarea w-full">Premium children's clothing store offering quality fashion for kids aged 0-12 years.</textarea>
+                    <textarea name="description" placeholder="Description" id="description" class="textarea w-full">{{ $storeInfo['description'] ?? 'Premium children\'s clothing store offering quality fashion for kids aged 0-12 years.' }}</textarea>
+                </div>
+
+                <!-- Store Tagline -->
+                <div class="form-control">
+                    <label class="fieldset-label">
+                        <span class="label-text">Tagline</span>
+                    </label>
+                    <input type="text" name="tagline" placeholder="Enter tagline" class="input input-bordered w-full" value="{{ $storeInfo['tagline'] ?? 'Fashion for Little Stars' }}" />
                 </div>
 
                 <!-- Store Logo -->
@@ -46,9 +55,9 @@
                     </label>
                     <div class="flex items-start gap-4">
                         <div class="flex-1">
-                            <div id="image-preview-filepond-demo"></div>
+                            <input type="file" id="store-logo-upload" name="logo" accept="image/png,image/jpeg,image/jpg,image/svg+xml" />
                             <label class="label">
-                                <span class="label-text-alt text-base-content/60">Recommended size: 200x200px (PNG, JPG)</span>
+                                <span class="label-text-alt text-base-content/60">Recommended size: 200x200px (PNG, JPG, SVG - Max: 2MB)</span>
                             </label>
                         </div>
                     </div>
@@ -64,7 +73,7 @@
                     <label class="label">
                         <span class="label-text">Email Address <span class="text-error">*</span></span>
                     </label>
-                    <input type="email" placeholder="store@example.com" class="input input-bordered w-full" value="contact@minimoda.com" />
+                    <input type="email" name="email" placeholder="store@example.com" class="input input-bordered w-full" value="{{ $storeContact['email'] ?? 'contact@minimoda.com' }}" required />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Primary email for customer communications</span>
                     </label>
@@ -75,7 +84,7 @@
                     <label class="label">
                         <span class="label-text">Phone Number <span class="text-error">*</span></span>
                     </label>
-                    <input type="tel" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="+62 812 3456 7890" />
+                    <input type="tel" name="phone" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="{{ $storeContact['phone'] ?? '+62 812 3456 7890' }}" required />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Customer service contact number</span>
                     </label>
@@ -86,7 +95,7 @@
                     <label class="label">
                         <span class="label-text">WhatsApp Number</span>
                     </label>
-                    <input type="tel" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="+62 812 3456 7890" />
+                    <input type="tel" name="whatsapp" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="{{ $storeContact['whatsapp'] ?? '+62 812 3456 7890' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">WhatsApp contact for customer support</span>
                     </label>
@@ -102,56 +111,40 @@
                     <label class="label">
                         <span class="label-text">Street Address <span class="text-error">*</span></span>
                     </label>
-                    <textarea placeholder="Description" id="description" class="textarea w-full">Jl. Sudirman No. 123.</textarea>
+                    <textarea name="street" placeholder="Street address" class="textarea w-full">{{ $storeAddress['street'] ?? 'Jl. Sudirman No. 123' }}</textarea>
                 </div>
 
-                <!-- Province & City -->
+                <!-- City & State -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Province <span class="text-error">*</span></span>
-                        </label>
-                        <select class="select select-bordered w-full">
-                            <option disabled>Select Province</option>
-                            <option selected>DKI Jakarta</option>
-                            <option>Jawa Barat</option>
-                            <option>Jawa Tengah</option>
-                            <option>Jawa Timur</option>
-                        </select>
-                    </div>
-
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">City <span class="text-error">*</span></span>
                         </label>
-                        <select class="select select-bordered w-full">
-                            <option disabled>Select City</option>
-                            <option selected>Jakarta Selatan</option>
-                            <option>Jakarta Pusat</option>
-                            <option>Jakarta Utara</option>
-                        </select>
+                        <input type="text" name="city" placeholder="City" class="input input-bordered w-full" value="{{ $storeAddress['city'] ?? 'Jakarta' }}" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">State/Province <span class="text-error">*</span></span>
+                        </label>
+                        <input type="text" name="state" placeholder="State" class="input input-bordered w-full" value="{{ $storeAddress['state'] ?? 'DKI Jakarta' }}" />
                     </div>
                 </div>
 
-                <!-- Subdistrict & Postal Code -->
+                <!-- Postal Code & Country -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Subdistrict</span>
-                        </label>
-                        <select class="select select-bordered w-full">
-                            <option disabled>Select Subdistrict</option>
-                            <option selected>Kebayoran Baru</option>
-                            <option>Kebayoran Lama</option>
-                            <option>Cilandak</option>
-                        </select>
-                    </div>
-
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Postal Code <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" placeholder="12345" class="input input-bordered w-full" value="12180" />
+                        <input type="text" name="postal_code" placeholder="12345" class="input input-bordered w-full" value="{{ $storeAddress['postal_code'] ?? '12180' }}" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Country</span>
+                        </label>
+                        <input type="text" name="country" placeholder="Country" class="input input-bordered w-full" value="{{ $storeAddress['country'] ?? 'Indonesia' }}" />
                     </div>
                 </div>
 
@@ -168,7 +161,7 @@
                         </label>
                         <label class="input input-bordered flex items-center gap-2">
                             <span class="iconify lucide--instagram size-4 text-base-content/60"></span>
-                            <input type="text" placeholder="@minimoda_official" class="grow" value="@minimoda_official" />
+                            <input type="text" name="instagram" placeholder="@minimoda_official" class="grow" value="{{ $storeSocial['instagram'] ?? '@minimoda_official' }}" />
                         </label>
                     </div>
 
@@ -179,7 +172,7 @@
                         </label>
                         <label class="input input-bordered flex items-center gap-2">
                             <span class="iconify lucide--facebook size-4 text-base-content/60"></span>
-                            <input type="text" placeholder="minimoda.official" class="grow" value="minimoda.official" />
+                            <input type="text" name="facebook" placeholder="minimoda.official" class="grow" value="{{ $storeSocial['facebook'] ?? 'minimoda.official' }}" />
                         </label>
                     </div>
 
@@ -190,7 +183,7 @@
                         </label>
                         <label class="input input-bordered flex items-center gap-2">
                             <span class="iconify lucide--twitter size-4 text-base-content/60"></span>
-                            <input type="text" placeholder="@minimoda" class="grow" value="@minimoda" />
+                            <input type="text" name="twitter" placeholder="@minimoda" class="grow" value="{{ $storeSocial['twitter'] ?? '@minimoda' }}" />
                         </label>
                     </div>
 
@@ -201,7 +194,18 @@
                         </label>
                         <label class="input input-bordered flex items-center gap-2">
                             <span class="iconify lucide--video size-4 text-base-content/60"></span>
-                            <input type="text" placeholder="@minimoda_id" class="grow" value="@minimoda_id" />
+                            <input type="text" name="tiktok" placeholder="@minimoda_id" class="grow" value="{{ $storeSocial['tiktok'] ?? '@minimoda_id' }}" />
+                        </label>
+                    </div>
+
+                    <!-- YouTube -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">YouTube</span>
+                        </label>
+                        <label class="input input-bordered flex items-center gap-2">
+                            <span class="iconify lucide--youtube size-4 text-base-content/60"></span>
+                            <input type="text" name="youtube" placeholder="Minimoda Official" class="grow" value="{{ $storeSocial['youtube'] ?? '' }}" />
                         </label>
                     </div>
                 </div>
@@ -215,10 +219,7 @@
                     <label class="label">
                         <span class="label-text">Business Hours</span>
                     </label>
-                    <textarea placeholder="Description" id="description" class="textarea w-full">Monday - Friday: 09:00 - 18:00
-Saturday: 09:00 - 15:00
-Sunday: Closed
-                    </textarea>
+                    <textarea name="operating_hours" placeholder="Enter operating hours" class="textarea w-full">{{ $operatingHours['hours'] ?? "Monday - Friday: 09:00 - 18:00\nSaturday: 09:00 - 15:00\nSunday: Closed" }}</textarea>
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Store operating hours for customer reference</span>
                     </label>
@@ -241,13 +242,214 @@ Sunday: Closed
 @section('customjs')
 <!-- CDN for FilePond -->
 <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
-<link
-    href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css"
-    rel="stylesheet" />
+<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
 <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
 <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-<script src="{{ asset('assets/js/components/filepond.js') }}"></script>
 <script>
-    // Add any custom JavaScript for file upload preview, etc.
+    // Register FilePond plugins
+    FilePond.registerPlugin(FilePondPluginImagePreview);
+
+    // Initialize FilePond for logo upload
+    const logoInput = document.querySelector('#store-logo-upload');
+
+    const filepondConfig = {
+        credits: false,
+        allowImagePreview: true,
+        imagePreviewHeight: 150,
+        stylePanelLayout: 'compact',
+        acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'],
+        maxFileSize: '2MB',
+        server: {
+            process: {
+                url: '{{ route("settings.store-info.upload-logo") }}',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                onload: (response) => {
+                    const data = JSON.parse(response);
+                    showToast('Logo uploaded successfully!', 'success');
+                    return data.path;
+                },
+                onerror: (response) => {
+                    const data = JSON.parse(response);
+                    showToast(data.message || 'Failed to upload logo', 'error');
+                    return response;
+                }
+            },
+            revert: {
+                url: '{{ route("settings.store-info.delete-logo") }}',
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                onload: (response) => {
+                    const data = JSON.parse(response);
+                    showToast('Logo deleted successfully!', 'success');
+                },
+                onerror: (response) => {
+                    showToast('Failed to delete logo', 'error');
+                }
+            },
+            load: (source, load, error, progress, abort, headers) => {
+                console.log('FilePond loading file from:', '/storage/' + source);
+                fetch('/storage/' + source)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load image');
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        console.log('File loaded successfully:', blob);
+                        load(blob);
+                    })
+                    .catch(err => {
+                        console.error('FilePond load error:', err);
+                        error('Failed to load image');
+                    });
+
+                return {
+                    abort: () => {
+                        abort();
+                    }
+                };
+            }
+        }
+    };
+
+    @if(isset($storeInfo['logo']) && $storeInfo['logo'])
+    // Load existing logo
+    console.log('Loading existing logo:', '{{ $storeInfo["logo"] }}');
+    filepondConfig.files = [{
+        source: '{{ $storeInfo["logo"] }}',
+        options: {
+            type: 'local'
+        }
+    }];
+    @endif
+
+    const logoPond = FilePond.create(logoInput, filepondConfig);
+
+    // Debug: Log when file is loaded
+    logoPond.on('addfile', (error, file) => {
+        if (error) {
+            console.error('FilePond addfile error:', error);
+        } else {
+            console.log('FilePond file added:', file);
+        }
+    });
+</script>
+<script>
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.custom-toast-container');
+        if (existing) existing.remove();
+
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'custom-toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 1.5rem; right: 1.5rem; z-index: 99999;';
+
+        const borderColor = type === 'error' ? 'border-error' : 'border-success';
+        const textColor = type === 'error' ? 'text-error' : 'text-success';
+        const iconClass = type === 'error' ? 'lucide--circle-x' : 'lucide--circle-check';
+
+        toastContainer.innerHTML = `
+            <div class="bg-base-100 border-l-4 ${borderColor} rounded shadow-md flex items-center gap-3 px-4 py-3 min-w-[300px] max-w-md">
+                <span class="iconify ${iconClass} size-5 ${textColor} flex-shrink-0"></span>
+                <span class="text-sm text-base-content flex-1">${message}</span>
+                <button type="button" class="btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100" onclick="this.closest('.custom-toast-container').remove()">
+                    <span class="iconify lucide--x size-4"></span>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(toastContainer);
+
+        requestAnimationFrame(() => {
+            toastContainer.style.animation = 'slideIn 0.2s ease-out';
+        });
+
+        setTimeout(() => {
+            if (toastContainer.parentElement) {
+                toastContainer.style.opacity = '0';
+                toastContainer.style.transition = 'opacity 0.2s ease-out';
+                setTimeout(() => toastContainer.remove(), 200);
+            }
+        }, 4000);
+    }
+
+    // Add CSS animation
+    if (!document.querySelector('#toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(20px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const form = document.getElementById('storeInfoForm');
+
+        if (!form) {
+            console.error('Form #storeInfoForm not found!');
+            return;
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(data.message || 'Settings saved successfully!', 'success');
+                } else {
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join(', ');
+                        showToast(errorMessages, 'error');
+                    } else {
+                        showToast(data.message || 'Failed to save settings', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while saving settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    }
 </script>
 @endsection

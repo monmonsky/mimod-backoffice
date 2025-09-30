@@ -16,24 +16,24 @@
     </div>
 </div>
 
-<div class="mt-6 space-y-6">
+<form id="seoMetaForm" action="{{ route('settings.seo-meta.update') }}" method="POST" class="mt-6 space-y-6">
+    @csrf
+
     <!-- Basic SEO Settings -->
     <div class="bg-base-100 card shadow">
         <div class="card-body">
             <h2 class="card-title text-lg">Basic SEO Settings</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure meta tags and SEO information for your store</p>
 
-            <form class="space-y-6">
+            <div class="space-y-6">
                 <!-- Site Title -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Site Title <span class="text-error">*</span></span>
                     </label>
-                    <input type="text" placeholder="Enter site title" class="input input-bordered w-full" value="Minimoda - Premium Kids Fashion Store" />
+                    <input type="text" name="site_title" placeholder="Enter site title" class="input input-bordered w-full" value="{{ $seoBasic['site_title'] ?? 'Minimoda - Fashion for Little Stars' }}" required />
                     <label class="label">
-                        <span class="label-text-alt text-base-content/60">
-                            <span class="font-mono">60</span> characters • This appears in browser tabs and search results
-                        </span>
+                        <span class="label-text-alt text-base-content/60">This appears in browser tabs and search results</span>
                     </label>
                 </div>
 
@@ -42,11 +42,9 @@
                     <label class="label">
                         <span class="label-text">Meta Description <span class="text-error">*</span></span>
                     </label>
-                    <textarea id="description" class="textarea w-full h-24" placeholder="Enter meta description">Shop premium quality children's clothing at Minimoda. Discover trendy and comfortable fashion for kids aged 0-12 years. Free shipping on orders over Rp 250,000.</textarea>
+                    <textarea name="meta_description" class="textarea textarea-bordered w-full h-24" placeholder="Enter meta description" required>{{ $seoBasic['meta_description'] ?? 'Premium children fashion e-commerce platform in Indonesia' }}</textarea>
                     <label class="label">
-                        <span class="label-text-alt text-base-content/60">
-                            <span class="font-mono">155</span> characters • Recommended: 150-160 characters
-                        </span>
+                        <span class="label-text-alt text-base-content/60">Recommended: 150-160 characters</span>
                     </label>
                 </div>
 
@@ -55,374 +53,259 @@
                     <label class="label">
                         <span class="label-text">Meta Keywords</span>
                     </label>
-                    <input type="text" placeholder="Enter keywords separated by commas" class="input input-bordered w-full" value="kids fashion, children clothing, baby clothes, toddler wear, minimoda" />
+                    <input type="text" name="meta_keywords" placeholder="Enter keywords separated by commas" class="input input-bordered w-full" value="{{ $seoBasic['meta_keywords'] ?? 'kids fashion, children clothing, baby clothes, fashion anak' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Separate keywords with commas</span>
                     </label>
                 </div>
 
-                <!-- Canonical URL -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Canonical URL</span>
-                    </label>
-                    <input type="url" placeholder="https://www.minimoda.com" class="input input-bordered w-full" value="https://www.minimoda.com" />
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">The preferred URL for your website</span>
-                    </label>
-                </div>
+                <!-- Analytics & Tracking -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Google Analytics ID</span>
+                        </label>
+                        <input type="text" name="google_analytics_id" placeholder="G-XXXXXXXXXX" class="input input-bordered w-full" value="{{ $seoBasic['google_analytics_id'] ?? '' }}" />
+                    </div>
 
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save SEO Settings
-                    </button>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Google Search Console</span>
+                        </label>
+                        <input type="text" name="google_search_console" placeholder="Verification code" class="input input-bordered w-full" value="{{ $seoBasic['google_search_console'] ?? '' }}" />
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Facebook Pixel ID</span>
+                        </label>
+                        <input type="text" name="facebook_pixel_id" placeholder="Facebook Pixel ID" class="input input-bordered w-full" value="{{ $seoBasic['facebook_pixel_id'] ?? '' }}" />
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <!-- Open Graph Settings -->
     <div class="bg-base-100 card shadow">
         <div class="card-body">
-            <div class="flex items-start justify-between mb-4">
-                <div>
-                    <h2 class="card-title text-lg">Open Graph (Facebook)</h2>
-                    <p class="text-sm text-base-content/70">Control how your content appears when shared on Facebook and other platforms</p>
-                </div>
-                <div class="form-control">
-                    <label class="label cursor-pointer gap-2">
-                        <span class="label-text text-sm">Enable OG</span>
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                    </label>
-                </div>
-            </div>
+            <h2 class="card-title text-lg">Open Graph (Facebook)</h2>
+            <p class="text-sm text-base-content/70 mb-4">Control how your content appears when shared on Facebook</p>
 
-            <form class="space-y-6">
-                <!-- OG Title -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">OG Title</span>
-                    </label>
-                    <input type="text" placeholder="Enter Open Graph title" class="input input-bordered w-full" value="Minimoda - Premium Kids Fashion Store" />
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Title for social media sharing</span>
-                    </label>
-                </div>
-
-                <!-- OG Description -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">OG Description</span>
-                    </label>
-                    <textarea id="description" class="textarea w-full" placeholder="Enter Open Graph description">Discover premium quality children's clothing at Minimoda. Trendy, comfortable, and affordable fashion for kids aged 0-12 years.</textarea>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Description for social media sharing</span>
-                    </label>
-                </div>
-
-                <!-- OG Image -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">OG Image</span>
-                    </label>
-                    <div class="flex items-start gap-4">
-                        <div class="avatar">
-                            <div class="w-32 rounded">
-                                <img src="https://placehold.co/1200x630/png?text=OG+IMAGE" alt="OG Image" />
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <input type="file" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
-                            <label class="label">
-                                <span class="label-text-alt text-base-content/60">Recommended size: 1200x630px (PNG or JPG)</span>
-                            </label>
-                            <input type="url" placeholder="Or enter image URL" class="input input-bordered w-full mt-2" value="https://www.minimoda.com/og-image.jpg" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- OG Type & Site Name -->
+            <div class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">OG Title</span>
+                        </label>
+                        <input type="text" name="og_title" placeholder="Enter Open Graph title" class="input input-bordered w-full" value="{{ $seoOpengraph['og_title'] ?? 'Minimoda - Fashion for Little Stars' }}" />
+                    </div>
+
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">OG Type</span>
                         </label>
-                        <select class="select select-bordered w-full">
-                            <option selected>website</option>
-                            <option>article</option>
-                            <option>product</option>
-                            <option>business</option>
+                        <select name="og_type" class="select select-bordered w-full">
+                            <option value="website" {{ ($seoOpengraph['og_type'] ?? 'website') == 'website' ? 'selected' : '' }}>Website</option>
+                            <option value="article" {{ ($seoOpengraph['og_type'] ?? '') == 'article' ? 'selected' : '' }}>Article</option>
+                            <option value="product" {{ ($seoOpengraph['og_type'] ?? '') == 'product' ? 'selected' : '' }}>Product</option>
                         </select>
                     </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">OG Site Name</span>
-                        </label>
-                        <input type="text" placeholder="Enter site name" class="input input-bordered w-full" value="Minimoda" />
-                    </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save OG Settings
-                    </button>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">OG Description</span>
+                    </label>
+                    <textarea name="og_description" class="textarea textarea-bordered w-full" placeholder="Enter Open Graph description">{{ $seoOpengraph['og_description'] ?? 'Premium children fashion e-commerce' }}</textarea>
                 </div>
-            </form>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">OG Image URL</span>
+                    </label>
+                    <input type="url" name="og_image" placeholder="https://example.com/og-image.jpg" class="input input-bordered w-full" value="{{ $seoOpengraph['og_image'] ?? '' }}" />
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">Recommended: 1200x630px</span>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Twitter Card Settings -->
     <div class="bg-base-100 card shadow">
         <div class="card-body">
-            <div class="flex items-start justify-between mb-4">
-                <div>
-                    <h2 class="card-title text-lg">Twitter Card</h2>
-                    <p class="text-sm text-base-content/70">Customize how your content appears when shared on Twitter/X</p>
-                </div>
-                <div class="form-control">
-                    <label class="label cursor-pointer gap-2">
-                        <span class="label-text text-sm">Enable Twitter Card</span>
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                    </label>
-                </div>
-            </div>
+            <h2 class="card-title text-lg">Twitter Card</h2>
+            <p class="text-sm text-base-content/70 mb-4">Customize how your content appears on Twitter/X</p>
 
-            <form class="space-y-6">
-                <!-- Card Type -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Card Type</span>
-                    </label>
-                    <select class="select select-bordered w-full">
-                        <option selected>summary_large_image</option>
-                        <option>summary</option>
-                        <option>app</option>
-                        <option>player</option>
-                    </select>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Type of Twitter card to display</span>
-                    </label>
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Card Type</span>
+                        </label>
+                        <select name="twitter_card" class="select select-bordered w-full">
+                            <option value="summary_large_image" {{ ($seoTwitter['twitter_card'] ?? 'summary_large_image') == 'summary_large_image' ? 'selected' : '' }}>Summary Large Image</option>
+                            <option value="summary" {{ ($seoTwitter['twitter_card'] ?? '') == 'summary' ? 'selected' : '' }}>Summary</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Twitter Site</span>
+                        </label>
+                        <input type="text" name="twitter_site" placeholder="@username" class="input input-bordered w-full" value="{{ $seoTwitter['twitter_site'] ?? '@minimoda' }}" />
+                    </div>
                 </div>
 
-                <!-- Twitter Title -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Twitter Title</span>
                     </label>
-                    <input type="text" placeholder="Enter Twitter title" class="input input-bordered w-full" value="Minimoda - Premium Kids Fashion Store" />
+                    <input type="text" name="twitter_title" placeholder="Enter Twitter title" class="input input-bordered w-full" value="{{ $seoTwitter['twitter_title'] ?? 'Minimoda - Fashion for Little Stars' }}" />
                 </div>
 
-                <!-- Twitter Description -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Twitter Description</span>
                     </label>
-                    <textarea id="description" class="textarea w-full" placeholder="Enter Twitter description">Shop premium quality children's clothing at Minimoda. Trendy and comfortable fashion for kids.</textarea>
+                    <textarea name="twitter_description" class="textarea textarea-bordered w-full" placeholder="Enter Twitter description">{{ $seoTwitter['twitter_description'] ?? 'Premium children fashion e-commerce' }}</textarea>
                 </div>
 
-                <!-- Twitter Image -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">Twitter Image</span>
+                        <span class="label-text">Twitter Image URL</span>
                     </label>
-                    <div class="flex items-start gap-4">
-                        <div class="avatar">
-                            <div class="w-32 rounded">
-                                <img src="https://placehold.co/1200x675/png?text=TWITTER+IMAGE" alt="Twitter Image" />
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <input type="file" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
-                            <label class="label">
-                                <span class="label-text-alt text-base-content/60">Recommended size: 1200x675px (PNG or JPG)</span>
-                            </label>
-                            <input type="url" placeholder="Or enter image URL" class="input input-bordered w-full mt-2" value="https://www.minimoda.com/twitter-card.jpg" />
-                        </div>
-                    </div>
+                    <input type="url" name="twitter_image" placeholder="https://example.com/twitter-image.jpg" class="input input-bordered w-full" value="{{ $seoTwitter['twitter_image'] ?? '' }}" />
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">Recommended: 1200x675px</span>
+                    </label>
                 </div>
-
-                <!-- Twitter Site & Creator -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Twitter Site Handle</span>
-                        </label>
-                        <label class="input input-bordered flex items-center gap-2">
-                            <span class="text-base-content/60">@</span>
-                            <input type="text" placeholder="minimoda" class="grow" value="minimoda" />
-                        </label>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Your store's Twitter username</span>
-                        </label>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Twitter Creator Handle</span>
-                        </label>
-                        <label class="input input-bordered flex items-center gap-2">
-                            <span class="text-base-content/60">@</span>
-                            <input type="text" placeholder="minimoda" class="grow" value="minimoda" />
-                        </label>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Content creator's Twitter username</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Twitter Card Settings
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- Structured Data (Schema.org) -->
-    <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <h2 class="card-title text-lg">Structured Data (Schema.org)</h2>
-            <p class="text-sm text-base-content/70 mb-4">Add structured data markup to help search engines understand your content</p>
-
-            <form class="space-y-6">
-                <!-- Organization Schema -->
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">Organization Schema</span>
-                            <p class="text-xs text-base-content/60">Include organization information in structured data</p>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Product Schema -->
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">Product Schema</span>
-                            <p class="text-xs text-base-content/60">Add product schema to product pages</p>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Breadcrumb Schema -->
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">Breadcrumb Schema</span>
-                            <p class="text-xs text-base-content/60">Add breadcrumb navigation schema</p>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- WebSite Schema -->
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">WebSite Schema</span>
-                            <p class="text-xs text-base-content/60">Add website schema with search functionality</p>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Structured Data Settings
-                    </button>
-                </div>
-            </form>
-        </div>
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+            <span class="iconify lucide--save size-4"></span>
+            Save SEO Settings
+        </button>
     </div>
-
-    <!-- Robots & Sitemap -->
-    <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <h2 class="card-title text-lg">Robots & Sitemap</h2>
-            <p class="text-sm text-base-content/70 mb-4">Configure robots.txt and sitemap settings</p>
-
-            <form class="space-y-6">
-                <!-- Robots.txt -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Robots.txt Content</span>
-                    </label>
-                    <textarea id="description" class="textarea w-full h-64" placeholder="Enter robots.txt content">User-agent: *
-Disallow: /admin/
-Disallow: /cart/
-Allow: /
-
-Sitemap: https://www.minimoda.com/sitemap.xml</textarea>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Rules for search engine crawlers</span>
-                    </label>
-                </div>
-
-                <!-- Auto-generate Sitemap -->
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
-                        <div>
-                            <span class="label-text font-medium">Auto-generate XML Sitemap</span>
-                            <p class="text-xs text-base-content/60">Automatically generate and update sitemap.xml</p>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Sitemap URL -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Sitemap URL</span>
-                    </label>
-                    <div class="flex gap-2">
-                        <input type="url" placeholder="https://www.minimoda.com/sitemap.xml" class="input input-bordered flex-1" value="https://www.minimoda.com/sitemap.xml" readonly />
-                        <button type="button" class="btn btn-outline">
-                            <span class="iconify lucide--external-link size-4"></span>
-                            View
-                        </button>
-                        <button type="button" class="btn btn-outline">
-                            <span class="iconify lucide--refresh-cw size-4"></span>
-                            Regenerate
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Robots & Sitemap Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+</form>
 @endsection
 
 @section('customjs')
 <script>
-    // Character counter for title and description
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add character counting logic here
-    });
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.custom-toast-container');
+        if (existing) existing.remove();
+
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'custom-toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 1.5rem; right: 1.5rem; z-index: 99999;';
+
+        const borderColor = type === 'error' ? 'border-error' : 'border-success';
+        const textColor = type === 'error' ? 'text-error' : 'text-success';
+        const iconClass = type === 'error' ? 'lucide--circle-x' : 'lucide--circle-check';
+
+        toastContainer.innerHTML = `
+            <div class="bg-base-100 border-l-4 ${borderColor} rounded shadow-md flex items-center gap-3 px-4 py-3 min-w-[300px] max-w-md">
+                <span class="iconify ${iconClass} size-5 ${textColor} flex-shrink-0"></span>
+                <span class="text-sm text-base-content flex-1">${message}</span>
+                <button type="button" class="btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100" onclick="this.closest('.custom-toast-container').remove()">
+                    <span class="iconify lucide--x size-4"></span>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(toastContainer);
+
+        requestAnimationFrame(() => {
+            toastContainer.style.animation = 'slideIn 0.2s ease-out';
+        });
+
+        setTimeout(() => {
+            if (toastContainer.parentElement) {
+                toastContainer.style.opacity = '0';
+                toastContainer.style.transition = 'opacity 0.2s ease-out';
+                setTimeout(() => toastContainer.remove(), 200);
+            }
+        }, 4000);
+    }
+
+    // Add CSS animation
+    if (!document.querySelector('#toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(20px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const form = document.getElementById('seoMetaForm');
+
+        if (!form) {
+            console.error('Form #seoMetaForm not found!');
+            return;
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(data.message || 'SEO settings saved successfully!', 'success');
+                } else {
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join(', ');
+                        showToast(errorMessages, 'error');
+                    } else {
+                        showToast(data.message || 'Failed to save settings', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while saving settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    }
 </script>
 @endsection

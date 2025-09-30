@@ -24,11 +24,12 @@
             <h2 class="card-title text-lg">General Tax Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure tax calculation and display settings</p>
 
-            <form class="space-y-6">
+            <form id="taxConfigForm" action="{{ route('settings.tax-settings.update') }}" method="POST" class="space-y-6">
+                @csrf
                 <!-- Enable Tax -->
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
+                        <input type="checkbox" name="enabled" class="toggle toggle-primary" {{ ($taxConfig['enabled'] ?? true) ? 'checked' : '' }} />
                         <div>
                             <span class="label-text font-medium">Enable Tax Calculation</span>
                             <p class="text-xs text-base-content/60">Calculate and add tax to orders</p>
@@ -41,11 +42,11 @@
                     <label class="label">
                         <span class="label-text">Price Display Mode</span>
                     </label>
-                    <select class="select select-bordered w-full">
+                    <select name="price_display_mode" class="select select-bordered w-full" required>
                         <option disabled>Select display mode</option>
-                        <option selected>Including Tax</option>
-                        <option>Excluding Tax</option>
-                        <option>Show Both</option>
+                        <option value="including" {{ ($taxConfig['price_display_mode'] ?? 'including') == 'including' ? 'selected' : '' }}>Including Tax</option>
+                        <option value="excluding" {{ ($taxConfig['price_display_mode'] ?? '') == 'excluding' ? 'selected' : '' }}>Excluding Tax</option>
+                        <option value="both" {{ ($taxConfig['price_display_mode'] ?? '') == 'both' ? 'selected' : '' }}>Show Both</option>
                     </select>
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">How to display prices to customers</span>
@@ -57,11 +58,11 @@
                     <label class="label">
                         <span class="label-text">Calculate Tax Based On</span>
                     </label>
-                    <select class="select select-bordered w-full">
+                    <select name="calculation_based_on" class="select select-bordered w-full" required>
                         <option disabled>Select calculation basis</option>
-                        <option selected>Shipping Address</option>
-                        <option>Billing Address</option>
-                        <option>Store Address</option>
+                        <option value="shipping_address" {{ ($taxConfig['calculation_based_on'] ?? 'shipping_address') == 'shipping_address' ? 'selected' : '' }}>Shipping Address</option>
+                        <option value="billing_address" {{ ($taxConfig['calculation_based_on'] ?? '') == 'billing_address' ? 'selected' : '' }}>Billing Address</option>
+                        <option value="store_address" {{ ($taxConfig['calculation_based_on'] ?? '') == 'store_address' ? 'selected' : '' }}>Store Address</option>
                     </select>
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Which address to use for tax calculation</span>
@@ -73,12 +74,12 @@
                     <label class="label">
                         <span class="label-text">Tax Rounding</span>
                     </label>
-                    <select class="select select-bordered w-full">
+                    <select name="tax_rounding" class="select select-bordered w-full" required>
                         <option disabled>Select rounding method</option>
-                        <option>Round Up</option>
-                        <option selected>Round Down</option>
-                        <option>Standard Rounding</option>
-                        <option>No Rounding</option>
+                        <option value="round_up" {{ ($taxConfig['tax_rounding'] ?? 'round_down') == 'round_up' ? 'selected' : '' }}>Round Up</option>
+                        <option value="round_down" {{ ($taxConfig['tax_rounding'] ?? 'round_down') == 'round_down' ? 'selected' : '' }}>Round Down</option>
+                        <option value="standard" {{ ($taxConfig['tax_rounding'] ?? '') == 'standard' ? 'selected' : '' }}>Standard Rounding</option>
+                        <option value="none" {{ ($taxConfig['tax_rounding'] ?? '') == 'none' ? 'selected' : '' }}>No Rounding</option>
                     </select>
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">How to round tax amounts</span>
@@ -480,6 +481,113 @@
 
 @section('customjs')
 <script>
-    // Add any custom JavaScript
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.custom-toast-container');
+        if (existing) existing.remove();
+
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'custom-toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 1.5rem; right: 1.5rem; z-index: 99999;';
+
+        const borderColor = type === 'error' ? 'border-error' : 'border-success';
+        const textColor = type === 'error' ? 'text-error' : 'text-success';
+        const iconClass = type === 'error' ? 'lucide--circle-x' : 'lucide--circle-check';
+
+        toastContainer.innerHTML = `
+            <div class="bg-base-100 border-l-4 ${borderColor} rounded shadow-md flex items-center gap-3 px-4 py-3 min-w-[300px] max-w-md">
+                <span class="iconify ${iconClass} size-5 ${textColor} flex-shrink-0"></span>
+                <span class="text-sm text-base-content flex-1">${message}</span>
+                <button type="button" class="btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100" onclick="this.closest('.custom-toast-container').remove()">
+                    <span class="iconify lucide--x size-4"></span>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(toastContainer);
+
+        requestAnimationFrame(() => {
+            toastContainer.style.animation = 'slideIn 0.2s ease-out';
+        });
+
+        setTimeout(() => {
+            if (toastContainer.parentElement) {
+                toastContainer.style.opacity = '0';
+                toastContainer.style.transition = 'opacity 0.2s ease-out';
+                setTimeout(() => toastContainer.remove(), 200);
+            }
+        }, 4000);
+    }
+
+    // Add CSS animation
+    if (!document.querySelector('#toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(20px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const form = document.getElementById('taxConfigForm');
+
+        if (!form) {
+            console.error('Form #taxConfigForm not found!');
+            return;
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(data.message || 'Tax settings saved successfully!', 'success');
+                } else {
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join(', ');
+                        showToast(errorMessages, 'error');
+                    } else {
+                        showToast(data.message || 'Failed to save settings', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while saving settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    }
 </script>
 @endsection

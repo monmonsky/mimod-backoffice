@@ -16,34 +16,22 @@
     </div>
 </div>
 
-<div class="mt-6 space-y-6">
+<form id="emailSettingsForm" action="{{ route('settings.email-settings.update') }}" method="POST" class="mt-6 space-y-6">
+    @csrf
+
     <!-- SMTP Configuration -->
     <div class="bg-base-100 card shadow">
         <div class="card-body">
             <h2 class="card-title text-lg">SMTP Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure SMTP server settings for sending emails</p>
 
-            <form class="space-y-6">
-                <!-- Mail Driver -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Mail Driver <span class="text-error">*</span></span>
-                    </label>
-                    <select class="select select-bordered w-full">
-                        <option disabled>Select Driver</option>
-                        <option selected>SMTP</option>
-                        <option>Sendmail</option>
-                        <option>Mailgun</option>
-                        <option>SES</option>
-                    </select>
-                </div>
-
+            <div class="space-y-6">
                 <!-- SMTP Host -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">SMTP Host <span class="text-error">*</span></span>
+                        <span class="label-text">SMTP Host</span>
                     </label>
-                    <input type="text" placeholder="smtp.gmail.com" class="input input-bordered w-full" value="smtp.gmail.com" />
+                    <input type="text" name="smtp_host" placeholder="smtp.gmail.com" class="input input-bordered w-full" value="{{ $smtpSettings['host'] ?? 'smtp.mailtrap.io' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Your SMTP server hostname</span>
                     </label>
@@ -53,9 +41,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">SMTP Port <span class="text-error">*</span></span>
+                            <span class="label-text">SMTP Port</span>
                         </label>
-                        <input type="number" placeholder="587" class="input input-bordered w-full" value="587" />
+                        <input type="number" name="smtp_port" placeholder="587" class="input input-bordered w-full" value="{{ $smtpSettings['port'] ?? 587 }}" />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Common: 587 (TLS), 465 (SSL), 25</span>
                         </label>
@@ -63,13 +51,12 @@
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Encryption <span class="text-error">*</span></span>
+                            <span class="label-text">Encryption</span>
                         </label>
-                        <select class="select select-bordered w-full">
-                            <option disabled>Select Encryption</option>
-                            <option selected>TLS</option>
-                            <option>SSL</option>
-                            <option>None</option>
+                        <select name="smtp_encryption" class="select select-bordered w-full">
+                            <option value="">None</option>
+                            <option value="tls" {{ ($smtpSettings['encryption'] ?? 'tls') == 'tls' ? 'selected' : '' }}>TLS</option>
+                            <option value="ssl" {{ ($smtpSettings['encryption'] ?? '') == 'ssl' ? 'selected' : '' }}>SSL</option>
                         </select>
                     </div>
                 </div>
@@ -78,16 +65,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">SMTP Username <span class="text-error">*</span></span>
+                            <span class="label-text">SMTP Username</span>
                         </label>
-                        <input type="text" placeholder="your-email@gmail.com" class="input input-bordered w-full" value="noreply@minimoda.com" />
+                        <input type="text" name="smtp_username" placeholder="your-email@gmail.com" class="input input-bordered w-full" value="{{ $smtpSettings['username'] ?? '' }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">SMTP Password <span class="text-error">*</span></span>
+                            <span class="label-text">SMTP Password</span>
                         </label>
-                        <input type="password" placeholder="••••••••" class="input input-bordered w-full" value="password123" />
+                        <input type="password" name="smtp_password" placeholder="••••••••" class="input input-bordered w-full" value="{{ $smtpSettings['password'] ?? '' }}" />
                     </div>
                 </div>
 
@@ -97,7 +84,7 @@
                         <label class="label">
                             <span class="label-text">From Email Address <span class="text-error">*</span></span>
                         </label>
-                        <input type="email" placeholder="noreply@yourstore.com" class="input input-bordered w-full" value="noreply@minimoda.com" />
+                        <input type="email" name="from_email" placeholder="noreply@yourstore.com" class="input input-bordered w-full" value="{{ $smtpSettings['from_email'] ?? 'noreply@minimoda.com' }}" required />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Default sender email address</span>
                         </label>
@@ -107,111 +94,28 @@
                         <label class="label">
                             <span class="label-text">From Name <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" placeholder="Your Store Name" class="input input-bordered w-full" value="Minimoda" />
+                        <input type="text" name="from_name" placeholder="Your Store Name" class="input input-bordered w-full" value="{{ $smtpSettings['from_name'] ?? 'Minimoda' }}" required />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Default sender name</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Test Email -->
+                <!-- Test Email Connection -->
                 <div class="alert alert-info">
                     <span class="iconify lucide--info size-5"></span>
                     <div class="flex-1">
                         <h4 class="font-medium">Test Email Configuration</h4>
-                        <p class="text-sm">Send a test email to verify your SMTP settings</p>
+                        <p class="text-sm">Verify your SMTP settings by sending a test email</p>
                     </div>
-                    <button type="button" class="btn btn-sm">
+                    <button type="button" id="testEmailBtn" class="btn btn-sm btn-primary">
                         <span class="iconify lucide--send size-4"></span>
                         Send Test Email
                     </button>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save SMTP Settings
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-
-    <!-- Email Templates -->
-    {{-- <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <h2 class="card-title text-lg">Email Template Settings</h2>
-            <p class="text-sm text-base-content/70 mb-4">Configure default email templates and styling</p>
-
-            <form class="space-y-6">
-                <!-- Logo for Emails -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email Header Logo</span>
-                    </label>
-                    <div class="flex items-start gap-4">
-                        <div class="avatar">
-                            <div class="w-32 rounded">
-                                <img src="https://placehold.co/400x100/png?text=EMAIL+LOGO" alt="Email Logo" />
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <input type="file" class="file-input file-input-bordered w-full max-w-xs" accept="image/*" />
-                            <label class="label">
-                                <span class="label-text-alt text-base-content/60">Recommended size: 400x100px (PNG with transparent background)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Email Colors -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Primary Color</span>
-                        </label>
-                        <input type="color" class="input input-bordered w-full h-12" value="#3b82f6" />
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Main brand color for buttons and headers</span>
-                        </label>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Secondary Color</span>
-                        </label>
-                        <input type="color" class="input input-bordered w-full h-12" value="#64748b" />
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Secondary color for text and accents</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Email Footer -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email Footer Text</span>
-                    </label>
-                    <textarea class="textarea textarea-bordered h-24" placeholder="Enter footer text">© 2024 Minimoda. All rights reserved.
-You received this email because you're a registered customer at Minimoda.</textarea>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">This text will appear at the bottom of all emails</span>
-                    </label>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Template Settings
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div> --}}
 
     <!-- Email Notifications -->
     <div class="bg-base-100 card shadow">
@@ -219,14 +123,14 @@ You received this email because you're a registered customer at Minimoda.</texta
             <h2 class="card-title text-lg">Email Notification Settings</h2>
             <p class="text-sm text-base-content/70 mb-4">Enable or disable automatic email notifications</p>
 
-            <form class="space-y-4">
+            <div class="space-y-4">
                 <!-- Order Notifications -->
                 <div>
                     <h3 class="font-medium mb-3">Order Notifications</h3>
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
+                                <input type="checkbox" name="order_confirmation" class="toggle toggle-primary" {{ ($notifications['order_confirmation'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Confirmation</span>
                                     <p class="text-xs text-base-content/60">Send email when order is placed</p>
@@ -236,17 +140,7 @@ You received this email because you're a registered customer at Minimoda.</texta
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
-                                <div>
-                                    <span class="label-text font-medium">Payment Received</span>
-                                    <p class="text-xs text-base-content/60">Send email when payment is confirmed</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
+                                <input type="checkbox" name="order_shipped" class="toggle toggle-primary" {{ ($notifications['order_shipped'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Shipped</span>
                                     <p class="text-xs text-base-content/60">Send email with tracking information</p>
@@ -256,20 +150,10 @@ You received this email because you're a registered customer at Minimoda.</texta
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
+                                <input type="checkbox" name="order_delivered" class="toggle toggle-primary" {{ ($notifications['order_delivered'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Delivered</span>
                                     <p class="text-xs text-base-content/60">Send email when order is delivered</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" />
-                                <div>
-                                    <span class="label-text font-medium">Order Cancelled</span>
-                                    <p class="text-xs text-base-content/60">Send email when order is cancelled</p>
                                 </div>
                             </label>
                         </div>
@@ -284,7 +168,7 @@ You received this email because you're a registered customer at Minimoda.</texta
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
+                                <input type="checkbox" name="welcome_email" class="toggle toggle-primary" {{ ($notifications['welcome_email'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Welcome Email</span>
                                     <p class="text-xs text-base-content/60">Send welcome email to new customers</p>
@@ -294,7 +178,7 @@ You received this email because you're a registered customer at Minimoda.</texta
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" checked />
+                                <input type="checkbox" name="password_reset" class="toggle toggle-primary" {{ ($notifications['password_reset'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Password Reset</span>
                                     <p class="text-xs text-base-content/60">Send password reset link via email</p>
@@ -304,70 +188,193 @@ You received this email because you're a registered customer at Minimoda.</texta
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" />
-                                <div>
-                                    <span class="label-text font-medium">Email Verification</span>
-                                    <p class="text-xs text-base-content/60">Send email verification link</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <!-- Marketing Notifications -->
-                <div>
-                    <h3 class="font-medium mb-3">Marketing Notifications</h3>
-                    <div class="space-y-3">
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" />
+                                <input type="checkbox" name="newsletter" class="toggle toggle-primary" {{ ($notifications['newsletter'] ?? false) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Newsletter</span>
                                     <p class="text-xs text-base-content/60">Send promotional newsletters</p>
                                 </div>
                             </label>
                         </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" />
-                                <div>
-                                    <span class="label-text font-medium">Abandoned Cart</span>
-                                    <p class="text-xs text-base-content/60">Send reminder for abandoned carts</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <div class="form-control">
-                            <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" class="toggle toggle-primary" />
-                                <div>
-                                    <span class="label-text font-medium">Product Recommendations</span>
-                                    <p class="text-xs text-base-content/60">Send personalized product suggestions</p>
-                                </div>
-                            </label>
-                        </div>
                     </div>
                 </div>
-
-                <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Notification Settings
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-2">
+        <button type="button" class="btn btn-ghost">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+            <span class="iconify lucide--save size-4"></span>
+            Save Settings
+        </button>
+    </div>
+</form>
 @endsection
 
 @section('customjs')
 <script>
-    // Add any custom JavaScript for test email functionality
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const existing = document.querySelector('.custom-toast-container');
+        if (existing) existing.remove();
+
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'custom-toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 1.5rem; right: 1.5rem; z-index: 99999;';
+
+        const borderColor = type === 'error' ? 'border-error' : 'border-success';
+        const textColor = type === 'error' ? 'text-error' : 'text-success';
+        const iconClass = type === 'error' ? 'lucide--circle-x' : 'lucide--circle-check';
+
+        toastContainer.innerHTML = `
+            <div class="bg-base-100 border-l-4 ${borderColor} rounded shadow-md flex items-center gap-3 px-4 py-3 min-w-[300px] max-w-md">
+                <span class="iconify ${iconClass} size-5 ${textColor} flex-shrink-0"></span>
+                <span class="text-sm text-base-content flex-1">${message}</span>
+                <button type="button" class="btn btn-ghost btn-xs btn-square opacity-60 hover:opacity-100" onclick="this.closest('.custom-toast-container').remove()">
+                    <span class="iconify lucide--x size-4"></span>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(toastContainer);
+
+        requestAnimationFrame(() => {
+            toastContainer.style.animation = 'slideIn 0.2s ease-out';
+        });
+
+        setTimeout(() => {
+            if (toastContainer.parentElement) {
+                toastContainer.style.opacity = '0';
+                toastContainer.style.transition = 'opacity 0.2s ease-out';
+                setTimeout(() => toastContainer.remove(), 200);
+            }
+        }, 4000);
+    }
+
+    // Add CSS animation
+    if (!document.querySelector('#toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(20px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        const form = document.getElementById('emailSettingsForm');
+        const testEmailBtn = document.getElementById('testEmailBtn');
+
+        if (!form) {
+            console.error('Form #emailSettingsForm not found!');
+            return;
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showToast(data.message || 'Email settings saved successfully!', 'success');
+                } else {
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join(', ');
+                        showToast(errorMessages, 'error');
+                    } else {
+                        showToast(data.message || 'Failed to save settings', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('An error occurred while saving settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+
+        // Handle test email button
+        if (testEmailBtn) {
+            testEmailBtn.addEventListener('click', async function() {
+                // Get email address for test
+                const testEmail = prompt('Enter email address to send test email:', document.querySelector('input[name="from_email"]').value);
+
+                if (!testEmail) {
+                    return; // User cancelled
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(testEmail)) {
+                    showToast('Please enter a valid email address', 'error');
+                    return;
+                }
+
+                const originalBtnText = testEmailBtn.innerHTML;
+
+                // Show loading state
+                testEmailBtn.disabled = true;
+                testEmailBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Sending...';
+
+                try {
+                    const response = await fetch('{{ route("settings.email-settings.test") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ test_email: testEmail })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.success) {
+                        showToast(data.message || 'Test email sent successfully!', 'success');
+                    } else {
+                        showToast(data.message || 'Failed to send test email', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast('An error occurred while sending test email', 'error');
+                } finally {
+                    testEmailBtn.disabled = false;
+                    testEmailBtn.innerHTML = originalBtnText;
+                }
+            });
+        }
+    }
 </script>
 @endsection
