@@ -24,6 +24,11 @@ Route::middleware('auth.token')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    Route::controller(LoginController::class)->group(function () {
+        // Logout routes
+        Route::post('/logout', 'logout')->name('logout');
+    });
 });
 
 Route::group(['prefix' => 'user'], function () {

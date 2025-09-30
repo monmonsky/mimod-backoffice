@@ -307,7 +307,7 @@
         </dialog>
     </div>
     <div class="inline-flex items-center gap-0.5">
-       
+
         <button
             aria-label="Toggle Theme"
             class="btn btn-sm btn-circle btn-ghost relative overflow-hidden"
@@ -619,13 +619,18 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a
-                                        class="text-error hover:bg-error/10"
-                                        href="#">
-                                        <span
-                                            class="iconify lucide--log-out size-4.5"></span>
-                                        <span>Sign Out</span>
-                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <a
+                                            class="flex gap-2 items-center text-error hover:bg-error/10"
+                                            href="{{ route('logout') }}"
+                                            onclick="event.preventDefault();
+                                                            this.closest('form').submit();">
+                                            <span
+                                                class="iconify lucide--log-out size-4.5"></span>
+                                            <span>Sign Out</span>
+                                        </a>
+                                    </form>
                                 </li>
                             </ul>
                         </div>
