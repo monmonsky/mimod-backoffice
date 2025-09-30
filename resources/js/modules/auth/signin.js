@@ -12,11 +12,19 @@ $(document).ready(function () {
         const requestParam = Object.fromEntries(params);
 
         ApiClient.post(
-            '/login',
+            '/api/auth/login',
             requestParam,
             function (response) {
+                console.log(response);
+
                 if (response.status) {
                     Toast.showToast(response.message, 'success', 3000);
+
+                    $.cookie("auth_token", response.data.token);
+
+                    setTimeout(() => {
+                        window.location.href = '/'
+                    }, 1000);
                 } else {
                     Toast.showToast(response.message, 'error', 3000);
                 }

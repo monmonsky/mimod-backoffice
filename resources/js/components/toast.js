@@ -39,12 +39,12 @@ const Toast = {
             success: {
                 borderColor: 'border-success',
                 textColor: 'text-success',
-                iconClass: 'lucide--circle-check'
+                iconClass: 'lucide--check-check'
             },
             error: {
                 borderColor: 'border-error',
                 textColor: 'text-error',
-                iconClass: 'lucide--circle-x'
+                iconClass: 'lucide--x-circle'
             },
             info: {
                 borderColor: 'border-info',
@@ -54,7 +54,7 @@ const Toast = {
             warning: {
                 borderColor: 'border-warning',
                 textColor: 'text-warning',
-                iconClass: 'lucide--alert-triangle'
+                iconClass: 'lucide--triangle-alert'
             }
         };
 

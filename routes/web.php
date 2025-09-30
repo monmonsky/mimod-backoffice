@@ -3,23 +3,28 @@
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
+
+
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
 Route::middleware('guest')->group(function () {
+
+    Route::get('/', function () {
+        return redirect('/login');
+    });
+
     Route::controller(LoginController::class)->group(function () {
         Route::get('/login', 'showLoginForm')->name('login');
-        Route::post('/login', 'attemptLogin')->name('post.login');
     });
 });
 
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
-
-
+Route::middleware('auth.token')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
 
 Route::group(['prefix' => 'user'], function () {
     Route::get('/', function () {
