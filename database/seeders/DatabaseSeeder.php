@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             RoleModuleSeeder::class,
             PermissionGroupSeeder::class,
             PermissionGroupItemSeeder::class,
+            SettingsSeeder::class, 
         ]);
     }
 }
