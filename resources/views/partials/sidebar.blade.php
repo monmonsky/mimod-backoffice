@@ -42,7 +42,7 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-products" />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--package size-4"></span>
                         <span class="grow">Products</span>
@@ -86,7 +86,7 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-orders" />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--shopping-cart size-4"></span>
                         <span class="grow">Orders</span>
@@ -141,7 +141,7 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-carts" />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--shopping-bag size-4"></span>
                         <span class="grow">Carts</span>
@@ -184,7 +184,8 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-promotions"
+                        {{ request()->routeIs('promotions.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--ticket size-4"></span>
                         <span class="grow">Promotions</span>
@@ -194,19 +195,29 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('promotions.coupons') ? 'active' : '' }}"
+                                href="{{ route('promotions.coupons') }}">
                                 <span class="grow">Coupons</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('promotions.coupon-usage') ? 'active' : '' }}"
+                                href="{{ route('promotions.coupon-usage') }}">
                                 <span class="grow">Coupon Usage</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('promotions.campaigns') ? 'active' : '' }}"
+                                href="{{ route('promotions.campaigns') }}">
                                 <span class="grow">Campaigns</span>
+                            </a>
+                            <a
+                                class="menu-item {{ request()->routeIs('promotions.email-campaigns') ? 'active' : '' }}"
+                                href="{{ route('promotions.email-campaigns') }}">
+                                <span class="grow">Email Campaigns</span>
+                            </a>
+                            <a
+                                class="menu-item {{ request()->routeIs('promotions.email-templates') ? 'active' : '' }}"
+                                href="{{ route('promotions.email-templates') }}">
+                                <span class="grow">Email Templates</span>
                             </a>
                         </div>
                     </div>
@@ -218,9 +229,10 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item" />
+                        name="sidebar-menu-reports"
+                        {{ request()->routeIs('reports.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--bar-chart-2 size-4"></span>
+                        <span class="iconify lucide--file-text size-4"></span>
                         <span class="grow">Reports</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
@@ -228,28 +240,28 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('reports.sales') ? 'active' : '' }}"
+                                href="{{ route('reports.sales') }}">
                                 <span class="grow">Sales Report</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('reports.product-performance') ? 'active' : '' }}"
+                                href="{{ route('reports.product-performance') }}">
                                 <span class="grow">Product Performance</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
-                                <span class="grow">Customer Analytics</span>
+                                class="menu-item {{ request()->routeIs('reports.customer') ? 'active' : '' }}"
+                                href="{{ route('reports.customer') }}">
+                                <span class="grow">Customer Report</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('reports.payment') ? 'active' : '' }}"
+                                href="{{ route('reports.payment') }}">
                                 <span class="grow">Payment Report</span>
                             </a>
                             <a
-                                class="menu-item"
-                                href="#">
+                                class="menu-item {{ request()->routeIs('reports.inventory') ? 'active' : '' }}"
+                                href="{{ route('reports.inventory') }}">
                                 <span class="grow">Inventory Report</span>
                             </a>
                         </div>
@@ -262,8 +274,8 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item"
-                        {{ request()->routeIs('user.*', 'role.*', 'permission.*') ? 'checked' : '' }} />
+                        name="sidebar-menu-access-control"
+                        {{ request()->routeIs('user.*') || request()->routeIs('role.*') || request()->routeIs('permission.*') || request()->routeIs('activity-log.*') || request()->routeIs('session.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--shield size-4"></span>
                         <span class="grow">User Management</span>
@@ -307,8 +319,8 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item"
-                        {{ request()->routeIs('settings.store-info', 'settings.email-settings', 'settings.seo-meta', 'settings.system-config') ? 'checked' : '' }} />
+                        name="sidebar-menu-settings-general"
+                        {{ request()->routeIs('settings.store-info') || request()->routeIs('settings.email-settings') || request()->routeIs('settings.seo-meta') || request()->routeIs('settings.system-config') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--settings size-4"></span>
                         <span class="grow">General</span>
@@ -318,23 +330,23 @@
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item {{ request()->routeIs('settings.store-info') ? 'active' : '' }}"
-                                href="{{ route('settings.store-info') }}">
+                                class="menu-item {{ request()->routeIs('settings.general.store') ? 'active' : '' }}"
+                                href="{{ route('settings.general.store') }}">
                                 <span class="grow">Store Info</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.email-settings') ? 'active' : '' }}"
-                                href="{{ route('settings.email-settings') }}">
+                                class="menu-item {{ request()->routeIs('settings.general.email') ? 'active' : '' }}"
+                                href="{{ route('settings.general.email') }}">
                                 <span class="grow">Email Settings</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.seo-meta') ? 'active' : '' }}"
-                                href="{{ route('settings.seo-meta') }}">
+                                class="menu-item {{ request()->routeIs('settings.general.seo') ? 'active' : '' }}"
+                                href="{{ route('settings.general.seo') }}">
                                 <span class="grow">SEO & Meta</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.system-config') ? 'active' : '' }}"
-                                href="{{ route('settings.system-config') }}">
+                                class="menu-item {{ request()->routeIs('settings.general.system') ? 'active' : '' }}"
+                                href="{{ route('settings.general.system') }}">
                                 <span class="grow">System Config</span>
                             </a>
                         </div>
@@ -346,7 +358,7 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item"
+                        name="sidebar-menu-settings-payment"
                         {{ request()->routeIs('settings.payment.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--wallet size-4"></span>
@@ -380,7 +392,7 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-parent-item"
+                        name="sidebar-menu-settings-shipping"
                         {{ request()->routeIs('settings.shipping.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--truck size-4"></span>

@@ -480,64 +480,8 @@
 @endsection
 
 @section('customjs')
-<script>
+<!-- jQuery from CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    function init() {
-        const form = document.getElementById('taxConfigForm');
-
-        if (!form) {
-            console.error('Form #taxConfigForm not found!');
-            return;
-        }
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    showToast(data.message || 'Tax settings saved successfully!', 'success');
-                } else {
-                    if (data.errors) {
-                        const errorMessages = Object.values(data.errors).flat().join(', ');
-                        showToast(errorMessages, 'error');
-                    } else {
-                        showToast(data.message || 'Failed to save settings', 'error');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('An error occurred while saving settings', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        });
-    }
-</script>
+@vite(['resources/js/modules/settings/payment/tax-settings.js'])
 @endsection

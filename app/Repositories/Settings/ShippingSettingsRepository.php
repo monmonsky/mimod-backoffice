@@ -2,16 +2,25 @@
 
 namespace App\Repositories\Settings;
 
+use App\Repositories\Contracts\ShippingSettingsRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
-class ShippingSettingsRepository
+class ShippingSettingsRepository implements ShippingSettingsRepositoryInterface
 {
     protected $tableName = 'settings';
 
     /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        // Initialize if needed
+    }
+
+    /**
      * Get fresh query builder instance
      */
-    protected function table()
+    private function table()
     {
         return DB::table($this->tableName);
     }

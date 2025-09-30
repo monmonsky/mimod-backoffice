@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShippingLocation;
-use App\Repositories\Settings\ShippingSettingsRepository;
+use App\Repositories\Contracts\ShippingSettingsRepositoryInterface;
 use App\Services\Shipping\RajaOngkirService;
 use App\Services\Location\WilayahService;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ class ShippingController extends Controller
 {
     protected $settingsRepo;
 
-    public function __construct(ShippingSettingsRepository $settingsRepository)
+    public function __construct(ShippingSettingsRepositoryInterface $settingsRepository)
     {
         $this->settingsRepo = $settingsRepository;
     }

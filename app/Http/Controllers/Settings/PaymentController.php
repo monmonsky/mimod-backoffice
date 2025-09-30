@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\Settings\PaymentSettingsRepository;
+use App\Repositories\Contracts\PaymentSettingsRepositoryInterface;
 use App\Services\Payment\MidtransService;
 use Illuminate\Http\Request;
 
@@ -11,7 +11,7 @@ class PaymentController extends Controller
 {
     protected $settingsRepo;
 
-    public function __construct(PaymentSettingsRepository $settingsRepository)
+    public function __construct(PaymentSettingsRepositoryInterface $settingsRepository)
     {
         $this->settingsRepo = $settingsRepository;
     }

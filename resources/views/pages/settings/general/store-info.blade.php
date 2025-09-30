@@ -5,8 +5,6 @@
 @section('page_subtitle', 'Store Information')
 
 @push('styles')
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     /* Select2 DaisyUI Integration */
     .select2-container--default .select2-selection--single {
@@ -142,7 +140,7 @@
             <h2 class="card-title text-lg">Basic Information</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure your store's basic details and contact information</p>
 
-            <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.store-info.update') }}" method="POST">
+            <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.general.store.update') }}" method="POST">
                 @csrf
                 <!-- Store Name -->
                 <div class="form-control">
@@ -390,347 +388,22 @@
 @endsection
 
 @section('customjs')
-<!-- jQuery (required for Select2) -->
+<!-- jQuery & Select2 from CDN (needed for Select2 compatibility) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<!-- CDN for FilePond -->
-<link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
-<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
-<script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
-<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 <script>
-    // Initialize Select2 first
-    $(document).ready(function() {
-        initializeSelect2();
-        loadProvinces();
-        setupCascadeHandlers();
-        loadSavedValues();
-    });
-
-    function initializeSelect2() {
-        $('#store-province, #store-regency, #store-district, #store-village').select2({
-            placeholder: 'Select an option',
-            allowClear: false,
-            width: '100%',
-            minimumResultsForSearch: 5,
-            theme: 'default',
-            dropdownAutoWidth: true
-        });
-    }
-
-    async function loadProvinces() {
-        const $provinceSelect = $('#store-province');
-        $provinceSelect.empty().append('<option value="">Loading provinces...</option>').prop('disabled', true);
-
-        try {
-            const response = await fetch('/settings/shipping/api/wilayah/provinces');
-            const data = await response.json();
-
-            if (data.success && data.data) {
-                $provinceSelect.empty().append('<option value="">Select Province</option>');
-                data.data.forEach(province => {
-                    $provinceSelect.append(new Option(province.name, province.code));
-                });
-                $provinceSelect.prop('disabled', false);
-            }
-        } catch (error) {
-            console.error('Error loading provinces:', error);
-            $provinceSelect.empty().append('<option value="">Error loading provinces</option>');
-        }
-    }
-
-    async function loadRegencies(provinceCode) {
-        const $regencySelect = $('#store-regency');
-        $regencySelect.empty().append('<option value="">Loading regencies...</option>').prop('disabled', true);
-        $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
-        $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
-
-        try {
-            const response = await fetch(`/settings/shipping/api/wilayah/regencies/${provinceCode}`);
-            const data = await response.json();
-
-            if (data.success && data.data) {
-                $regencySelect.empty().append('<option value="">Select Regency</option>');
-                data.data.forEach(regency => {
-                    $regencySelect.append(new Option(regency.name, regency.code));
-                });
-                $regencySelect.prop('disabled', false);
-            }
-        } catch (error) {
-            console.error('Error loading regencies:', error);
-            $regencySelect.empty().append('<option value="">Error loading regencies</option>');
-        }
-    }
-
-    async function loadDistricts(regencyCode) {
-        const $districtSelect = $('#store-district');
-        $districtSelect.empty().append('<option value="">Loading districts...</option>').prop('disabled', true);
-        $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
-
-        try {
-            const response = await fetch(`/settings/shipping/api/wilayah/districts/${regencyCode}`);
-            const data = await response.json();
-
-            if (data.success && data.data) {
-                $districtSelect.empty().append('<option value="">Select District</option>');
-                data.data.forEach(district => {
-                    $districtSelect.append(new Option(district.name, district.code));
-                });
-                $districtSelect.prop('disabled', false);
-            }
-        } catch (error) {
-            console.error('Error loading districts:', error);
-            $districtSelect.empty().append('<option value="">Error loading districts</option>');
-        }
-    }
-
-    async function loadVillages(districtCode) {
-        const $villageSelect = $('#store-village');
-        $villageSelect.empty().append('<option value="">Loading villages...</option>').prop('disabled', true);
-
-        try {
-            const response = await fetch(`/settings/shipping/api/wilayah/villages/${districtCode}`);
-            const data = await response.json();
-
-            if (data.success && data.data) {
-                $villageSelect.empty().append('<option value="">Select Village (Optional)</option>');
-                data.data.forEach(village => {
-                    $villageSelect.append(new Option(village.name, village.code));
-                });
-                $villageSelect.prop('disabled', false);
-            }
-        } catch (error) {
-            console.error('Error loading villages:', error);
-            $villageSelect.empty().append('<option value="">Error loading villages</option>');
-        }
-    }
-
-    function setupCascadeHandlers() {
-        $('#store-province').on('change', function() {
-            const provinceCode = $(this).val();
-            const provinceName = $(this).find('option:selected').text();
-            $('#province-name').val(provinceName);
-
-            if (provinceCode && provinceCode !== '') {
-                loadRegencies(provinceCode);
-            } else {
-                $('#store-regency').empty().append('<option value="">Select province first</option>').prop('disabled', true);
-                $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
-                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
-            }
-        });
-
-        $('#store-regency').on('change', function() {
-            const regencyCode = $(this).val();
-            const regencyName = $(this).find('option:selected').text();
-            $('#regency-name').val(regencyName);
-
-            if (regencyCode && regencyCode !== '' && !regencyCode.includes('Loading')) {
-                loadDistricts(regencyCode);
-            } else {
-                $('#store-district').empty().append('<option value="">Select regency first</option>').prop('disabled', true);
-                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
-            }
-        });
-
-        $('#store-district').on('change', function() {
-            const districtCode = $(this).val();
-            const districtName = $(this).find('option:selected').text();
-            $('#district-name').val(districtName);
-
-            if (districtCode && districtCode !== '' && !districtCode.includes('Loading')) {
-                loadVillages(districtCode);
-            } else {
-                $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
-            }
-        });
-
-        $('#store-village').on('change', function() {
-            const villageName = $(this).find('option:selected').text();
-            $('#village-name').val(villageName);
-        });
-    }
-
-    function loadSavedValues() {
-        @if(isset($storeAddress['province_code']) && $storeAddress['province_code'])
-            setTimeout(() => {
-                $('#store-province').val('{{ $storeAddress["province_code"] }}').trigger('change');
-
-                @if(isset($storeAddress['regency_code']) && $storeAddress['regency_code'])
-                    setTimeout(() => {
-                        $('#store-regency').val('{{ $storeAddress["regency_code"] }}').trigger('change');
-
-                        @if(isset($storeAddress['district_code']) && $storeAddress['district_code'])
-                            setTimeout(() => {
-                                $('#store-district').val('{{ $storeAddress["district_code"] }}').trigger('change');
-
-                                @if(isset($storeAddress['village_code']) && $storeAddress['village_code'])
-                                    setTimeout(() => {
-                                        $('#store-village').val('{{ $storeAddress["village_code"] }}').trigger('change');
-                                    }, 500);
-                                @endif
-                            }, 500);
-                        @endif
-                    }, 500);
-                @endif
-            }, 500);
-        @endif
-    }
-
-    // Register FilePond plugins
-    FilePond.registerPlugin(FilePondPluginImagePreview);
-
-    // Initialize FilePond for logo upload
-    const logoInput = document.querySelector('#store-logo-upload');
-
-    const filepondConfig = {
-        credits: false,
-        allowImagePreview: true,
-        imagePreviewHeight: 150,
-        stylePanelLayout: 'compact',
-        acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'],
-        maxFileSize: '2MB',
-        server: {
-            process: {
-                url: '{{ route("settings.store-info.upload-logo") }}',
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                onload: (response) => {
-                    const data = JSON.parse(response);
-                    showToast('Logo uploaded successfully!', 'success');
-                    return data.path;
-                },
-                onerror: (response) => {
-                    const data = JSON.parse(response);
-                    showToast(data.message || 'Failed to upload logo', 'error');
-                    return response;
-                }
-            },
-            revert: {
-                url: '{{ route("settings.store-info.delete-logo") }}',
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                onload: (response) => {
-                    const data = JSON.parse(response);
-                    showToast('Logo deleted successfully!', 'success');
-                },
-                onerror: (response) => {
-                    showToast('Failed to delete logo', 'error');
-                }
-            },
-            load: (source, load, error, progress, abort, headers) => {
-                console.log('FilePond loading file from:', '/storage/' + source);
-                fetch('/storage/' + source)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load image');
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        console.log('File loaded successfully:', blob);
-                        load(blob);
-                    })
-                    .catch(err => {
-                        console.error('FilePond load error:', err);
-                        error('Failed to load image');
-                    });
-
-                return {
-                    abort: () => {
-                        abort();
-                    }
-                };
-            }
-        }
+    // Pass data from Laravel to JavaScript
+    window.savedLocationData = {
+        province_code: '{{ $storeAddress['province_code'] ?? '' }}',
+        regency_code: '{{ $storeAddress['regency_code'] ?? '' }}',
+        district_code: '{{ $storeAddress['district_code'] ?? '' }}',
+        village_code: '{{ $storeAddress['village_code'] ?? '' }}'
     };
-
-    @if(isset($storeInfo['logo']) && $storeInfo['logo'])
-    // Load existing logo
-    console.log('Loading existing logo:', '{{ $storeInfo["logo"] }}');
-    filepondConfig.files = [{
-        source: '{{ $storeInfo["logo"] }}',
-        options: {
-            type: 'local'
-        }
-    }];
-    @endif
-
-    const logoPond = FilePond.create(logoInput, filepondConfig);
-
-    // Debug: Log when file is loaded
-    logoPond.on('addfile', (error, file) => {
-        if (error) {
-            console.error('FilePond addfile error:', error);
-        } else {
-            console.log('FilePond file added:', file);
-        }
-    });
-
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    function init() {
-        const form = document.getElementById('storeInfoForm');
-
-        if (!form) {
-            console.error('Form #storeInfoForm not found!');
-            return;
-        }
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    showToast(data.message || 'Settings saved successfully!', 'success');
-                } else {
-                    if (data.errors) {
-                        const errorMessages = Object.values(data.errors).flat().join(', ');
-                        showToast(errorMessages, 'error');
-                    } else {
-                        showToast(data.message || 'Failed to save settings', 'error');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('An error occurred while saving settings', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        });
-    }
+    window.uploadLogoUrl = '{{ route("settings.general.store.upload-logo") }}';
+    window.deleteLogoUrl = '{{ route("settings.general.store.delete-logo") }}';
+    window.existingLogo = '{{ $storeInfo['logo'] ?? '' }}';
 </script>
+
+@vite(['resources/js/modules/settings/general/store-info.js'])
 @endsection

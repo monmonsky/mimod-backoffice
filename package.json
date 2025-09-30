@@ -15,6 +15,10 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
-        "glob": "^11.0.3"
+        "filepond": "^4.32.9",
+        "filepond-plugin-image-preview": "^4.6.12",
+        "glob": "^11.0.3",
+        "jquery": "^3.7.1",
+        "select2": "^4.1.0-rc.0"
     }
 }

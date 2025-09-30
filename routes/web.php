@@ -77,22 +77,84 @@ Route::group(['prefix' => 'session'], function () {
     })->name('session.index');
 });
 
+Route::group(['prefix' => 'reports'], function () {
+    Route::get('/sales', function () {
+        return view('pages.reports.sales');
+    })->name('reports.sales');
+
+    Route::get('/product-performance', function () {
+        return view('pages.reports.product-performance');
+    })->name('reports.product-performance');
+
+    Route::get('/customer', function () {
+        return view('pages.reports.customer');
+    })->name('reports.customer');
+
+    Route::get('/payment', function () {
+        return view('pages.reports.payment');
+    })->name('reports.payment');
+
+    Route::get('/inventory', function () {
+        return view('pages.reports.inventory');
+    })->name('reports.inventory');
+});
+
+Route::group(['prefix' => 'promotions'], function () {
+    Route::get('/coupons', function () {
+        return view('pages.promotions.coupons');
+    })->name('promotions.coupons');
+
+    Route::get('/coupon-usage', function () {
+        return view('pages.promotions.coupon-usage');
+    })->name('promotions.coupon-usage');
+
+    Route::get('/campaigns', function () {
+        return view('pages.promotions.campaigns');
+    })->name('promotions.campaigns');
+
+    Route::get('/email-campaigns', function () {
+        return view('pages.promotions.email-campaigns');
+    })->name('promotions.email-campaigns');
+
+    Route::get('/email-campaigns/create', function () {
+        return view('pages.promotions.email-campaigns-create');
+    })->name('promotions.email-campaigns.create');
+
+    Route::get('/email-campaigns/{id}', function () {
+        return view('pages.promotions.email-campaigns-view');
+    })->name('promotions.email-campaigns.view');
+
+    Route::get('/email-templates', function () {
+        return view('pages.promotions.email-templates');
+    })->name('promotions.email-templates');
+
+    Route::get('/email-templates/create', function () {
+        return view('pages.promotions.email-templates-create');
+    })->name('promotions.email-templates.create');
+
+    Route::get('/email-templates/{id}/edit', function () {
+        return view('pages.promotions.email-templates-edit');
+    })->name('promotions.email-templates.edit');
+});
+
 Route::group(['prefix' => 'settings'], function () {
     // General Settings Routes
-    Route::get('/store-info', 'App\Http\Controllers\Settings\GeneralController@storeInfo')->name('settings.store-info');
-    Route::post('/store-info', 'App\Http\Controllers\Settings\GeneralController@updateStoreInfo')->name('settings.store-info.update');
-    Route::post('/store-info/upload-logo', 'App\Http\Controllers\Settings\GeneralController@uploadStoreLogo')->name('settings.store-info.upload-logo');
-    Route::delete('/store-info/delete-logo', 'App\Http\Controllers\Settings\GeneralController@deleteStoreLogo')->name('settings.store-info.delete-logo');
+    Route::prefix('general')->group(function () {
+        Route::get('/store', 'App\Http\Controllers\Settings\GeneralController@storeInfo')->name('settings.general.store');
+        Route::post('/store', 'App\Http\Controllers\Settings\GeneralController@updateStoreInfo')->name('settings.general.store.update');
+        Route::post('/store/upload-logo', 'App\Http\Controllers\Settings\GeneralController@uploadStoreLogo')->name('settings.general.store.upload-logo');
+        Route::delete('/store/delete-logo', 'App\Http\Controllers\Settings\GeneralController@deleteStoreLogo')->name('settings.general.store.delete-logo');
 
-    Route::get('/email-settings', 'App\Http\Controllers\Settings\GeneralController@emailSettings')->name('settings.email-settings');
-    Route::post('/email-settings', 'App\Http\Controllers\Settings\GeneralController@updateEmailSettings')->name('settings.email-settings.update');
-    Route::post('/email-settings/test', 'App\Http\Controllers\Settings\GeneralController@testEmailConnection')->name('settings.email-settings.test');
+        Route::get('/email', 'App\Http\Controllers\Settings\GeneralController@emailSettings')->name('settings.general.email');
+        Route::post('/email', 'App\Http\Controllers\Settings\GeneralController@updateEmailSettings')->name('settings.general.email.update');
+        Route::post('/email/test', 'App\Http\Controllers\Settings\GeneralController@testEmailConnection')->name('settings.general.email.test');
 
-    Route::get('/seo-meta', 'App\Http\Controllers\Settings\GeneralController@seoMeta')->name('settings.seo-meta');
-    Route::post('/seo-meta', 'App\Http\Controllers\Settings\GeneralController@updateSeoMeta')->name('settings.seo-meta.update');
+        Route::get('/seo', 'App\Http\Controllers\Settings\GeneralController@seoMeta')->name('settings.general.seo');
+        Route::post('/seo', 'App\Http\Controllers\Settings\GeneralController@updateSeoMeta')->name('settings.general.seo.update');
 
-    Route::get('/system-config', 'App\Http\Controllers\Settings\GeneralController@systemConfig')->name('settings.system-config');
-    Route::post('/system-config', 'App\Http\Controllers\Settings\GeneralController@updateSystemConfig')->name('settings.system-config.update');
+        Route::get('/system', 'App\Http\Controllers\Settings\GeneralController@systemConfig')->name('settings.general.system');
+        Route::post('/system', 'App\Http\Controllers\Settings\GeneralController@updateSystemConfig')->name('settings.general.system.update');
+    });
 
     // Payment Settings Routes
     Route::prefix('payment')->group(function () {

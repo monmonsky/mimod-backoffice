@@ -2,16 +2,25 @@
 
 namespace App\Repositories\Settings;
 
+use App\Repositories\Contracts\GeneralSettingsRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
-class GeneralSettingsRepository
+class GeneralSettingsRepository implements GeneralSettingsRepositoryInterface
 {
     protected $tableName = 'settings';
 
     /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        // Initialize if needed
+    }
+
+    /**
      * Get fresh query builder instance
      */
-    protected function table()
+    private function table()
     {
         return DB::table($this->tableName);
     }

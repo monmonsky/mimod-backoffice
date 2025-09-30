@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<form id="emailSettingsForm" action="{{ route('settings.email-settings.update') }}" method="POST" class="mt-6 space-y-6">
+<form id="emailSettingsForm" action="{{ route('settings.general.email.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
     <!-- SMTP Configuration -->
@@ -213,118 +213,13 @@
 @endsection
 
 @section('customjs')
+<!-- jQuery from CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
 <script>
-
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
-    function init() {
-        const form = document.getElementById('emailSettingsForm');
-        const testEmailBtn = document.getElementById('testEmailBtn');
-
-        if (!form) {
-            console.error('Form #emailSettingsForm not found!');
-            return;
-        }
-
-        // Handle form submission
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(form);
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Saving...';
-
-            try {
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (response.ok && data.success) {
-                    showToast(data.message || 'Email settings saved successfully!', 'success');
-                } else {
-                    if (data.errors) {
-                        const errorMessages = Object.values(data.errors).flat().join(', ');
-                        showToast(errorMessages, 'error');
-                    } else {
-                        showToast(data.message || 'Failed to save settings', 'error');
-                    }
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('An error occurred while saving settings', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-            }
-        });
-
-        // Handle test email button
-        if (testEmailBtn) {
-            testEmailBtn.addEventListener('click', async function() {
-                // Get email address for test
-                const testEmail = prompt('Enter email address to send test email:', document.querySelector('input[name="from_email"]').value);
-
-                if (!testEmail) {
-                    return; // User cancelled
-                }
-
-                // Validate email format
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(testEmail)) {
-                    showToast('Please enter a valid email address', 'error');
-                    return;
-                }
-
-                const originalBtnText = testEmailBtn.innerHTML;
-
-                // Show loading state
-                testEmailBtn.disabled = true;
-                testEmailBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Sending...';
-
-                try {
-                    const response = await fetch('{{ route("settings.email-settings.test") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ test_email: testEmail })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok && data.success) {
-                        showToast(data.message || 'Test email sent successfully!', 'success');
-                    } else {
-                        showToast(data.message || 'Failed to send test email', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showToast('An error occurred while sending test email', 'error');
-                } finally {
-                    testEmailBtn.disabled = false;
-                    testEmailBtn.innerHTML = originalBtnText;
-                }
-            });
-        }
-    }
+    // Pass data from Laravel to JavaScript
+    window.testEmailUrl = '{{ route("settings.general.email.test") }}';
 </script>
+
+@vite(['resources/js/modules/settings/general/email-settings.js'])
 @endsection
