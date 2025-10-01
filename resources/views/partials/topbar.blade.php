@@ -502,7 +502,7 @@
                         </div>
                     </div>
                     <div class="text-start">
-                        <p class="text-sm/none">Denish</p>
+                        <p class="text-sm/none">{{ currentUser('name') }}</p>
                         <p class="text-base-content/50 mt-0.5 text-xs/none">
                             Team
                         </p>

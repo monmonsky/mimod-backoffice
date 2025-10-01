@@ -24,7 +24,8 @@ class ModuleController extends Controller
      */
     public function index()
     {
-        $modules = $this->moduleRepo->getAllWithChildren();
+        // Use cache for better performance
+        $modules = $this->moduleCache->getAllWithChildren();
         return view('pages.access-control.modules.index', compact('modules'));
     }
 
@@ -33,7 +34,8 @@ class ModuleController extends Controller
      */
     public function create()
     {
-        $parents = $this->moduleRepo->getParents();
+        // Use cache for better performance
+        $parents = $this->moduleCache->getParents();
         return view('pages.access-control.modules.create', compact('parents'));
     }
 
@@ -42,8 +44,9 @@ class ModuleController extends Controller
      */
     public function edit($id)
     {
-        $module = $this->moduleRepo->findById($id);
-        $parents = $this->moduleRepo->getParents();
+        // Use cache for finding module (lazy loaded if not in cache)
+        $module = $this->moduleCache->findById($id);
+        $parents = $this->moduleCache->getParents();
         return view('pages.access-control.modules.edit', compact('module', 'parents'));
     }
 
@@ -53,7 +56,8 @@ class ModuleController extends Controller
     public function getAll()
     {
         try {
-            $modules = $this->moduleRepo->getAllWithChildren();
+            // Use cache for better performance
+            $modules = $this->moduleCache->getAllWithChildren();
 
             return response()->json([
                 'success' => true,
