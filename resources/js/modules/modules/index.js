@@ -1,4 +1,5 @@
 import Sortable from 'sortablejs';
+import Toast from '../../components/toast.js';
 
 let sortableInstance = null;
 let hasChanges = false;
@@ -6,6 +7,8 @@ let hasChanges = false;
 document.addEventListener('DOMContentLoaded', function() {
     initSortable();
     initSaveButton();
+    initToggleButtons();
+    initDeleteButtons();
 });
 
 function initSortable() {
@@ -93,29 +96,130 @@ function initSaveButton() {
                 hasChanges = false;
                 hideSaveButton();
 
-                // Show success message temporarily
-                const alertDiv = document.querySelector('#saveOrderContainer .alert');
-                if (alertDiv) {
-                    alertDiv.classList.remove('alert-warning');
-                    alertDiv.classList.add('alert-success');
-                    alertDiv.querySelector('span:nth-child(2)').textContent = result.message || 'Order saved successfully!';
-                    alertDiv.querySelector('button').classList.add('hidden');
-                }
+                // Show success toast
+                Toast.showToast(result.message || 'Module order updated successfully!', 'success');
 
-                // Reload page after 1 second
+                // Reload page after 1.5 seconds
                 setTimeout(() => {
                     window.location.reload();
-                }, 1000);
+                }, 1500);
             } else {
-                alert(result.message || 'Failed to save order');
+                Toast.showToast(result.message || 'Failed to save order', 'error');
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalText;
             }
         } catch (error) {
             console.error('Error saving order:', error);
-            alert('An error occurred while saving order');
+            Toast.showToast('An error occurred while saving order', 'error');
             saveBtn.disabled = false;
             saveBtn.innerHTML = originalText;
         }
+    });
+}
+
+function initToggleButtons() {
+    // Handle toggle active/visible buttons
+    document.querySelectorAll('form[action*="toggle-active"], form[action*="toggle-visible"]').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            const url = this.action;
+
+            button.disabled = true;
+            button.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Toast.showToast(result.message, 'success', 2000);
+
+                    // Reload page after short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    Toast.showToast(result.message || 'Failed to update module', 'error');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Error toggling module:', error);
+                Toast.showToast('An error occurred while updating module', 'error');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
+    });
+}
+
+function initDeleteButtons() {
+    // Handle delete buttons
+    document.querySelectorAll('form[action*="/modules/"]').forEach(form => {
+        // Only handle forms with DELETE method
+        const methodInput = form.querySelector('input[name="_method"][value="DELETE"]');
+        if (!methodInput) return;
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get module name from the row
+            const row = this.closest('tr');
+            const moduleName = row ? row.querySelector('td:nth-child(4)')?.textContent.trim() : 'this module';
+
+            // Show confirmation dialog
+            const confirmed = confirm(`Are you sure you want to delete ${moduleName}?\n\nThis will also delete all child modules.`);
+
+            if (!confirmed) return;
+
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            const url = this.action;
+
+            button.disabled = true;
+            button.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Toast.showToast(result.message, 'success', 2000);
+
+                    // Reload page after short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    Toast.showToast(result.message || 'Failed to delete module', 'error');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Error deleting module:', error);
+                Toast.showToast('An error occurred while deleting module', 'error');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
     });
 }

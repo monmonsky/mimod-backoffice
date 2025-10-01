@@ -44,7 +44,7 @@ $(document).ready(function() {
             if (response.ok && result.success) {
                 Toast.showToast(result.message, 'success');
                 setTimeout(() => {
-                    window.location.href = '/access-control/module';
+                    window.location.href = '/access-control/modules';
                 }, 1000);
             } else {
                 if (result.errors) {

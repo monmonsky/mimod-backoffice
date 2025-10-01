@@ -88,7 +88,7 @@
                                         <a href="{{ route('modules.edit', $module->id) }}" class="btn btn-sm btn-ghost">
                                             <span class="iconify lucide--pencil size-4"></span>
                                         </a>
-                                        <form action="{{ route('modules.destroy', $module->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete module {{ $module->display_name }}?\n\nThis will also delete all child modules.')">
+                                        <form action="{{ route('modules.destroy', $module->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-ghost text-error">
@@ -135,7 +135,7 @@
                                                 <a href="{{ route('modules.edit', $child->id) }}" class="btn btn-sm btn-ghost">
                                                     <span class="iconify lucide--pencil size-4"></span>
                                                 </a>
-                                                <form action="{{ route('modules.destroy', $child->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete module {{ $child->display_name }}?')">
+                                                <form action="{{ route('modules.destroy', $child->id) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-ghost text-error">

@@ -37,6 +37,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ModuleRepositoryInterface::class,
             \App\Repositories\ModuleRepository::class
         );
+
+        // Module Cache Repository (Singleton for performance)
+        $this->app->singleton(
+            \App\Repositories\Cache\ModuleCacheRepository::class,
+            function ($app) {
+                return new \App\Repositories\Cache\ModuleCacheRepository(
+                    $app->make(\App\Repositories\Contracts\ModuleRepositoryInterface::class)
+                );
+            }
+        );
     }
 
     /**
@@ -44,6 +54,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register View Composers for both sidebar views
+        \Illuminate\Support\Facades\View::composer(
+            ['partials.sidebar', 'partials.sidebar-dynamic'],
+            \App\Http\View\Composers\SidebarComposer::class
+        );
     }
 }

@@ -3,15 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\Contracts\ModuleRepositoryInterface;
+use App\Repositories\Cache\ModuleCacheRepository;
 use Illuminate\Http\Request;
 
 class ModuleController extends Controller
 {
     protected $moduleRepo;
+    protected $moduleCache;
 
-    public function __construct(ModuleRepositoryInterface $moduleRepository)
-    {
+    public function __construct(
+        ModuleRepositoryInterface $moduleRepository,
+        ModuleCacheRepository $moduleCache
+    ) {
         $this->moduleRepo = $moduleRepository;
+        $this->moduleCache = $moduleCache;
     }
 
     /**
@@ -84,6 +89,9 @@ class ModuleController extends Controller
 
             $module = $this->moduleRepo->create($validated);
 
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module created successfully',
@@ -124,6 +132,9 @@ class ModuleController extends Controller
 
             $module = $this->moduleRepo->update($id, $validated);
 
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module updated successfully',
@@ -151,6 +162,9 @@ class ModuleController extends Controller
         try {
             $this->moduleRepo->delete($id);
 
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module deleted successfully'
@@ -170,6 +184,9 @@ class ModuleController extends Controller
     {
         try {
             $module = $this->moduleRepo->toggleActive($id);
+
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
 
             return response()->json([
                 'success' => true,
@@ -191,6 +208,9 @@ class ModuleController extends Controller
     {
         try {
             $module = $this->moduleRepo->toggleVisible($id);
+
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
 
             return response()->json([
                 'success' => true,
@@ -225,6 +245,9 @@ class ModuleController extends Controller
                     $this->moduleRepo->updateSortOrder($item['id'], $item['sort_order']);
                 }
             }
+
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
 
             return response()->json([
                 'success' => true,

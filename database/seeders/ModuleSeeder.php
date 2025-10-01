@@ -23,6 +23,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Main dashboard overview',
                 'icon' => 'lucide--monitor-dot',
                 'route' => 'dashboard',
+                'component' => 'Overview',
                 'sort_order' => 1,
             ],
 
@@ -33,6 +34,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Product management',
                 'icon' => 'lucide--package',
                 'route' => null,
+                'component' => 'Catalog',
                 'sort_order' => 2,
             ],
 
@@ -43,6 +45,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Order management',
                 'icon' => 'lucide--shopping-cart',
                 'route' => null,
+                'component' => 'Sales',
                 'sort_order' => 3,
             ],
             [
@@ -51,6 +54,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Payment management',
                 'icon' => 'lucide--credit-card',
                 'route' => null,
+                'component' => 'Sales',
                 'sort_order' => 4,
             ],
             [
@@ -59,6 +63,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Shipment tracking',
                 'icon' => 'lucide--truck',
                 'route' => null,
+                'component' => 'Sales',
                 'sort_order' => 5,
             ],
             [
@@ -67,6 +72,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Shopping cart management',
                 'icon' => 'lucide--shopping-bag',
                 'route' => null,
+                'component' => 'Sales',
                 'sort_order' => 6,
             ],
 
@@ -77,6 +83,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Customer management',
                 'icon' => 'lucide--users',
                 'route' => null,
+                'component' => 'Customers',
                 'sort_order' => 7,
             ],
             [
@@ -85,6 +92,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Customer addresses',
                 'icon' => 'lucide--map-pin',
                 'route' => null,
+                'component' => 'Customers',
                 'sort_order' => 8,
             ],
             [
@@ -93,6 +101,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Customer notifications',
                 'icon' => 'lucide--bell',
                 'route' => null,
+                'component' => 'Customers',
                 'sort_order' => 9,
             ],
 
@@ -103,6 +112,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Marketing and promotions',
                 'icon' => 'lucide--ticket',
                 'route' => null,
+                'component' => 'Marketing',
                 'sort_order' => 10,
             ],
 
@@ -113,6 +123,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Analytics and reports',
                 'icon' => 'lucide--file-text',
                 'route' => null,
+                'component' => 'Analytics',
                 'sort_order' => 11,
             ],
 
@@ -123,6 +134,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'User and role management',
                 'icon' => 'lucide--shield',
                 'route' => null,
+                'component' => 'Access Control',
                 'sort_order' => 12,
             ],
             [
@@ -131,6 +143,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Module management',
                 'icon' => 'lucide--layout-grid',
                 'route' => 'modules.index',
+                'component' => 'Access Control',
                 'sort_order' => 13,
             ],
 
@@ -141,6 +154,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'General settings',
                 'icon' => 'lucide--settings',
                 'route' => null,
+                'component' => 'Settings',
                 'sort_order' => 14,
             ],
             [
@@ -149,6 +163,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Payment settings',
                 'icon' => 'lucide--wallet',
                 'route' => null,
+                'component' => 'Settings',
                 'sort_order' => 15,
             ],
             [
@@ -157,6 +172,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Shipping settings',
                 'icon' => 'lucide--truck',
                 'route' => null,
+                'component' => 'Settings',
                 'sort_order' => 16,
             ],
         ];
@@ -171,7 +187,7 @@ class ModuleSeeder extends Seeder
                 'icon' => $module['icon'],
                 'parent_id' => null,
                 'route' => $module['route'],
-                'component' => null,
+                'component' => $module['component'],
                 'sort_order' => $module['sort_order'],
                 'is_active' => true,
                 'is_visible' => true,
