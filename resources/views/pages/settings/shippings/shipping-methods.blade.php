@@ -5,6 +5,11 @@
 @section('page_subtitle', 'Shipping Methods')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.shippings.methods.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Shipping Methods</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -29,7 +34,7 @@
                 <div class="flex items-center gap-2">
                     <span class="badge badge-success badge-sm">Active</span>
                     <div class="form-control">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
+                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
                     </div>
                 </div>
             </div>
@@ -53,19 +58,19 @@
                                         <p class="text-xs text-base-content/60">Jalur Nugraha Ekakurir</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" checked />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" checked />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" checked />
                                     <span>REG (Regular)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" checked />
                                     <span>YES (Yakin Esok Sampai)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>OKE (Ongkos Kirim Ekonomis)</span>
                                 </div>
                             </div>
@@ -85,15 +90,15 @@
                                         <p class="text-xs text-base-content/60">J&T Express</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" checked />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" checked />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" checked />
                                     <span>REG (Regular)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>EZ (Ekonomis)</span>
                                 </div>
                             </div>
@@ -113,19 +118,19 @@
                                         <p class="text-xs text-base-content/60">SiCepat Express</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" checked />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" checked />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" checked />
                                     <span>REG (Regular)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" checked />
                                     <span>BEST (Best Sameday)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>CARGO</span>
                                 </div>
                             </div>
@@ -145,19 +150,19 @@
                                         <p class="text-xs text-base-content/60">Citra Van Titipan Kilat</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>REG (Regular)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>ECO (Economy)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>ONS (Over Night Service)</span>
                                 </div>
                             </div>
@@ -177,15 +182,15 @@
                                         <p class="text-xs text-base-content/60">Pos Indonesia</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>Paket Kilat Khusus</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>Express Next Day</span>
                                 </div>
                             </div>
@@ -205,15 +210,15 @@
                                         <p class="text-xs text-base-content/60">AnterAja</p>
                                     </div>
                                 </div>
-                                <input type="checkbox" class="toggle toggle-sm toggle-primary" />
+                                <input type="checkbox" class="toggle toggle-sm toggle-primary {{ $disabled }}" />
                             </div>
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>REG (Regular)</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs">
-                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary" />
+                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-primary {{ $disabled }}" />
                                     <span>SAMEDAY</span>
                                 </div>
                             </div>
@@ -230,6 +235,7 @@
                         </div>
                         <p class="text-xs text-base-content/60 mt-1">Last synced: 2 hours ago</p>
                     </div>
+                    @if($canUpdate)
                     <div class="flex gap-2">
                         <button type="button" class="btn btn-outline btn-sm">
                             <span class="iconify lucide--refresh-cw size-4"></span>
@@ -240,6 +246,7 @@
                             Configure API
                         </a>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -256,10 +263,11 @@
                 <div class="flex items-center gap-2">
                     <span class="badge badge-error badge-sm">Inactive</span>
                     <div class="form-control">
-                        <input type="checkbox" class="toggle toggle-primary" />
+                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
                     </div>
                 </div>
             </div>
+
 
             <form class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,7 +275,7 @@
                         <label class="label">
                             <span class="label-text">Flat Rate Name</span>
                         </label>
-                        <input type="text" placeholder="e.g., Standard Shipping" class="input input-bordered w-full" value="Standard Shipping" />
+                        <input type="text" placeholder="e.g., Standard Shipping" class="input input-bordered w-full {{ $disabled }}" value="Standard Shipping" />
                     </div>
 
                     <div class="form-control">
@@ -276,7 +284,7 @@
                         </label>
                         <label class="input input-bordered flex items-center gap-2">
                             <span class="text-base-content/60">Rp</span>
-                            <input type="number" placeholder="10000" class="grow" value="10000" />
+                            <input type="number" placeholder="10000" class="grow {{ $disabled }}" value="10000" />
                         </label>
                     </div>
                 </div>
@@ -285,18 +293,19 @@
                     <label class="label">
                         <span class="label-text">Estimated Delivery Time</span>
                     </label>
-                    <input type="text" placeholder="e.g., 3-5 business days" class="input input-bordered w-full" value="3-5 business days" />
+                    <input type="text" placeholder="e.g., 3-5 business days" class="input input-bordered w-full {{ $disabled }}" value="3-5 business days" />
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <button type="button" class="btn btn-ghost btn-sm">Cancel</button>
+                @if($canUpdate)
                     <button type="submit" class="btn btn-primary btn-sm">
                         <span class="iconify lucide--save size-4"></span>
                         Save Settings
                     </button>
+                @endif
                 </div>
-            </form>
         </div>
+            </form>
     </div>
 
     <!-- Free Shipping -->
@@ -310,17 +319,18 @@
                 <div class="flex items-center gap-2">
                     <span class="badge badge-success badge-sm">Active</span>
                     <div class="form-control">
-                        <input type="checkbox" class="toggle toggle-primary" checked />
+                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
                     </div>
                 </div>
             </div>
+
 
             <form class="space-y-4">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Free Shipping Condition</span>
                     </label>
-                    <select class="select select-bordered w-full">
+                    <select class="select select-bordered w-full {{ $disabled }}">
                         <option disabled>Select condition</option>
                         <option selected>Minimum Order Amount</option>
                         <option>Specific Products</option>
@@ -336,7 +346,7 @@
                     </label>
                     <label class="input input-bordered flex items-center gap-2">
                         <span class="text-base-content/60">Rp</span>
-                        <input type="number" placeholder="250000" class="grow" value="250000" />
+                        <input type="number" placeholder="250000" class="grow {{ $disabled }}" value="250000" />
                     </label>
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Orders above this amount get free shipping</span>
@@ -347,7 +357,7 @@
                     <label class="label">
                         <span class="label-text">Applies To</span>
                     </label>
-                    <select class="select select-bordered w-full">
+                    <select class="select select-bordered w-full {{ $disabled }}">
                         <option selected>All Regions</option>
                         <option>Specific Provinces</option>
                         <option>Specific Cities</option>
@@ -356,7 +366,7 @@
 
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="checkbox checkbox-primary" checked />
+                        <input type="checkbox" class="checkbox checkbox-primary {{ $disabled }}" checked />
                         <div>
                             <span class="label-text">Show promotional message</span>
                             <p class="text-xs text-base-content/60">Display "Free shipping for orders over Rp 250,000"</p>
@@ -365,14 +375,15 @@
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <button type="button" class="btn btn-ghost btn-sm">Cancel</button>
+                @if($canUpdate)
                     <button type="submit" class="btn btn-primary btn-sm">
                         <span class="iconify lucide--save size-4"></span>
                         Save Settings
                     </button>
+                @endif
                 </div>
-            </form>
         </div>
+            </form>
     </div>
 
     <!-- Local Pickup -->
@@ -386,49 +397,51 @@
                 <div class="flex items-center gap-2">
                     <span class="badge badge-error badge-sm">Inactive</span>
                     <div class="form-control">
-                        <input type="checkbox" class="toggle toggle-primary" />
+                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
                     </div>
                 </div>
             </div>
+
 
             <form class="space-y-4">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Pickup Location Name</span>
                     </label>
-                    <input type="text" placeholder="e.g., Main Store - Jakarta" class="input input-bordered w-full" value="Main Store - Jakarta" />
+                    <input type="text" placeholder="e.g., Main Store - Jakarta" class="input input-bordered w-full {{ $disabled }}" value="Main Store - Jakarta" />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Pickup Address</span>
                     </label>
-                    <textarea class="textarea textarea-bordered" placeholder="Enter pickup address">Jl. Sudirman No. 123, Jakarta Selatan, DKI Jakarta 12180</textarea>
+                    <textarea class="textarea textarea-bordered {{ $disabled }}" placeholder="Enter pickup address">Jl. Sudirman No. 123, Jakarta Selatan, DKI Jakarta 12180</textarea>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Pickup Instructions</span>
                     </label>
-                    <textarea class="textarea textarea-bordered" placeholder="Pickup instructions for customers">Please bring your order confirmation and valid ID. Pickup available Mon-Fri 9AM-5PM.</textarea>
+                    <textarea class="textarea textarea-bordered {{ $disabled }}" placeholder="Pickup instructions for customers">Please bring your order confirmation and valid ID. Pickup available Mon-Fri 9AM-5PM.</textarea>
                 </div>
 
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="checkbox checkbox-primary" />
+                        <input type="checkbox" class="checkbox checkbox-primary {{ $disabled }}" />
                         <span class="label-text">Charge pickup fee</span>
                     </label>
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <button type="button" class="btn btn-ghost btn-sm">Cancel</button>
+                @if($canUpdate)
                     <button type="submit" class="btn btn-primary btn-sm">
                         <span class="iconify lucide--save size-4"></span>
                         Save Settings
                     </button>
+                @endif
                 </div>
-            </form>
         </div>
+            </form>
     </div>
 
     <!-- Shipping Statistics -->

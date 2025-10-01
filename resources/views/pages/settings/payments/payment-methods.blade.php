@@ -5,6 +5,11 @@
 @section('page_subtitle', 'Payment Methods')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.payments.methods.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Payment Methods</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -26,10 +31,12 @@
                     <h2 class="card-title text-lg">Digital Payment Methods</h2>
                     <p class="text-sm text-base-content/70">Configure digital payment gateways and e-wallets</p>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm">
-                    <span class="iconify lucide--plus size-4"></span>
-                    Add Payment Method
-                </button>
+                @if($canUpdate)
+                    <button type="button" class="btn btn-primary btn-sm">
+                        <span class="iconify lucide--plus size-4"></span>
+                        Add Payment Method
+                    </button>
+                @endif
             </div>
 
             <!-- Midtrans -->
@@ -49,7 +56,7 @@
                     <div class="flex items-center gap-2">
                         <span class="badge badge-success badge-sm">Active</span>
                         <div class="form-control">
-                            <input type="checkbox" class="toggle toggle-primary" checked />
+                            <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
                         </div>
                     </div>
                 </div>
@@ -77,6 +84,7 @@
                     </div>
 
                     <!-- Actions -->
+                    @if($canUpdate)
                     <div class="flex gap-2">
                         <a href="{{ route('settings.payments.midtrans-config') }}" class="btn btn-outline btn-sm">
                             <span class="iconify lucide--settings size-4"></span>
@@ -87,6 +95,7 @@
                             Test Connection
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
 
@@ -107,7 +116,7 @@
                     <div class="flex items-center gap-2">
                         <span class="badge badge-success badge-sm">Active</span>
                         <div class="form-control">
-                            <input type="checkbox" class="toggle toggle-primary" checked />
+                            <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
                         </div>
                     </div>
                 </div>
@@ -135,15 +144,18 @@
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex gap-2">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="add_bank_account_modal.showModal()">
-                            <span class="iconify lucide--plus size-4"></span>
-                            Add Bank Account
-                        </button>
-                        <button type="button" class="btn btn-outline btn-sm">
-                            <span class="iconify lucide--settings size-4"></span>
-                            Settings
-                        </button>
+                    @if($canUpdate)
+                        <div class="flex gap-2">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="add_bank_account_modal.showModal()">
+                                <span class="iconify lucide--plus size-4"></span>
+                                Add Bank Account
+                            </button>
+                            <button type="button" class="btn btn-outline btn-sm">
+                                <span class="iconify lucide--settings size-4"></span>
+                                Settings
+                            </button>
+                        </div>
+                    @endif
                     </div>
                 </div>
             </div>
@@ -165,7 +177,7 @@
                     <div class="flex items-center gap-2">
                         <span class="badge badge-error badge-sm">Inactive</span>
                         <div class="form-control">
-                            <input type="checkbox" class="toggle toggle-primary" />
+                            <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
                         </div>
                     </div>
                 </div>
@@ -310,7 +322,7 @@
 <dialog id="add_bank_account_modal" class="modal">
     <div class="modal-box max-w-md">
         <div class="flex items-center justify-between text-lg font-medium mb-4">
-            Add Bank Account
+            <span>Add Bank Account</span>
             <form method="dialog">
                 <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
                     <span class="iconify lucide--x size-4"></span>
@@ -318,53 +330,54 @@
             </form>
         </div>
 
-        <form class="space-y-4">
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Bank Name <span class="text-error">*</span></span>
-                </label>
-                <select class="select select-bordered w-full">
-                    <option disabled selected>Select Bank</option>
-                    <option>BCA - Bank Central Asia</option>
-                    <option>Mandiri</option>
-                    <option>BNI - Bank Negara Indonesia</option>
-                    <option>BRI - Bank Rakyat Indonesia</option>
-                    <option>CIMB Niaga</option>
-                    <option>Permata Bank</option>
-                    <option>Other</option>
-                </select>
+        <form>
+            <div class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Bank Name <span class="text-error">*</span></span>
+                    </label>
+                    <select class="select select-bordered w-full {{ $disabled }}">
+                        <option disabled selected>Select Bank</option>
+                        <option>BCA - Bank Central Asia</option>
+                        <option>Mandiri</option>
+                        <option>BNI - Bank Negara Indonesia</option>
+                        <option>BRI - Bank Rakyat Indonesia</option>
+                        <option>CIMB Niaga</option>
+                        <option>Permata Bank</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Account Number <span class="text-error">*</span></span>
+                    </label>
+                    <input type="text" placeholder="Enter account number" class="input input-bordered w-full {{ $disabled }}" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Account Holder Name <span class="text-error">*</span></span>
+                    </label>
+                    <input type="text" placeholder="Enter account holder name" class="input input-bordered w-full {{ $disabled }}" />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Branch (Optional)</span>
+                    </label>
+                    <input type="text" placeholder="Enter branch name" class="input input-bordered w-full {{ $disabled }}" />
+                </div>
             </div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Account Number <span class="text-error">*</span></span>
-                </label>
-                <input type="text" placeholder="Enter account number" class="input input-bordered w-full" />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Account Holder Name <span class="text-error">*</span></span>
-                </label>
-                <input type="text" placeholder="Enter account holder name" class="input input-bordered w-full" />
-            </div>
-
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Branch (Optional)</span>
-                </label>
-                <input type="text" placeholder="Enter branch name" class="input input-bordered w-full" />
-            </div>
-
+            @if($canUpdate)
             <div class="modal-action">
-                <form method="dialog">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                </form>
                 <button type="submit" class="btn btn-primary">
                     <span class="iconify lucide--plus size-4"></span>
                     Add Account
                 </button>
             </div>
+            @endif
         </form>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -376,7 +389,7 @@
 <dialog id="cod_settings_modal" class="modal">
     <div class="modal-box max-w-md">
         <div class="flex items-center justify-between text-lg font-medium mb-4">
-            COD Settings
+            <span>COD Settings</span>
             <form method="dialog">
                 <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
                     <span class="iconify lucide--x size-4"></span>
@@ -384,59 +397,60 @@
             </form>
         </div>
 
-        <form class="space-y-4">
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">COD Fee</span>
-                </label>
-                <label class="input input-bordered flex items-center gap-2">
-                    <span class="text-base-content/60">Rp</span>
-                    <input type="number" placeholder="5000" class="grow" value="5000" />
-                </label>
-                <label class="label">
-                    <span class="label-text-alt text-base-content/60">Additional fee for COD orders</span>
-                </label>
+        <form>
+            <div class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">COD Fee</span>
+                    </label>
+                    <label class="input input-bordered flex items-center gap-2">
+                        <span class="text-base-content/60">Rp</span>
+                        <input type="number" placeholder="5000" class="grow {{ $disabled }}" value="5000" />
+                    </label>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">Additional fee for COD orders</span>
+                    </label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Maximum Order Amount</span>
+                    </label>
+                    <label class="input input-bordered flex items-center gap-2">
+                        <span class="text-base-content/60">Rp</span>
+                        <input type="number" placeholder="1000000" class="grow {{ $disabled }}" value="1000000" />
+                    </label>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/60">Maximum amount for COD orders (0 = no limit)</span>
+                    </label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
+                        <div>
+                            <span class="label-text font-medium">Require Confirmation Call</span>
+                            <p class="text-xs text-base-content/60">Call customer before processing COD order</p>
+                        </div>
+                    </label>
+                </div>
             </div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Maximum Order Amount</span>
-                </label>
-                <label class="input input-bordered flex items-center gap-2">
-                    <span class="text-base-content/60">Rp</span>
-                    <input type="number" placeholder="1000000" class="grow" value="1000000" />
-                </label>
-                <label class="label">
-                    <span class="label-text-alt text-base-content/60">Maximum amount for COD orders (0 = no limit)</span>
-                </label>
-            </div>
-
-            <div class="form-control">
-                <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" class="toggle toggle-primary" />
-                    <div>
-                        <span class="label-text font-medium">Require Confirmation Call</span>
-                        <p class="text-xs text-base-content/60">Call customer before processing COD order</p>
-                    </div>
-                </label>
-            </div>
-
+            @if($canUpdate)
             <div class="modal-action">
-                <form method="dialog">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                </form>
                 <button type="submit" class="btn btn-primary">
                     <span class="iconify lucide--save size-4"></span>
                     Save Settings
                 </button>
             </div>
+            @endif
         </form>
     </div>
     <form method="dialog" class="modal-backdrop">
         <button>close</button>
     </form>
 </dialog>
-
+</div>
 @endsection
 
 @section('customjs')

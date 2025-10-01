@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.token' => \App\Http\Middleware\AuthenticateToken::class,
             'auth.sanctum' => \App\Http\Middleware\SanctumAuth::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         ]);
 
         // Disable CSRF for API routes

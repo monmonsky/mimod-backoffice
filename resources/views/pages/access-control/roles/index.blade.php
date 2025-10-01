@@ -94,6 +94,7 @@
                     </label>
                 </div>
                 <div class="inline-flex items-center gap-3">
+                    @if(hasPermission('access-control.roles.create'))
                     <a
                         aria-label="Create role link"
                         class="btn btn-primary btn-sm max-sm:btn-square"
@@ -101,6 +102,7 @@
                         <span class="iconify lucide--plus size-4"></span>
                         <span class="hidden sm:inline">Add Role</span>
                     </a>
+                    @endif
                 </div>
             </div>
 
@@ -136,24 +138,33 @@
                                 @endif
                             </td>
                             <td>
+                                @if(hasPermission('access-control.roles.update'))
                                 <form action="{{ route('role.toggle-active', $role->id) }}" method="POST" class="inline toggle-form">
                                     @csrf
                                     <button type="submit" class="badge badge-sm {{ $role->is_active ? 'badge-success' : 'badge-error' }} cursor-pointer" {{ $role->is_system ? 'disabled' : '' }}>
                                         {{ $role->is_active ? 'Active' : 'Inactive' }}
                                     </button>
                                 </form>
+                                @else
+                                    <span class="badge badge-sm {{ $role->is_active ? 'badge-success' : 'badge-error' }}">
+                                        {{ $role->is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="text-center">{{ $role->users_count }}</td>
                             <td class="text-sm">{{ \Carbon\Carbon::parse($role->created_at)->format('Y-m-d') }}</td>
                             <td>
                                 <div class="inline-flex">
+                                    @if(hasPermission('access-control.roles.update'))
                                     <a
                                         aria-label="Edit role"
                                         class="btn btn-square btn-ghost btn-sm"
                                         href="{{ route('role.edit', $role->id) }}">
                                         <span class="iconify lucide--pencil text-base-content/80 size-4"></span>
                                     </a>
-                                    @if(!$role->is_system)
+                                    @endif
+
+                                    @if(hasPermission('access-control.roles.delete') && !$role->is_system)
                                     <form action="{{ route('role.destroy', $role->id) }}" method="POST" class="inline delete-form">
                                         @csrf
                                         @method('DELETE')

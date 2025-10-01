@@ -5,6 +5,11 @@
 @section('page_subtitle', 'Midtrans Configuration')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.payments.midtrans.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Midtrans Payment Gateway Configuration</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -39,6 +44,11 @@
             <h2 class="card-title text-lg">API Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure Midtrans API credentials</p>
 
+@php
+    $canUpdate = hasPermission('settings.payments.midtrans.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form id="midtransApiForm" action="{{ route('settings.payments.midtrans-config.api.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Environment Mode -->
@@ -46,7 +56,7 @@
                     <label class="label">
                         <span class="label-text">Environment Mode <span class="text-error">*</span></span>
                     </label>
-                    <select name="environment" class="select select-bordered w-full" required>
+                    <select name="environment" class="select select-bordered w-full {{ $disabled }}" required>
                         <option disabled>Select Environment</option>
                         <option value="sandbox" {{ ($config['environment'] ?? 'production') == 'sandbox' ? 'selected' : '' }}>Sandbox (Testing)</option>
                         <option value="production" {{ ($config['environment'] ?? 'production') == 'production' ? 'selected' : '' }}>Production (Live)</option>
@@ -68,7 +78,7 @@
                             <label class="label">
                                 <span class="label-text">Merchant ID <span class="text-error">*</span></span>
                             </label>
-                            <input type="text" name="merchant_id" placeholder="G123456789" class="input input-bordered w-full" value="{{ $config['merchant_id'] ?? '' }}" required />
+                            <input type="text" name="merchant_id" placeholder="G123456789" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['merchant_id'] ?? '' }}" required />
                             <label class="label">
                                 <span class="label-text-alt text-base-content/60">Your Midtrans Merchant ID</span>
                             </label>
@@ -79,7 +89,7 @@
                             <label class="label">
                                 <span class="label-text">Client Key <span class="text-error">*</span></span>
                             </label>
-                            <input type="text" name="client_key_production" placeholder="Mid-client-..." class="input input-bordered w-full" value="{{ $config['client_key_production'] ?? '' }}" required />
+                            <input type="text" name="client_key_production" placeholder="Mid-client-..." class="input input-bordered w-full {{ $disabled }}" value="{{ $config['client_key_production'] ?? '' }}" required />
                             <label class="label">
                                 <span class="label-text-alt text-base-content/60">Client key for frontend integration</span>
                             </label>
@@ -91,7 +101,7 @@
                                 <span class="label-text">Server Key <span class="text-error">*</span></span>
                             </label>
                             <div class="join w-full">
-                                <input type="password" name="server_key_production" id="server-key-prod" placeholder="Mid-server-..." class="input input-bordered join-item flex-1" value="{{ $config['server_key_production'] ?? '' }}" required />
+                                <input type="password" name="server_key_production" id="server-key-prod" placeholder="Mid-server-..." class="input input-bordered join-item flex-1 {{ $disabled }}" value="{{ $config['server_key_production'] ?? '' }}" required />
                                 <button type="button" class="btn btn-outline join-item" onclick="togglePassword('server-key-prod')">
                                     <span class="iconify lucide--eye size-4"></span>
                                 </button>
@@ -115,7 +125,7 @@
                             <label class="label">
                                 <span class="label-text">Sandbox Merchant ID</span>
                             </label>
-                            <input type="text" name="merchant_id_sandbox" placeholder="G987654321" class="input input-bordered w-full" value="{{ $config['merchant_id_sandbox'] ?? '' }}" />
+                            <input type="text" name="merchant_id_sandbox" placeholder="G987654321" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['merchant_id_sandbox'] ?? '' }}" />
                         </div>
 
                         <!-- Sandbox Client Key -->
@@ -123,7 +133,7 @@
                             <label class="label">
                                 <span class="label-text">Sandbox Client Key</span>
                             </label>
-                            <input type="text" name="client_key_sandbox" placeholder="SB-Mid-client-..." class="input input-bordered w-full" value="{{ $config['client_key_sandbox'] ?? '' }}" />
+                            <input type="text" name="client_key_sandbox" placeholder="SB-Mid-client-..." class="input input-bordered w-full {{ $disabled }}" value="{{ $config['client_key_sandbox'] ?? '' }}" />
                         </div>
 
                         <!-- Sandbox Server Key -->
@@ -132,7 +142,7 @@
                                 <span class="label-text">Sandbox Server Key</span>
                             </label>
                             <div class="join w-full">
-                                <input type="password" name="server_key_sandbox" id="server-key-sandbox" placeholder="SB-Mid-server-..." class="input input-bordered join-item flex-1" value="{{ $config['server_key_sandbox'] ?? '' }}" />
+                                <input type="password" name="server_key_sandbox" id="server-key-sandbox" placeholder="SB-Mid-server-..." class="input input-bordered join-item flex-1 {{ $disabled }}" value="{{ $config['server_key_sandbox'] ?? '' }}" />
                                 <button type="button" class="btn btn-outline join-item" onclick="togglePassword('server-key-sandbox')">
                                     <span class="iconify lucide--eye size-4"></span>
                                 </button>
@@ -142,19 +152,22 @@
                 </div>
 
                 <!-- Test Connection -->
-                <div class="alert alert-warning">
-                    <span class="iconify lucide--zap size-5"></span>
-                    <div class="flex-1">
-                        <h4 class="font-medium">Test API Connection</h4>
-                        <p class="text-sm">Verify that your API credentials are correct</p>
+                @if($canUpdate)
+                    <div class="alert alert-warning">
+                        <span class="iconify lucide--zap size-5"></span>
+                        <div class="flex-1">
+                            <h4 class="font-medium">Test API Connection</h4>
+                            <p class="text-sm">Verify that your API credentials are correct</p>
+                        </div>
+                        <button type="button" id="testMidtransBtn" class="btn btn-sm">
+                            <span class="iconify lucide--play size-4"></span>
+                            Test Connection
+                        </button>
                     </div>
-                    <button type="button" id="testMidtransBtn" class="btn btn-sm">
-                        <span class="iconify lucide--play size-4"></span>
-                        Test Connection
-                    </button>
-                </div>
+                @endif
 
                 <!-- Sync Payment Methods -->
+                @if($canUpdate)
                 <div class="alert alert-info">
                     <span class="iconify lucide--refresh-cw size-5"></span>
                     <div class="flex-1">
@@ -169,17 +182,19 @@
                         Sync Now
                     </button>
                 </div>
+                @endif
 
                 <!-- Action Buttons -->
+                @if(hasPermission('settings.payments.midtrans.update'))
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save API Configuration
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 
     <!-- Payment Methods Settings -->
@@ -187,6 +202,11 @@
         <div class="card-body">
             <h2 class="card-title text-lg">Enabled Payment Methods</h2>
             <p class="text-sm text-base-content/70 mb-4">Select which payment methods to enable for customers</p>
+
+@php
+    $canUpdate = hasPermission('settings.payments.midtrans.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
             <form id="midtransMethodsForm" action="{{ route('settings.payments.midtrans-config.methods.update') }}" method="POST" class="space-y-6">
                 @csrf
@@ -196,7 +216,7 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_credit_card" class="toggle toggle-primary" {{ ($config['enable_credit_card'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_credit_card" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_credit_card'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Credit & Debit Card</span>
                                     <p class="text-xs text-base-content/60">Visa, Mastercard, JCB, Amex</p>
@@ -206,14 +226,14 @@
 
                         <div class="form-control ml-6">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_3d_secure" class="checkbox checkbox-primary" {{ ($config['enable_3d_secure'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_3d_secure" class="checkbox checkbox-primary {{ $disabled }}" {{ ($config['enable_3d_secure'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text">Enable 3D Secure</span>
                             </label>
                         </div>
 
                         <div class="form-control ml-6">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_installment" class="checkbox checkbox-primary" {{ ($config['enable_installment'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_installment" class="checkbox checkbox-primary {{ $disabled }}" {{ ($config['enable_installment'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text">Enable Installment</span>
                             </label>
                         </div>
@@ -228,7 +248,7 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_gopay" class="toggle toggle-primary" {{ ($config['enable_gopay'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_gopay" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_gopay'] ?? true) ? 'checked' : '' }} />
                                 <div class="flex items-center gap-2">
                                     <span class="label-text font-medium">GoPay</span>
                                     <span class="badge badge-success badge-xs">Popular</span>
@@ -238,7 +258,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_shopeepay" class="toggle toggle-primary" {{ ($config['enable_shopeepay'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_shopeepay" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_shopeepay'] ?? true) ? 'checked' : '' }} />
                                 <div class="flex items-center gap-2">
                                     <span class="label-text font-medium">ShopeePay</span>
                                     <span class="badge badge-success badge-xs">Popular</span>
@@ -248,21 +268,21 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_ovo" class="toggle toggle-primary" {{ ($config['enable_ovo'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_ovo" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_ovo'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">OVO</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_dana" class="toggle toggle-primary" {{ ($config['enable_dana'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_dana" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_dana'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">DANA</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_linkaja" class="toggle toggle-primary" {{ ($config['enable_linkaja'] ?? false) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_linkaja" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_linkaja'] ?? false) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">LinkAja</span>
                             </label>
                         </div>
@@ -277,35 +297,35 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_bca_va" class="toggle toggle-primary" {{ ($config['enable_bca_va'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_bca_va" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_bca_va'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">BCA Virtual Account</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_mandiri_va" class="toggle toggle-primary" {{ ($config['enable_mandiri_va'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_mandiri_va" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_mandiri_va'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">Mandiri Virtual Account</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_bni_va" class="toggle toggle-primary" {{ ($config['enable_bni_va'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_bni_va" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_bni_va'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">BNI Virtual Account</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_bri_va" class="toggle toggle-primary" {{ ($config['enable_bri_va'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_bri_va" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_bri_va'] ?? true) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">BRI Virtual Account</span>
                             </label>
                         </div>
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_permata_va" class="toggle toggle-primary" {{ ($config['enable_permata_va'] ?? false) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_permata_va" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_permata_va'] ?? false) ? 'checked' : '' }} />
                                 <span class="label-text font-medium">Permata Virtual Account</span>
                             </label>
                         </div>
@@ -320,7 +340,7 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_qris" class="toggle toggle-primary" {{ ($config['enable_qris'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_qris" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_qris'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">QRIS</span>
                                     <p class="text-xs text-base-content/60">Quick Response Code Indonesian Standard</p>
@@ -330,7 +350,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_convenience_store" class="toggle toggle-primary" {{ ($config['enable_convenience_store'] ?? false) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_convenience_store" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_convenience_store'] ?? false) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Convenience Store</span>
                                     <p class="text-xs text-base-content/60">Alfamart, Indomaret</p>
@@ -340,7 +360,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="enable_akulaku" class="toggle toggle-primary" {{ ($config['enable_akulaku'] ?? false) ? 'checked' : '' }} />
+                                <input type="checkbox" name="enable_akulaku" class="toggle toggle-primary {{ $disabled }}" {{ ($config['enable_akulaku'] ?? false) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Akulaku</span>
                                     <p class="text-xs text-base-content/60">Buy now, pay later</p>
@@ -350,16 +370,17 @@
                     </div>
                 </div>
 
+                @if(hasPermission('settings.payments.midtrans.update'))
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save Payment Methods
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 
     <!-- Transaction Settings -->
@@ -368,6 +389,11 @@
             <h2 class="card-title text-lg">Transaction Settings</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure transaction behavior and notifications</p>
 
+@php
+    $canUpdate = hasPermission('settings.payments.midtrans.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form id="midtransTransactionForm" action="{{ route('settings.payments.midtrans-config.transaction.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Payment Expiry -->
@@ -375,7 +401,7 @@
                     <label class="label">
                         <span class="label-text">Payment Expiry Time (hours)</span>
                     </label>
-                    <input type="number" name="payment_expiry_hours" placeholder="24" class="input input-bordered w-full" value="{{ $config['payment_expiry_hours'] ?? 24 }}" />
+                    <input type="number" name="payment_expiry_hours" placeholder="24" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['payment_expiry_hours'] ?? 24 }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Time limit for customer to complete payment</span>
                     </label>
@@ -384,7 +410,7 @@
                 <!-- Auto Capture -->
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" name="auto_capture" class="toggle toggle-primary" {{ ($config['auto_capture'] ?? true) ? 'checked' : '' }} />
+                        <input type="checkbox" name="auto_capture" class="toggle toggle-primary {{ $disabled }}" {{ ($config['auto_capture'] ?? true) ? 'checked' : '' }} />
                         <div>
                             <span class="label-text font-medium">Auto Capture</span>
                             <p class="text-xs text-base-content/60">Automatically capture authorized transactions</p>
@@ -398,7 +424,7 @@
                         <span class="label-text">Payment Notification URL</span>
                     </label>
                     <div class="flex gap-2">
-                        <input type="url" name="notification_url" placeholder="https://yourstore.com/api/midtrans/notification" class="input input-bordered flex-1" value="{{ $config['notification_url'] ?? url('/api/midtrans/notification') }}" />
+                        <input type="url" name="notification_url" placeholder="https://yourstore.com/api/midtrans/notification" class="input input-bordered flex-1 {{ $disabled }}" value="{{ $config['notification_url'] ?? url('/api/midtrans/notification') }}" />
                         <button type="button" class="btn btn-outline" onclick="copyToClipboard(this.previousElementSibling.value)">
                             <span class="iconify lucide--copy size-4"></span>
                         </button>
@@ -413,7 +439,7 @@
                     <label class="label">
                         <span class="label-text">Finish Redirect URL</span>
                     </label>
-                    <input type="url" name="finish_redirect_url" placeholder="https://yourstore.com/payment/finish" class="input input-bordered w-full" value="{{ $config['finish_redirect_url'] ?? url('/payment/finish') }}" />
+                    <input type="url" name="finish_redirect_url" placeholder="https://yourstore.com/payment/finish" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['finish_redirect_url'] ?? url('/payment/finish') }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Redirect URL after payment is completed</span>
                     </label>
@@ -424,22 +450,23 @@
                     <label class="label">
                         <span class="label-text">Error Redirect URL</span>
                     </label>
-                    <input type="url" name="error_redirect_url" placeholder="https://yourstore.com/payment/error" class="input input-bordered w-full" value="{{ $config['error_redirect_url'] ?? url('/payment/error') }}" />
+                    <input type="url" name="error_redirect_url" placeholder="https://yourstore.com/payment/error" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['error_redirect_url'] ?? url('/payment/error') }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Redirect URL when payment fails</span>
                     </label>
                 </div>
 
+                @if(hasPermission('settings.payments.midtrans.update'))
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save Transaction Settings
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 </div>
 @endsection

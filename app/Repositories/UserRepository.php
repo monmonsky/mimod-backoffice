@@ -31,35 +31,36 @@ class UserRepository implements UserRepositoryInterface
 
     public function findById(string $id)
     {
-        $user = $this->table()
-            ->where('id', $id)
+        // Get user with role in single query
+        $user = DB::table('users')
+            ->leftJoin('user_roles', function($join) {
+                $join->on('users.id', '=', 'user_roles.user_id')
+                     ->where('user_roles.is_active', '=', true);
+            })
+            ->leftJoin('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->where('users.id', $id)
+            ->select(
+                'users.*',
+                'roles.name as role',
+                'roles.display_name as role_display'
+            )
             ->first();
 
         if (!$user) {
             return null;
         }
 
-        // Get user role
-        $role = DB::table('user_roles')
-            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
-            ->where('user_roles.user_id', $id)
-            ->where('user_roles.is_active', true)
-            ->select('roles.name', 'roles.display_name')
-            ->first();
-
-        // Get user permissions
-        $permissions = DB::table('role_permissions')
+        // Get permissions in single query using GROUP_CONCAT for better performance
+        // This avoids N+1 query problem
+        $permissionsResult = DB::table('role_permissions')
             ->join('user_roles', 'role_permissions.role_id', '=', 'user_roles.role_id')
             ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
             ->where('user_roles.user_id', $id)
             ->where('user_roles.is_active', true)
-            ->select('permissions.name', 'permissions.display_name')
-            ->get();
+            ->pluck('permissions.name')
+            ->toArray();
 
-        // Attach role and permissions to user object
-        $user->role = $role ? $role->name : null;
-        $user->role_display = $role ? $role->display_name : null;
-        $user->permissions = $permissions->pluck('name')->toArray();
+        $user->permissions = $permissionsResult;
 
         return $user;
     }
@@ -100,7 +101,7 @@ class UserRepository implements UserRepositoryInterface
 
         // Store in database
         $this->tokenTable()->insert([
-            'tokenable_type' => 'App\\Models\\User', // atau sesuaikan dengan namespace
+            'tokenable_type' => 'App\\Models\\User',
             'tokenable_id' => $userId,
             'name' => $tokenName,
             'token' => $hashedToken,
@@ -109,7 +110,7 @@ class UserRepository implements UserRepositoryInterface
             'updated_at' => now(),
         ]);
 
-        // Return plain text token (format: {id}|{plainTextToken})
+        // Return plain text token
         return $plainTextToken;
     }
 
@@ -118,10 +119,8 @@ class UserRepository implements UserRepositoryInterface
      */
     public function findByToken(string $token)
     {
-        // Hash token untuk mencari di database
         $hashedToken = hash('sha256', $token);
 
-        // Find token
         $tokenData = $this->tokenTable()
             ->where('token', $hashedToken)
             ->first();
@@ -130,14 +129,12 @@ class UserRepository implements UserRepositoryInterface
             return null;
         }
 
-        // Get user
         $user = $this->findById($tokenData->tokenable_id);
 
         if (!$user) {
             return null;
         }
 
-        // Update last used
         $this->updateTokenLastUsed($hashedToken);
 
         return $user;
@@ -204,5 +201,211 @@ class UserRepository implements UserRepositoryInterface
             })
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    /**
+     * Get all users
+     */
+    public function getAll()
+    {
+        return $this->table()
+            ->orderBy('id', 'asc')
+            ->get();
+    }
+
+    /**
+     * Get all users with their roles
+     */
+    public function getAllWithRoles()
+    {
+        return DB::table('users')
+            ->leftJoin('user_roles', function($join) {
+                $join->on('users.id', '=', 'user_roles.user_id')
+                     ->where('user_roles.is_active', '=', true);
+            })
+            ->leftJoin('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->select(
+                'users.*',
+                'roles.id as role_id',
+                'roles.name as role_name',
+                'roles.display_name as role_display_name',
+                'user_roles.expires_at as role_expires_at'
+            )
+            ->orderBy('users.id', 'asc')
+            ->get();
+    }
+
+    /**
+     * Create new user
+     */
+    public function create(array $data)
+    {
+        $data['id'] = Str::uuid()->toString();
+        $data['created_at'] = now();
+        $data['updated_at'] = now();
+
+        // Convert is_active to status field
+        if (isset($data['is_active'])) {
+            $data['status'] = $data['is_active'] ? 'active' : 'inactive';
+            unset($data['is_active']);
+        } else {
+            $data['status'] = 'active'; // Default to active
+        }
+
+        // Hash password if provided
+        if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        $this->table()->insert($data);
+
+        return $this->findById($data['id']);
+    }
+
+    /**
+     * Update user
+     */
+    public function update(string $id, array $data)
+    {
+        $data['updated_at'] = now();
+
+        // Convert is_active to status field
+        if (isset($data['is_active'])) {
+            $data['status'] = $data['is_active'] ? 'active' : 'inactive';
+            unset($data['is_active']);
+        }
+
+        // Hash password if provided
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        } else {
+            unset($data['password']);
+        }
+
+        $this->table()->where('id', $id)->update($data);
+
+        return $this->findById($id);
+    }
+
+    /**
+     * Delete user
+     */
+    public function delete(string $id)
+    {
+        // Delete user roles first
+        DB::table('user_roles')->where('user_id', $id)->delete();
+
+        // Delete user tokens
+        $this->revokeAllUserTokens($id);
+
+        // Delete user
+        return $this->table()->where('id', $id)->delete();
+    }
+
+    /**
+     * Toggle user active status
+     */
+    public function toggleActive(string $id)
+    {
+        $user = $this->findById($id);
+
+        if (!$user) {
+            throw new \Exception('User not found');
+        }
+
+        // Toggle between 'active' and 'inactive'
+        $newStatus = $user->status === 'active' ? 'inactive' : 'active';
+
+        $this->table()
+            ->where('id', $id)
+            ->update([
+                'status' => $newStatus,
+                'updated_at' => now()
+            ]);
+
+        return $this->findById($id);
+    }
+
+    /**
+     * Assign role to user
+     */
+    public function assignRole(string $userId, string $roleId, ?string $expiresAt = null)
+    {
+        // Deactivate all current roles
+        DB::table('user_roles')
+            ->where('user_id', $userId)
+            ->update(['is_active' => false]);
+
+        // Check if role already assigned
+        $existing = DB::table('user_roles')
+            ->where('user_id', $userId)
+            ->where('role_id', $roleId)
+            ->first();
+
+        if ($existing) {
+            // Reactivate existing role
+            DB::table('user_roles')
+                ->where('user_id', $userId)
+                ->where('role_id', $roleId)
+                ->update([
+                    'is_active' => true,
+                    'expires_at' => $expiresAt,
+                    'updated_at' => now()
+                ]);
+        } else {
+            // Create new role assignment
+            DB::table('user_roles')->insert([
+                'id' => Str::uuid()->toString(),
+                'user_id' => $userId,
+                'role_id' => $roleId,
+                'is_active' => true,
+                'expires_at' => $expiresAt,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get user's current role
+     */
+    public function getUserRole(string $userId)
+    {
+        return DB::table('user_roles')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->where('user_roles.user_id', $userId)
+            ->where('user_roles.is_active', true)
+            ->select('roles.*', 'user_roles.expires_at')
+            ->first();
+    }
+
+    /**
+     * Get user statistics
+     */
+    public function getStatistics()
+    {
+        // Optimize: Use single query with conditional aggregation instead of 4 separate queries
+        $stats = DB::table('users')
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN status != 'active' THEN 1 ELSE 0 END) as inactive
+            ")
+            ->first();
+
+        // Get users with roles count in separate query (can't be combined efficiently)
+        $usersWithRoles = DB::table('user_roles')
+            ->where('is_active', true)
+            ->distinct()
+            ->count('user_id');
+
+        return [
+            'total' => (int) $stats->total,
+            'active' => (int) $stats->active,
+            'inactive' => (int) $stats->inactive,
+            'with_roles' => $usersWithRoles,
+        ];
     }
 }

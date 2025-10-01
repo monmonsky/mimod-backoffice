@@ -125,6 +125,11 @@
 @endpush
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.shippings.origin.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Origin Address Configuration</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -152,6 +157,11 @@
         <div class="card-body">
             <h2 class="card-title text-lg">Primary Origin Address</h2>
             <p class="text-sm text-base-content/70 mb-4">Main warehouse or store address for shipping</p>
+
+@php
+    $canUpdate = hasPermission('settings.shippings.origin.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
             <form id="originAddressForm" class="space-y-6">
                 @csrf
@@ -182,7 +192,7 @@
                     <label class="label">
                         <span class="label-text">Province <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="origin-province" name="province_code" required>
+                    <select class="select select-bordered w-full {{ $disabled }}" id="origin-province" name="province_code" required>
                         <option value="">Select Province</option>
                     </select>
                     <input type="hidden" name="province_name" id="province-name">
@@ -193,7 +203,7 @@
                     <label class="label">
                         <span class="label-text">City / Regency <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="origin-regency" name="regency_code" required disabled>
+                    <select class="select select-bordered w-full {{ $disabled }}" id="origin-regency" name="regency_code" required disabled>
                         <option value="">Select province first</option>
                     </select>
                     <input type="hidden" name="regency_name" id="regency-name">
@@ -204,7 +214,7 @@
                     <label class="label">
                         <span class="label-text">District / Kecamatan <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="origin-district" name="district_code" required disabled>
+                    <select class="select select-bordered w-full {{ $disabled }}" id="origin-district" name="district_code" required disabled>
                         <option value="">Select regency first</option>
                     </select>
                     <input type="hidden" name="district_name" id="district-name">
@@ -215,7 +225,7 @@
                     <label class="label">
                         <span class="label-text">Village / Kelurahan</span>
                     </label>
-                    <select class="select select-bordered w-full" id="origin-village" name="village_code" disabled>
+                    <select class="select select-bordered w-full {{ $disabled }}" id="origin-village" name="village_code" disabled>
                         <option value="">Select district first</option>
                     </select>
                     <input type="hidden" name="village_name" id="village-name">
@@ -271,6 +281,7 @@
                     </div>
                 </div>
 
+                @if(hasPermission('settings.shippings.origin.update'))
                 <!-- Action Buttons -->
                 <div class="card-actions justify-end pt-4">
                     <button type="button" class="btn btn-ghost" onclick="window.location.reload()">
@@ -282,8 +293,9 @@
                         Save Origin Address
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 </div>
 @endsection

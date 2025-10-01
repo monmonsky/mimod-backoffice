@@ -5,6 +5,11 @@
 @section('page_subtitle', 'Email Configuration')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.generals.email.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Email Settings</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -16,6 +21,10 @@
     </div>
 </div>
 
+@php
+    $canUpdate = hasPermission('settings.generals.email.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 <form id="emailSettingsForm" action="{{ route('settings.generals.email.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
@@ -31,7 +40,7 @@
                     <label class="label">
                         <span class="label-text">SMTP Host</span>
                     </label>
-                    <input type="text" name="smtp_host" placeholder="smtp.gmail.com" class="input input-bordered w-full" value="{{ $smtpSettings['host'] ?? 'smtp.mailtrap.io' }}" />
+                    <input type="text" name="smtp_host" placeholder="smtp.gmail.com" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['host'] ?? 'smtp.mailtrap.io' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Your SMTP server hostname</span>
                     </label>
@@ -43,7 +52,7 @@
                         <label class="label">
                             <span class="label-text">SMTP Port</span>
                         </label>
-                        <input type="number" name="smtp_port" placeholder="587" class="input input-bordered w-full" value="{{ $smtpSettings['port'] ?? 587 }}" />
+                        <input type="number" name="smtp_port" placeholder="587" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['port'] ?? 587 }}" />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Common: 587 (TLS), 465 (SSL), 25</span>
                         </label>
@@ -53,7 +62,7 @@
                         <label class="label">
                             <span class="label-text">Encryption</span>
                         </label>
-                        <select name="smtp_encryption" class="select select-bordered w-full">
+                        <select name="smtp_encryption" class="select select-bordered w-full {{ $disabled }}">
                             <option value="">None</option>
                             <option value="tls" {{ ($smtpSettings['encryption'] ?? 'tls') == 'tls' ? 'selected' : '' }}>TLS</option>
                             <option value="ssl" {{ ($smtpSettings['encryption'] ?? '') == 'ssl' ? 'selected' : '' }}>SSL</option>
@@ -67,14 +76,14 @@
                         <label class="label">
                             <span class="label-text">SMTP Username</span>
                         </label>
-                        <input type="text" name="smtp_username" placeholder="your-email@gmail.com" class="input input-bordered w-full" value="{{ $smtpSettings['username'] ?? '' }}" />
+                        <input type="text" name="smtp_username" placeholder="your-email@gmail.com" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['username'] ?? '' }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">SMTP Password</span>
                         </label>
-                        <input type="password" name="smtp_password" placeholder="••••••••" class="input input-bordered w-full" value="{{ $smtpSettings['password'] ?? '' }}" />
+                        <input type="password" name="smtp_password" placeholder="••••••••" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['password'] ?? '' }}" />
                     </div>
                 </div>
 
@@ -84,7 +93,7 @@
                         <label class="label">
                             <span class="label-text">From Email Address <span class="text-error">*</span></span>
                         </label>
-                        <input type="email" name="from_email" placeholder="noreply@yourstore.com" class="input input-bordered w-full" value="{{ $smtpSettings['from_email'] ?? 'noreply@minimoda.com' }}" required />
+                        <input type="email" name="from_email" placeholder="noreply@yourstore.com" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['from_email'] ?? 'noreply@minimoda.com' }}" required />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Default sender email address</span>
                         </label>
@@ -94,7 +103,7 @@
                         <label class="label">
                             <span class="label-text">From Name <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" name="from_name" placeholder="Your Store Name" class="input input-bordered w-full" value="{{ $smtpSettings['from_name'] ?? 'Minimoda' }}" required />
+                        <input type="text" name="from_name" placeholder="Your Store Name" class="input input-bordered w-full {{ $disabled }}" value="{{ $smtpSettings['from_name'] ?? 'Minimoda' }}" required />
                         <label class="label">
                             <span class="label-text-alt text-base-content/60">Default sender name</span>
                         </label>
@@ -102,17 +111,19 @@
                 </div>
 
                 <!-- Test Email Connection -->
-                <div class="alert alert-info">
-                    <span class="iconify lucide--info size-5"></span>
-                    <div class="flex-1">
-                        <h4 class="font-medium">Test Email Configuration</h4>
-                        <p class="text-sm">Verify your SMTP settings by sending a test email</p>
+                @if($canUpdate)
+                    <div class="alert alert-info">
+                        <span class="iconify lucide--info size-5"></span>
+                        <div class="flex-1">
+                            <h4 class="font-medium">Test Email Configuration</h4>
+                            <p class="text-sm">Verify your SMTP settings by sending a test email</p>
+                        </div>
+                        <button type="button" id="testEmailBtn" class="btn btn-sm btn-primary">
+                            <span class="iconify lucide--send size-4"></span>
+                            Send Test Email
+                        </button>
                     </div>
-                    <button type="button" id="testEmailBtn" class="btn btn-sm btn-primary">
-                        <span class="iconify lucide--send size-4"></span>
-                        Send Test Email
-                    </button>
-                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -130,7 +141,7 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="order_confirmation" class="toggle toggle-primary" {{ ($notifications['order_confirmation'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="order_confirmation" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['order_confirmation'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Confirmation</span>
                                     <p class="text-xs text-base-content/60">Send email when order is placed</p>
@@ -140,7 +151,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="order_shipped" class="toggle toggle-primary" {{ ($notifications['order_shipped'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="order_shipped" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['order_shipped'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Shipped</span>
                                     <p class="text-xs text-base-content/60">Send email with tracking information</p>
@@ -150,7 +161,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="order_delivered" class="toggle toggle-primary" {{ ($notifications['order_delivered'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="order_delivered" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['order_delivered'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Order Delivered</span>
                                     <p class="text-xs text-base-content/60">Send email when order is delivered</p>
@@ -168,7 +179,7 @@
                     <div class="space-y-3">
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="welcome_email" class="toggle toggle-primary" {{ ($notifications['welcome_email'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="welcome_email" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['welcome_email'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Welcome Email</span>
                                     <p class="text-xs text-base-content/60">Send welcome email to new customers</p>
@@ -178,7 +189,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="password_reset" class="toggle toggle-primary" {{ ($notifications['password_reset'] ?? true) ? 'checked' : '' }} />
+                                <input type="checkbox" name="password_reset" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['password_reset'] ?? true) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Password Reset</span>
                                     <p class="text-xs text-base-content/60">Send password reset link via email</p>
@@ -188,7 +199,7 @@
 
                         <div class="form-control">
                             <label class="label cursor-pointer justify-start gap-3">
-                                <input type="checkbox" name="newsletter" class="toggle toggle-primary" {{ ($notifications['newsletter'] ?? false) ? 'checked' : '' }} />
+                                <input type="checkbox" name="newsletter" class="toggle toggle-primary {{ $disabled }}" {{ ($notifications['newsletter'] ?? false) ? 'checked' : '' }} />
                                 <div>
                                     <span class="label-text font-medium">Newsletter</span>
                                     <p class="text-xs text-base-content/60">Send promotional newsletters</p>
@@ -203,14 +214,15 @@
 
     <!-- Action Buttons -->
     <div class="flex justify-end gap-2">
-        <button type="button" class="btn btn-ghost">Cancel</button>
+@if($canUpdate)
         <button type="submit" class="btn btn-primary">
             <span class="iconify lucide--save size-4"></span>
             Save Settings
         </button>
+@endif
     </div>
-</form>
 @endsection
+</form>
 
 @section('customjs')
 <!-- jQuery from CDN -->

@@ -261,6 +261,11 @@
 @endpush
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.shippings.rajaongkir.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">RajaOngkir API Configuration</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -296,6 +301,11 @@
             <h2 class="card-title text-lg">API Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure RajaOngkir API credentials and settings</p>
 
+@php
+    $canUpdate = hasPermission('settings.shippings.rajaongkir.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form id="rajaongkirApiForm" action="{{ route('settings.shippings.rajaongkir-config.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Account Type -->
@@ -303,7 +313,7 @@
                     <label class="label">
                         <span class="label-text">Account Type <span class="text-error">*</span></span>
                     </label>
-                    <select name="account_type" class="select select-bordered w-full" required>
+                    <select name="account_type" class="select select-bordered w-full {{ $disabled }}" required>
                         <option disabled>Select Account Type</option>
                         <option value="starter" {{ ($config['account_type'] ?? 'starter') == 'starter' ? 'selected' : '' }}>Starter</option>
                         <option value="basic" {{ ($config['account_type'] ?? 'starter') == 'basic' ? 'selected' : '' }}>Basic</option>
@@ -320,7 +330,7 @@
                         <span class="label-text">API Key <span class="text-error">*</span></span>
                     </label>
                     <div class="join w-full">
-                        <input type="password" name="api_key" id="api-key" placeholder="Enter your RajaOngkir API key" class="input input-bordered join-item flex-1" value="{{ $config['api_key'] ?? '' }}" required />
+                        <input type="password" name="api_key" id="api-key" placeholder="Enter your RajaOngkir API key" class="input input-bordered join-item flex-1 {{ $disabled }}" value="{{ $config['api_key'] ?? '' }}" required />
                         <button type="button" class="btn btn-outline join-item" onclick="togglePassword('api-key')">
                             <span class="iconify lucide--eye size-4"></span>
                         </button>
@@ -335,7 +345,7 @@
                     <label class="label">
                         <span class="label-text">Base URL</span>
                     </label>
-                    <input type="text" name="base_url" placeholder="https://rajaongkir.komerce.id/api/v1" class="input input-bordered w-full" value="{{ $config['base_url'] ?? '' }}" />
+                    <input type="text" name="base_url" placeholder="https://rajaongkir.komerce.id/api/v1" class="input input-bordered w-full {{ $disabled }}" value="{{ $config['base_url'] ?? '' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">
                             For new Komerce API, use: <code class="bg-base-200 px-1 rounded">https://rajaongkir.komerce.id/api/v1</code>
@@ -345,28 +355,31 @@
                 </div>
 
                 <!-- Test Connection -->
-                <div class="alert alert-warning">
-                    <span class="iconify lucide--zap size-5"></span>
-                    <div class="flex-1">
-                        <h4 class="font-medium">Test API Connection</h4>
-                        <p class="text-sm">Verify that your API key is valid and working</p>
+                @if($canUpdate)
+                    <div class="alert alert-warning">
+                        <span class="iconify lucide--zap size-5"></span>
+                        <div class="flex-1">
+                            <h4 class="font-medium">Test API Connection</h4>
+                            <p class="text-sm">Verify that your API key is valid and working</p>
+                        </div>
+                        <button type="button" id="testRajaongkirBtn" class="btn btn-sm">
+                            <span class="iconify lucide--play size-4"></span>
+                            Test Connection
+                        </button>
                     </div>
-                    <button type="button" id="testRajaongkirBtn" class="btn btn-sm">
-                        <span class="iconify lucide--play size-4"></span>
-                        Test Connection
-                    </button>
-                </div>
+                @endif
 
                 <!-- Action Buttons -->
+                @if(hasPermission('settings.shippings.rajaongkir.update'))
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save API Configuration
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 
     <!-- Shipping Cost Calculator Tool -->
@@ -374,6 +387,11 @@
         <div class="card-body">
             <h2 class="card-title text-lg">Shipping Cost Calculator</h2>
             <p class="text-sm text-base-content/70 mb-4">Test shipping cost calculation with RajaOngkir API</p>
+
+@php
+    $canUpdate = hasPermission('settings.shippings.rajaongkir.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
             <form id="shippingCalculatorForm" class="space-y-6">
                 <!-- Origin Section -->
@@ -388,7 +406,7 @@
                             <label class="label">
                                 <span class="label-text">Province <span class="text-error">*</span></span>
                             </label>
-                            <select id="origin-province" class="select select-bordered w-full" required>
+                            <select id="origin-province" class="select select-bordered w-full {{ $disabled }}" required>
                                 <option disabled selected>Loading provinces...</option>
                             </select>
                         </div>
@@ -398,7 +416,7 @@
                             <label class="label">
                                 <span class="label-text">City <span class="text-error">*</span></span>
                             </label>
-                            <select id="origin-city" class="select select-bordered w-full" required disabled>
+                            <select id="origin-city" class="select select-bordered w-full {{ $disabled }}" required disabled>
                                 <option disabled selected>Select province first</option>
                             </select>
                         </div>
@@ -408,7 +426,7 @@
                             <label class="label">
                                 <span class="label-text">District <span class="text-error">*</span></span>
                             </label>
-                            <select id="origin-district" class="select select-bordered w-full" required disabled>
+                            <select id="origin-district" class="select select-bordered w-full {{ $disabled }}" required disabled>
                                 <option disabled selected>Select city first</option>
                             </select>
                         </div>
@@ -429,7 +447,7 @@
                             <label class="label">
                                 <span class="label-text">Province <span class="text-error">*</span></span>
                             </label>
-                            <select id="dest-province" class="select select-bordered w-full" required>
+                            <select id="dest-province" class="select select-bordered w-full {{ $disabled }}" required>
                                 <option disabled selected>Loading provinces...</option>
                             </select>
                         </div>
@@ -439,7 +457,7 @@
                             <label class="label">
                                 <span class="label-text">City <span class="text-error">*</span></span>
                             </label>
-                            <select id="dest-city" class="select select-bordered w-full" required disabled>
+                            <select id="dest-city" class="select select-bordered w-full {{ $disabled }}" required disabled>
                                 <option disabled selected>Select province first</option>
                             </select>
                         </div>
@@ -449,7 +467,7 @@
                             <label class="label">
                                 <span class="label-text">District <span class="text-error">*</span></span>
                             </label>
-                            <select id="dest-district" class="select select-bordered w-full" required disabled>
+                            <select id="dest-district" class="select select-bordered w-full {{ $disabled }}" required disabled>
                                 <option disabled selected>Select city first</option>
                             </select>
                         </div>
@@ -470,7 +488,7 @@
                             <label class="label">
                                 <span class="label-text">Weight (grams) <span class="text-error">*</span></span>
                             </label>
-                            <input type="number" id="weight" placeholder="1000" class="input input-bordered w-full" value="1000" required />
+                            <input type="number" id="weight" placeholder="1000" class="input input-bordered w-full {{ $disabled }}" value="1000" required />
                             <label class="label">
                                 <span class="label-text-alt text-base-content/60">Enter weight in grams (e.g., 1000 = 1kg)</span>
                             </label>
@@ -481,7 +499,7 @@
                             <label class="label">
                                 <span class="label-text">Price Option</span>
                             </label>
-                            <select id="price" class="select select-bordered w-full">
+                            <select id="price" class="select select-bordered w-full {{ $disabled }}">
                                 <option value="lowest">Lowest Price</option>
                                 <option value="highest">Highest Price</option>
                             </select>
@@ -503,83 +521,85 @@
                         </label>
                         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 p-4 bg-base-200 rounded-lg">
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="jne" class="checkbox checkbox-sm checkbox-primary courier-checkbox" checked />
+                                <input type="checkbox" name="courier[]" value="jne" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" checked />
                                 <span class="label-text">JNE</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="pos" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="pos" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">POS Indonesia</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="tiki" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="tiki" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">TIKI</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="jnt" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="jnt" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">J&T Express</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="sicepat" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="sicepat" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">SiCepat</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="anteraja" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="anteraja" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">AnterAja</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="ninja" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="ninja" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">Ninja Express</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="lion" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="lion" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">Lion Parcel</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="rpx" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="rpx" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">RPX</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="wahana" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="wahana" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">Wahana</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="ide" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="ide" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">ID Express</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="sap" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="sap" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">SAP</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="ncs" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="ncs" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">NCS</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="rex" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="rex" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">REX</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="sentral" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="sentral" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">Sentral Cargo</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="star" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="star" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">Star Cargo</span>
                             </label>
                             <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="courier[]" value="dse" class="checkbox checkbox-sm checkbox-primary courier-checkbox" />
+                                <input type="checkbox" name="courier[]" value="dse" class="checkbox checkbox-sm checkbox-primary courier-checkbox {{ $disabled }}" />
                                 <span class="label-text">DSE</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
+                @if(hasPermission('settings.shippings.rajaongkir.update'))
                 <div class="flex justify-end">
                     <button type="submit" id="calculateBtn" class="btn btn-primary">
                         <span class="iconify lucide--calculator size-4"></span>
                         Calculate Shipping Cost
                     </button>
                 </div>
+                @endif
 
                 <!-- Result -->
                 <div id="calculatorResult" class="hidden">
@@ -589,8 +609,8 @@
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>
-            </form>
         </div>
+            </form>
     </div>
 
     <!-- Enabled Couriers -->
@@ -598,6 +618,11 @@
         <div class="card-body">
             <h2 class="card-title text-lg">Enabled Couriers</h2>
             <p class="text-sm text-base-content/70 mb-4">Select which couriers to enable for customers</p>
+
+@php
+    $canUpdate = hasPermission('settings.shippings.rajaongkir.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
             <form id="couriersForm" action="{{ route('settings.shippings.rajaongkir-config.update') }}" method="POST" class="space-y-6">
                 @csrf
@@ -608,85 +633,86 @@
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_jne" class="toggle toggle-primary" {{ ($couriers['jne']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_jne" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['jne']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">JNE</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_pos" class="toggle toggle-primary" {{ ($couriers['pos']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_pos" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['pos']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">POS Indonesia</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_tiki" class="toggle toggle-primary" {{ ($couriers['tiki']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_tiki" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['tiki']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">TIKI</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_rpx" class="toggle toggle-primary" {{ ($couriers['rpx']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_rpx" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['rpx']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">RPX</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_sicepat" class="toggle toggle-primary" {{ ($couriers['sicepat']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_sicepat" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['sicepat']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">SiCepat</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_jnt" class="toggle toggle-primary" {{ ($couriers['jnt']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_jnt" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['jnt']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">J&T Express</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_wahana" class="toggle toggle-primary" {{ ($couriers['wahana']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_wahana" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['wahana']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">Wahana</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_ninja" class="toggle toggle-primary" {{ ($couriers['ninja']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_ninja" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['ninja']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">Ninja Express</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_lion" class="toggle toggle-primary" {{ ($couriers['lion']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_lion" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['lion']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">Lion Parcel</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="courier_anteraja" class="toggle toggle-primary" {{ ($couriers['anteraja']['enabled'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="courier_anteraja" class="toggle toggle-primary {{ $disabled }}" {{ ($couriers['anteraja']['enabled'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text font-medium">AnterAja</span>
                         </label>
                     </div>
                 </div>
 
+                @if(hasPermission('settings.shippings.rajaongkir.update'))
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save Couriers
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 </div>
 @endsection

@@ -110,14 +110,19 @@
                     <input type="date" class="input input-sm w-32" aria-label="Date filter" />
                 </div>
                 <div class="inline-flex items-center gap-3">
+                    @if(hasPermission('access-control.activity-logs.view'))
                     <button class="btn btn-sm btn-ghost">
                         <span class="iconify lucide--download size-4"></span>
                         Export
                     </button>
+                    @endif
+
+                    @if(hasPermission('access-control.activity-logs.delete'))
                     <button onclick="clearLogs()" class="btn btn-error btn-sm">
                         <span class="iconify lucide--trash size-4"></span>
                         Clear Old Logs
                     </button>
+                    @endif
                 </div>
             </div>
 

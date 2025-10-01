@@ -24,10 +24,32 @@ function initSortable() {
         ghostClass: 'bg-base-300',
         chosenClass: 'bg-primary/10',
         onEnd: function(evt) {
+            // Move child rows with their parent
+            moveChildrenWithParent();
+
             hasChanges = true;
             showSaveButton();
             updateOrderNumbers();
         }
+    });
+}
+
+function moveChildrenWithParent() {
+    const tbody = document.getElementById('sortableTable');
+    const parentRows = tbody.querySelectorAll('.sortable-row');
+
+    parentRows.forEach(parentRow => {
+        const parentId = parentRow.dataset.id;
+        const childRows = Array.from(tbody.querySelectorAll(`.child-row[data-parent-id="${parentId}"]`));
+
+        // Move all children right after their parent
+        childRows.forEach(childRow => {
+            // Remove from current position
+            childRow.remove();
+            // Insert after the last moved child or parent
+            const lastChild = childRows[childRows.indexOf(childRow) - 1] || parentRow;
+            lastChild.after(childRow);
+        });
     });
 }
 

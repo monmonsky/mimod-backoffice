@@ -14,12 +14,14 @@
                 Generate and manage Sanctum API tokens for Settings API access
             </p>
         </div>
-        <button
-            onclick="showGenerateModal()"
-            class="btn btn-primary">
-            <span class="iconify lucide--plus size-5"></span>
-            Generate New Token
-        </button>
+        @if(hasPermission('settings.generals.api-tokens.generate'))
+            <button
+                onclick="showGenerateModal()"
+                class="btn btn-primary">
+                <span class="iconify lucide--plus size-5"></span>
+                Generate New Token
+            </button>
+        @endif
     </div>
 
     <!-- API User Info Card -->
@@ -59,7 +61,7 @@
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold">Active Tokens</h3>
-                @if($tokens->count() > 0)
+                @if($tokens->count() > 0 && hasPermission('settings.generals.api-tokens.revoke'))
                 <button
                     onclick="revokeAllTokens()"
                     class="btn btn-sm btn-error btn-outline">
@@ -122,18 +124,22 @@
                             </td>
                             <td class="text-right">
                                 <div class="flex justify-end gap-2">
-                                    <button
-                                        onclick="showTokenDetails({{ $token->id }})"
-                                        class="btn btn-sm btn-ghost"
-                                        title="View Details">
-                                        <span class="iconify lucide--eye size-4"></span>
-                                    </button>
-                                    <button
-                                        onclick="revokeToken({{ $token->id }}, '{{ $token->name }}')"
-                                        class="btn btn-sm btn-ghost text-error"
-                                        title="Revoke Token">
-                                        <span class="iconify lucide--trash-2 size-4"></span>
-                                    </button>
+                                    @if(hasPermission('settings.generals.api-tokens.view'))
+                                        <button
+                                            onclick="showTokenDetails({{ $token->id }})"
+                                            class="btn btn-sm btn-ghost"
+                                            title="View Details">
+                                            <span class="iconify lucide--eye size-4"></span>
+                                        </button>
+                                    @endif
+                                    @if(hasPermission('settings.generals.api-tokens.revoke'))
+                                        <button
+                                            onclick="revokeToken({{ $token->id }}, '{{ $token->name }}')"
+                                            class="btn btn-sm btn-ghost text-error"
+                                            title="Revoke Token">
+                                            <span class="iconify lucide--trash-2 size-4"></span>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -186,8 +192,8 @@
     <div class="modal-box max-w-2xl">
         <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
         <h3 class="font-bold text-lg mb-4">Generate New API Token</h3>
+        </form>
 
         <form id="generateTokenForm" class="space-y-4">
             @csrf
@@ -237,8 +243,8 @@
                     Generate Token
                 </button>
             </div>
-        </form>
     </div>
+        </form>
 </dialog>
 
 <!-- Token Success Modal -->
@@ -296,8 +302,8 @@
     <div class="modal-box">
         <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
         <h3 class="font-bold text-lg mb-4">Token Details</h3>
+        </form>
 
         <div id="tokenDetailsContent" class="space-y-3">
             <!-- Will be populated by JavaScript -->
@@ -306,8 +312,8 @@
         <div class="modal-action">
             <form method="dialog">
                 <button class="btn">Close</button>
-            </form>
         </div>
+            </form>
     </div>
 </dialog>
 

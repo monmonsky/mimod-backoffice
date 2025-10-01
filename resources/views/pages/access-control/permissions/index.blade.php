@@ -13,14 +13,19 @@
             <p class="text-base-content/60 text-sm mt-1">Manage all system permissions</p>
         </div>
         <div class="flex gap-2">
+            @if(hasPermission('access-control.permissions.view'))
             <a href="{{ route('permission-group.index') }}" class="btn btn-secondary">
                 <span class="iconify lucide--layers size-5"></span>
                 Permission Groups
             </a>
+            @endif
+
+            @if(hasPermission('access-control.permissions.create'))
             <a href="{{ route('permission.create') }}" class="btn btn-primary">
                 <span class="iconify lucide--plus size-5"></span>
                 Add Permission
             </a>
+            @endif
         </div>
     </div>
 
@@ -53,9 +58,13 @@
                                 <td>{{ $permission->description ?: '-' }}</td>
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
+                                        @if(hasPermission('access-control.permissions.update'))
                                         <a href="{{ route('permission.edit', $permission->id) }}" class="btn btn-sm btn-ghost">
                                             <span class="iconify lucide--pencil size-4"></span>
                                         </a>
+                                        @endif
+
+                                        @if(hasPermission('access-control.permissions.delete'))
                                         <form action="{{ route('permission.destroy', $permission->id) }}" method="POST" class="inline delete-form">
                                             @csrf
                                             @method('DELETE')
@@ -63,6 +72,7 @@
                                                 <span class="iconify lucide--trash-2 size-4"></span>
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

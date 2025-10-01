@@ -24,10 +24,8 @@ class RoleModuleSeeder extends Seeder
             return;
         }
 
-        // Get all child modules (level 2 and 3)
-        $allModules = DB::table('modules')
-            ->whereNotNull('parent_id')
-            ->get();
+        // Get all modules
+        $allModules = DB::table('modules')->get();
 
         $roleModules = [];
 

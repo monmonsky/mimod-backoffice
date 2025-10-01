@@ -72,19 +72,22 @@ class RoleController extends Controller
             $validated['is_active'] = $request->has('is_active') ? true : false;
             $validated['is_system'] = $request->has('is_system') ? true : false;
 
+            // Extract modules and permissions before creating role
+            $modules = $request->input('modules', []);
+            $permissions = $request->input('permissions', []);
+
+            // Remove modules and permissions from validated data
+            unset($validated['modules']);
+            unset($validated['permissions']);
+
             DB::beginTransaction();
 
             // Create role
             $role = $this->roleRepo->create($validated);
 
-            // Assign modules
-            if ($request->has('modules')) {
-                $this->roleRepo->syncModules($role->id, $request->input('modules'));
-            }
-
             // Assign permissions
-            if ($request->has('permissions')) {
-                $this->roleRepo->syncPermissions($role->id, $request->input('permissions'));
+            if (!empty($permissions)) {
+                $this->roleRepo->syncPermissions($role->id, $permissions);
             }
 
             DB::commit();
@@ -150,19 +153,24 @@ class RoleController extends Controller
             $validated['is_active'] = $request->has('is_active') ? true : false;
             $validated['is_system'] = $request->has('is_system') ? true : false;
 
+            // Extract permissions before updating role
+            $permissions = $request->input('permissions', []);
+
+            // Remove modules and permissions from validated data
+            unset($validated['modules']);
+            unset($validated['permissions']);
+
             DB::beginTransaction();
 
             // Update role
             $role = $this->roleRepo->update($id, $validated);
 
-            // Sync modules
-            if ($request->has('modules')) {
-                $this->roleRepo->syncModules($id, $request->input('modules'));
-            }
-
             // Sync permissions
-            if ($request->has('permissions')) {
-                $this->roleRepo->syncPermissions($id, $request->input('permissions'));
+            if (!empty($permissions)) {
+                $this->roleRepo->syncPermissions($id, $permissions);
+            } else {
+                // If no permissions provided, clear all permissions
+                $this->roleRepo->syncPermissions($id, []);
             }
 
             DB::commit();

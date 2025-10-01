@@ -12,10 +12,12 @@
             <h2 class="text-2xl font-bold">Module List</h2>
             <p class="text-base-content/60 text-sm mt-1">Manage all sidebar menu modules</p>
         </div>
+        @if(hasPermission('access-control.modules.create'))
         <a href="{{ route('modules.create') }}" class="btn btn-primary">
             <span class="iconify lucide--plus size-5"></span>
             Add Module
         </a>
+        @endif
     </div>
 
     <!-- Save Button (Hidden by default) -->
@@ -68,26 +70,42 @@
                                 <td>-</td>
                                 <td><span class="badge badge-ghost">{{ $module->sort_order }}</span></td>
                                 <td>
+                                    @if(hasPermission('access-control.modules.update'))
                                     <form action="{{ route('modules.toggle-active', $module->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="badge {{ $module->is_active ? 'badge-success' : 'badge-error' }} badge-sm cursor-pointer">
                                             {{ $module->is_active ? 'Active' : 'Inactive' }}
                                         </button>
                                     </form>
+                                    @else
+                                        <span class="badge {{ $module->is_active ? 'badge-success' : 'badge-error' }} badge-sm">
+                                            {{ $module->is_active ? 'Active' : 'Inactive' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td>
+                                    @if(hasPermission('access-control.modules.update'))
                                     <form action="{{ route('modules.toggle-visible', $module->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="badge {{ $module->is_visible ? 'badge-success' : 'badge-error' }} badge-sm cursor-pointer">
                                             {{ $module->is_visible ? 'Visible' : 'Hidden' }}
                                         </button>
                                     </form>
+                                    @else
+                                        <span class="badge {{ $module->is_visible ? 'badge-success' : 'badge-error' }} badge-sm">
+                                            {{ $module->is_visible ? 'Visible' : 'Hidden' }}
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="text-right">
                                     <div class="flex justify-end gap-2">
+                                        @if(hasPermission('access-control.modules.update'))
                                         <a href="{{ route('modules.edit', $module->id) }}" class="btn btn-sm btn-ghost">
                                             <span class="iconify lucide--pencil size-4"></span>
                                         </a>
+                                        @endif
+
+                                        @if(hasPermission('access-control.modules.delete'))
                                         <form action="{{ route('modules.destroy', $module->id) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
@@ -95,12 +113,13 @@
                                                 <span class="iconify lucide--trash-2 size-4"></span>
                                             </button>
                                         </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                             @if(isset($module->children) && count($module->children) > 0)
                                 @foreach($module->children as $child)
-                                    <tr data-id="{{ $child->id }}" class="child-row">
+                                    <tr data-id="{{ $child->id }}" data-parent-id="{{ $module->id }}" class="child-row">
                                         <td></td>
                                         <td>
                                             @if($child->icon)
@@ -115,26 +134,42 @@
                                         <td>{{ $module->display_name }}</td>
                                         <td><span class="badge badge-ghost">{{ $child->sort_order }}</span></td>
                                         <td>
+                                            @if(hasPermission('access-control.modules.update'))
                                             <form action="{{ route('modules.toggle-active', $child->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit" class="badge {{ $child->is_active ? 'badge-success' : 'badge-error' }} badge-sm cursor-pointer">
                                                     {{ $child->is_active ? 'Active' : 'Inactive' }}
                                                 </button>
                                             </form>
+                                            @else
+                                                <span class="badge {{ $child->is_active ? 'badge-success' : 'badge-error' }} badge-sm">
+                                                    {{ $child->is_active ? 'Active' : 'Inactive' }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td>
+                                            @if(hasPermission('access-control.modules.update'))
                                             <form action="{{ route('modules.toggle-visible', $child->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit" class="badge {{ $child->is_visible ? 'badge-success' : 'badge-error' }} badge-sm cursor-pointer">
                                                     {{ $child->is_visible ? 'Visible' : 'Hidden' }}
                                                 </button>
                                             </form>
+                                            @else
+                                                <span class="badge {{ $child->is_visible ? 'badge-success' : 'badge-error' }} badge-sm">
+                                                    {{ $child->is_visible ? 'Visible' : 'Hidden' }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="text-right">
                                             <div class="flex justify-end gap-2">
+                                                @if(hasPermission('access-control.modules.update'))
                                                 <a href="{{ route('modules.edit', $child->id) }}" class="btn btn-sm btn-ghost">
                                                     <span class="iconify lucide--pencil size-4"></span>
                                                 </a>
+                                                @endif
+
+                                                @if(hasPermission('access-control.modules.delete'))
                                                 <form action="{{ route('modules.destroy', $child->id) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -142,6 +177,7 @@
                                                         <span class="iconify lucide--trash-2 size-4"></span>
                                                     </button>
                                                 </form>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

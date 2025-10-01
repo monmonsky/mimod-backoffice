@@ -127,7 +127,22 @@
                                 $hierarchy = [];
                                 foreach ($groupedPermissions as $permission) {
                                     $parts = explode('.', $permission->module);
-                                    if (count($parts) >= 2) {
+
+                                    // Handle single-level modules (e.g., dashboard)
+                                    if (count($parts) === 1) {
+                                        $parent = ucwords(str_replace(['-', '_'], ' ', $parts[0]));
+                                        $child = 'Main'; // Default child for single-level
+
+                                        if (!isset($hierarchy[$parent])) {
+                                            $hierarchy[$parent] = [];
+                                        }
+                                        if (!isset($hierarchy[$parent][$child])) {
+                                            $hierarchy[$parent][$child] = [];
+                                        }
+                                        $hierarchy[$parent][$child][] = $permission;
+                                    }
+                                    // Handle multi-level modules
+                                    elseif (count($parts) >= 2) {
                                         $parent = ucwords(str_replace(['-', '_'], ' ', $parts[0])); // settings
                                         $child = isset($parts[1]) ? ucwords(str_replace(['-', '_'], ' ', $parts[1])) : 'Other'; // generals, payments
                                         $grandchild = isset($parts[2]) ? ucwords(str_replace(['-', '_'], ' ', $parts[2])) : null; // store, email

@@ -5,6 +5,11 @@
 @section('page_subtitle', 'System Configuration')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.generals.system.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">System Configuration</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -16,6 +21,10 @@
     </div>
 </div>
 
+@php
+    $canUpdate = hasPermission('settings.generals.system.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 <form id="systemConfigForm" action="{{ route('settings.generals.system.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
@@ -32,7 +41,7 @@
                         <label class="label">
                             <span class="label-text">Timezone <span class="text-error">*</span></span>
                         </label>
-                        <select name="timezone" class="select select-bordered w-full" required>
+                        <select name="timezone" class="select select-bordered w-full {{ $disabled }}" required>
                             <option value="Asia/Jakarta" {{ ($generalSettings['timezone'] ?? 'Asia/Jakarta') == 'Asia/Jakarta' ? 'selected' : '' }}>Asia/Jakarta (GMT+7)</option>
                             <option value="Asia/Singapore" {{ ($generalSettings['timezone'] ?? '') == 'Asia/Singapore' ? 'selected' : '' }}>Asia/Singapore (GMT+8)</option>
                             <option value="UTC" {{ ($generalSettings['timezone'] ?? '') == 'UTC' ? 'selected' : '' }}>UTC</option>
@@ -43,7 +52,7 @@
                         <label class="label">
                             <span class="label-text">Date Format</span>
                         </label>
-                        <select name="date_format" class="select select-bordered w-full">
+                        <select name="date_format" class="select select-bordered w-full {{ $disabled }}">
                             <option value="Y-m-d" {{ ($generalSettings['date_format'] ?? 'Y-m-d') == 'Y-m-d' ? 'selected' : '' }}>YYYY-MM-DD</option>
                             <option value="d/m/Y" {{ ($generalSettings['date_format'] ?? '') == 'd/m/Y' ? 'selected' : '' }}>DD/MM/YYYY</option>
                             <option value="m/d/Y" {{ ($generalSettings['date_format'] ?? '') == 'm/d/Y' ? 'selected' : '' }}>MM/DD/YYYY</option>
@@ -57,7 +66,7 @@
                         <label class="label">
                             <span class="label-text">Time Format</span>
                         </label>
-                        <select name="time_format" class="select select-bordered w-full">
+                        <select name="time_format" class="select select-bordered w-full {{ $disabled }}">
                             <option value="H:i:s" {{ ($generalSettings['time_format'] ?? 'H:i:s') == 'H:i:s' ? 'selected' : '' }}>24 Hour (HH:MM:SS)</option>
                             <option value="h:i A" {{ ($generalSettings['time_format'] ?? '') == 'h:i A' ? 'selected' : '' }}>12 Hour (hh:mm AM/PM)</option>
                         </select>
@@ -67,7 +76,7 @@
                         <label class="label">
                             <span class="label-text">Default Language</span>
                         </label>
-                        <select name="default_language" class="select select-bordered w-full">
+                        <select name="default_language" class="select select-bordered w-full {{ $disabled }}">
                             <option value="id" {{ ($generalSettings['default_language'] ?? 'id') == 'id' ? 'selected' : '' }}>Indonesia</option>
                             <option value="en" {{ ($generalSettings['default_language'] ?? '') == 'en' ? 'selected' : '' }}>English</option>
                         </select>
@@ -82,21 +91,21 @@
                         <label class="label">
                             <span class="label-text">Currency <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" name="currency" placeholder="IDR" class="input input-bordered w-full" value="{{ $generalSettings['currency'] ?? 'IDR' }}" required />
+                        <input type="text" name="currency" placeholder="IDR" class="input input-bordered w-full {{ $disabled }}" value="{{ $generalSettings['currency'] ?? 'IDR' }}" required />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Currency Symbol <span class="text-error">*</span></span>
                         </label>
-                        <input type="text" name="currency_symbol" placeholder="Rp" class="input input-bordered w-full" value="{{ $generalSettings['currency_symbol'] ?? 'Rp' }}" required />
+                        <input type="text" name="currency_symbol" placeholder="Rp" class="input input-bordered w-full {{ $disabled }}" value="{{ $generalSettings['currency_symbol'] ?? 'Rp' }}" required />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Currency Position</span>
                         </label>
-                        <select name="currency_position" class="select select-bordered w-full">
+                        <select name="currency_position" class="select select-bordered w-full {{ $disabled }}">
                             <option value="before" {{ ($generalSettings['currency_position'] ?? 'before') == 'before' ? 'selected' : '' }}>Before (Rp 10,000)</option>
                             <option value="after" {{ ($generalSettings['currency_position'] ?? '') == 'after' ? 'selected' : '' }}>After (10,000 Rp)</option>
                         </select>
@@ -108,14 +117,14 @@
                         <label class="label">
                             <span class="label-text">Decimal Separator</span>
                         </label>
-                        <input type="text" name="decimal_separator" maxlength="1" placeholder="," class="input input-bordered w-full" value="{{ $generalSettings['decimal_separator'] ?? ',' }}" />
+                        <input type="text" name="decimal_separator" maxlength="1" placeholder="," class="input input-bordered w-full {{ $disabled }}" value="{{ $generalSettings['decimal_separator'] ?? ',' }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Thousand Separator</span>
                         </label>
-                        <input type="text" name="thousand_separator" maxlength="1" placeholder="." class="input input-bordered w-full" value="{{ $generalSettings['thousand_separator'] ?? '.' }}" />
+                        <input type="text" name="thousand_separator" maxlength="1" placeholder="." class="input input-bordered w-full {{ $disabled }}" value="{{ $generalSettings['thousand_separator'] ?? '.' }}" />
                     </div>
                 </div>
             </div>
@@ -134,14 +143,14 @@
                         <label class="label">
                             <span class="label-text">Min Password Length</span>
                         </label>
-                        <input type="number" name="min_password_length" min="6" max="32" class="input input-bordered w-full" value="{{ $securitySettings['min_password_length'] ?? 8 }}" />
+                        <input type="number" name="min_password_length" min="6" max="32" class="input input-bordered w-full {{ $disabled }}" value="{{ $securitySettings['min_password_length'] ?? 8 }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Session Timeout (minutes)</span>
                         </label>
-                        <input type="number" name="session_timeout" min="5" class="input input-bordered w-full" value="{{ $securitySettings['session_timeout'] ?? 120 }}" />
+                        <input type="number" name="session_timeout" min="5" class="input input-bordered w-full {{ $disabled }}" value="{{ $securitySettings['session_timeout'] ?? 120 }}" />
                     </div>
                 </div>
 
@@ -150,14 +159,14 @@
                         <label class="label">
                             <span class="label-text">Max Login Attempts</span>
                         </label>
-                        <input type="number" name="max_login_attempts" min="3" max="10" class="input input-bordered w-full" value="{{ $securitySettings['max_login_attempts'] ?? 5 }}" />
+                        <input type="number" name="max_login_attempts" min="3" max="10" class="input input-bordered w-full {{ $disabled }}" value="{{ $securitySettings['max_login_attempts'] ?? 5 }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Lockout Duration (minutes)</span>
                         </label>
-                        <input type="number" name="lockout_duration" min="5" class="input input-bordered w-full" value="{{ $securitySettings['lockout_duration'] ?? 15 }}" />
+                        <input type="number" name="lockout_duration" min="5" class="input input-bordered w-full {{ $disabled }}" value="{{ $securitySettings['lockout_duration'] ?? 15 }}" />
                     </div>
                 </div>
 
@@ -166,28 +175,28 @@
                 <div class="space-y-3">
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="require_uppercase" class="toggle toggle-primary" {{ ($securitySettings['require_uppercase'] ?? true) ? 'checked' : '' }} />
+                            <input type="checkbox" name="require_uppercase" class="toggle toggle-primary {{ $disabled }}" {{ ($securitySettings['require_uppercase'] ?? true) ? 'checked' : '' }} />
                             <span class="label-text">Require uppercase letter</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="require_number" class="toggle toggle-primary" {{ ($securitySettings['require_number'] ?? true) ? 'checked' : '' }} />
+                            <input type="checkbox" name="require_number" class="toggle toggle-primary {{ $disabled }}" {{ ($securitySettings['require_number'] ?? true) ? 'checked' : '' }} />
                             <span class="label-text">Require number</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="require_special_char" class="toggle toggle-primary" {{ ($securitySettings['require_special_char'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="require_special_char" class="toggle toggle-primary {{ $disabled }}" {{ ($securitySettings['require_special_char'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text">Require special character</span>
                         </label>
                     </div>
 
                     <div class="form-control">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="enable_2fa" class="toggle toggle-primary" {{ ($securitySettings['enable_2fa'] ?? false) ? 'checked' : '' }} />
+                            <input type="checkbox" name="enable_2fa" class="toggle toggle-primary {{ $disabled }}" {{ ($securitySettings['enable_2fa'] ?? false) ? 'checked' : '' }} />
                             <span class="label-text">Enable Two-Factor Authentication (2FA)</span>
                         </label>
                     </div>
@@ -205,7 +214,7 @@
             <div class="space-y-6">
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" name="maintenance_mode" class="toggle toggle-warning" {{ ($maintenanceSettings['maintenance_mode'] ?? false) ? 'checked' : '' }} />
+                        <input type="checkbox" name="maintenance_mode" class="toggle toggle-warning {{ $disabled }}" {{ ($maintenanceSettings['maintenance_mode'] ?? false) ? 'checked' : '' }} />
                         <div>
                             <span class="label-text font-medium">Enable Maintenance Mode</span>
                             <p class="text-xs text-base-content/60">Site will be unavailable to public users</p>
@@ -217,14 +226,14 @@
                     <label class="label">
                         <span class="label-text">Maintenance Message</span>
                     </label>
-                    <textarea name="maintenance_message" class="textarea textarea-bordered w-full" placeholder="Enter maintenance message">{{ $maintenanceSettings['maintenance_message'] ?? 'We are currently performing maintenance. Please check back soon.' }}</textarea>
+                    <textarea name="maintenance_message" class="textarea textarea-bordered w-full {{ $disabled }}" placeholder="Enter maintenance message">{{ $maintenanceSettings['maintenance_message'] ?? 'We are currently performing maintenance. Please check back soon.' }}</textarea>
                 </div>
 
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Estimated End Time</span>
                     </label>
-                    <input type="datetime-local" name="maintenance_end_time" class="input input-bordered w-full" value="{{ $maintenanceSettings['maintenance_end_time'] ?? '' }}" />
+                    <input type="datetime-local" name="maintenance_end_time" class="input input-bordered w-full {{ $disabled }}" value="{{ $maintenanceSettings['maintenance_end_time'] ?? '' }}" />
                 </div>
             </div>
         </div>
@@ -232,14 +241,15 @@
 
     <!-- Action Buttons -->
     <div class="flex justify-end gap-2">
-        <button type="button" class="btn btn-ghost">Cancel</button>
+@if($canUpdate)
         <button type="submit" class="btn btn-primary">
             <span class="iconify lucide--save size-4"></span>
             Save Configuration
         </button>
+@endif
     </div>
-</form>
 @endsection
+</form>
 
 @section('customjs')
 <!-- jQuery from CDN -->

@@ -5,6 +5,11 @@
 @section('page_subtitle', 'Tax Configuration')
 
 @section('content')
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
 <div class="flex items-center justify-between">
     <p class="text-lg font-medium">Tax Settings</p>
     <div class="breadcrumbs hidden p-0 text-sm sm:inline">
@@ -24,12 +29,17 @@
             <h2 class="card-title text-lg">General Tax Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure tax calculation and display settings</p>
 
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form id="taxConfigForm" action="{{ route('settings.payments.tax-settings.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Enable Tax -->
                 <div class="form-control">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" name="enabled" class="toggle toggle-primary" {{ ($taxConfig['enabled'] ?? true) ? 'checked' : '' }} />
+                        <input type="checkbox" name="enabled" class="toggle toggle-primary {{ $disabled }}" {{ ($taxConfig['enabled'] ?? true) ? 'checked' : '' }} />
                         <div>
                             <span class="label-text font-medium">Enable Tax Calculation</span>
                             <p class="text-xs text-base-content/60">Calculate and add tax to orders</p>
@@ -42,7 +52,7 @@
                     <label class="label">
                         <span class="label-text">Price Display Mode</span>
                     </label>
-                    <select name="price_display_mode" class="select select-bordered w-full" required>
+                    <select name="price_display_mode" class="select select-bordered w-full {{ $disabled }}" required>
                         <option disabled>Select display mode</option>
                         <option value="including" {{ ($taxConfig['price_display_mode'] ?? 'including') == 'including' ? 'selected' : '' }}>Including Tax</option>
                         <option value="excluding" {{ ($taxConfig['price_display_mode'] ?? '') == 'excluding' ? 'selected' : '' }}>Excluding Tax</option>
@@ -58,7 +68,7 @@
                     <label class="label">
                         <span class="label-text">Calculate Tax Based On</span>
                     </label>
-                    <select name="calculation_based_on" class="select select-bordered w-full" required>
+                    <select name="calculation_based_on" class="select select-bordered w-full {{ $disabled }}" required>
                         <option disabled>Select calculation basis</option>
                         <option value="shipping_address" {{ ($taxConfig['calculation_based_on'] ?? 'shipping_address') == 'shipping_address' ? 'selected' : '' }}>Shipping Address</option>
                         <option value="billing_address" {{ ($taxConfig['calculation_based_on'] ?? '') == 'billing_address' ? 'selected' : '' }}>Billing Address</option>
@@ -74,7 +84,7 @@
                     <label class="label">
                         <span class="label-text">Tax Rounding</span>
                     </label>
-                    <select name="tax_rounding" class="select select-bordered w-full" required>
+                    <select name="tax_rounding" class="select select-bordered w-full {{ $disabled }}" required>
                         <option disabled>Select rounding method</option>
                         <option value="round_up" {{ ($taxConfig['tax_rounding'] ?? 'round_down') == 'round_up' ? 'selected' : '' }}>Round Up</option>
                         <option value="round_down" {{ ($taxConfig['tax_rounding'] ?? 'round_down') == 'round_down' ? 'selected' : '' }}>Round Down</option>
@@ -86,16 +96,17 @@
                     </label>
                 </div>
 
+                @if(hasPermission('settings.payments.tax.update'))
                 <!-- Action Buttons -->
                 <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="iconify lucide--save size-4"></span>
                         Save General Settings
                     </button>
                 </div>
-            </form>
+                @endif
         </div>
+            </form>
     </div>
 
     <!-- Tax Rates -->
@@ -106,10 +117,12 @@
                     <h2 class="card-title text-lg">Tax Rates</h2>
                     <p class="text-sm text-base-content/70">Manage tax rates for different regions and product categories</p>
                 </div>
+                @if(hasPermission('settings.payments.tax.update'))
                 <button type="button" class="btn btn-primary btn-sm" onclick="add_tax_rate_modal.showModal()">
                     <span class="iconify lucide--plus size-4"></span>
                     Add Tax Rate
                 </button>
+                @endif
             </div>
 
             <!-- Tax Rates Table -->
@@ -200,10 +213,12 @@
                     <h2 class="card-title text-lg">Tax Classes</h2>
                     <p class="text-sm text-base-content/70">Define tax classes for different product types</p>
                 </div>
+                @if(hasPermission('settings.payments.tax.update'))
                 <button type="button" class="btn btn-primary btn-sm" onclick="add_tax_class_modal.showModal()">
                     <span class="iconify lucide--plus size-4"></span>
                     Add Tax Class
                 </button>
+                @endif
             </div>
 
             <!-- Tax Classes List -->
@@ -334,40 +349,50 @@
     <div class="modal-box max-w-lg">
         <div class="flex items-center justify-between text-lg font-medium mb-4">
             Add Tax Rate
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form method="dialog">
                 <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
                     <span class="iconify lucide--x size-4"></span>
                 </button>
-            </form>
         </div>
+            </form>
+
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
         <form class="space-y-4">
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Tax Name <span class="text-error">*</span></span>
                 </label>
-                <input type="text" placeholder="e.g., PPN" class="input input-bordered w-full" />
+                <input type="text" placeholder="e.g., PPN" class="input input-bordered w-full {{ $disabled }}" />
             </div>
 
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Description</span>
                 </label>
-                <input type="text" placeholder="e.g., Value Added Tax" class="input input-bordered w-full" />
+                <input type="text" placeholder="e.g., Value Added Tax" class="input input-bordered w-full {{ $disabled }}" />
             </div>
 
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Tax Rate (%) <span class="text-error">*</span></span>
                 </label>
-                <input type="number" step="0.01" placeholder="11.00" class="input input-bordered w-full" />
+                <input type="number" step="0.01" placeholder="11.00" class="input input-bordered w-full {{ $disabled }}" />
             </div>
 
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Region/Province</span>
                 </label>
-                <select class="select select-bordered w-full">
+                <select class="select select-bordered w-full {{ $disabled }}">
                     <option selected>All Indonesia</option>
                     <option>DKI Jakarta</option>
                     <option>Jawa Barat</option>
@@ -380,7 +405,7 @@
                 <label class="label">
                     <span class="label-text">Tax Type</span>
                 </label>
-                <select class="select select-bordered w-full">
+                <select class="select select-bordered w-full {{ $disabled }}">
                     <option selected>Standard</option>
                     <option>Reduced</option>
                     <option>Zero</option>
@@ -390,52 +415,70 @@
 
             <div class="form-control">
                 <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" class="toggle toggle-primary" checked />
+                    <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
                     <span class="label-text">Active</span>
                 </label>
             </div>
 
             <div class="modal-action">
-                <form method="dialog">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                </form>
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
                 <button type="submit" class="btn btn-primary">
+                </form>
                     <span class="iconify lucide--plus size-4"></span>
                     Add Tax Rate
                 </button>
             </div>
-        </form>
     </div>
+        </form>
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
     <form method="dialog" class="modal-backdrop">
         <button>close</button>
-    </form>
 </dialog>
+    </form>
 
 <!-- Modal: Add Tax Class -->
 <dialog id="add_tax_class_modal" class="modal">
     <div class="modal-box max-w-lg">
         <div class="flex items-center justify-between text-lg font-medium mb-4">
             Add Tax Class
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
             <form method="dialog">
                 <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
                     <span class="iconify lucide--x size-4"></span>
                 </button>
-            </form>
         </div>
+            </form>
+
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
 
         <form class="space-y-4">
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Class Name <span class="text-error">*</span></span>
                 </label>
-                <input type="text" placeholder="e.g., Luxury Goods" class="input input-bordered w-full" />
+                <input type="text" placeholder="e.g., Luxury Goods" class="input input-bordered w-full {{ $disabled }}" />
             </div>
 
             <div class="form-control">
                 <label class="label">
                     <span class="label-text">Description</span>
                 </label>
-                <textarea class="textarea textarea-bordered" placeholder="Description of this tax class"></textarea>
+                <textarea class="textarea textarea-bordered {{ $disabled }}" placeholder="Description of this tax class"></textarea>
             </div>
 
             <div class="form-control">
@@ -444,11 +487,11 @@
                 </label>
                 <div class="space-y-2">
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="checkbox checkbox-primary" checked />
+                        <input type="checkbox" class="checkbox checkbox-primary {{ $disabled }}" checked />
                         <span class="label-text">PPN 11%</span>
                     </label>
                     <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="checkbox checkbox-primary" />
+                        <input type="checkbox" class="checkbox checkbox-primary {{ $disabled }}" />
                         <span class="label-text">PPh 23 Services 2%</span>
                     </label>
                 </div>
@@ -456,26 +499,34 @@
 
             <div class="form-control">
                 <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" class="toggle toggle-primary" />
+                    <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
                     <span class="label-text">Set as default tax class</span>
                 </label>
             </div>
 
             <div class="modal-action">
-                <form method="dialog">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                </form>
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
                 <button type="submit" class="btn btn-primary">
+                </form>
                     <span class="iconify lucide--plus size-4"></span>
                     Add Tax Class
                 </button>
             </div>
-        </form>
     </div>
+        </form>
+@php
+    $canUpdate = hasPermission('settings.payments.tax.update');
+    $disabled = $canUpdate ? '' : 'disabled';
+@endphp
+
     <form method="dialog" class="modal-backdrop">
         <button>close</button>
-    </form>
 </dialog>
+    </form>
 
 @endsection
 

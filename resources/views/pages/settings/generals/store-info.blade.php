@@ -140,6 +140,11 @@
             <h2 class="card-title text-lg">Basic Information</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure your store's basic details and contact information</p>
 
+            @php
+                $canUpdate = hasPermission('settings.generals.store.update');
+                $disabled = $canUpdate ? '' : 'disabled';
+            @endphp
+
             <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.generals.store.update') }}" method="POST">
                 @csrf
                 <!-- Store Name -->
@@ -147,7 +152,7 @@
                     <label class="fieldset-label" for="name">
                         <span class="label-text">Store Name <span class="text-error">*</span></span>
                     </label>
-                    <input type="text" name="store_name" placeholder="Enter store name" class="input input-bordered w-full" value="{{ $storeInfo['name'] ?? 'Minimoda' }}" required />
+                    <input type="text" name="store_name" placeholder="Enter store name" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeInfo['name'] ?? 'Minimoda' }}" {{ $disabled }} required />
                 </div>
 
                 <!-- Store Description -->
@@ -163,7 +168,7 @@
                     <label class="fieldset-label">
                         <span class="label-text">Tagline</span>
                     </label>
-                    <input type="text" name="tagline" placeholder="Enter tagline" class="input input-bordered w-full" value="{{ $storeInfo['tagline'] ?? 'Fashion for Little Stars' }}" />
+                    <input type="text" name="tagline" placeholder="Enter tagline" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeInfo['tagline'] ?? 'Fashion for Little Stars' }}" />
                 </div>
 
                 <!-- Store Logo -->
@@ -191,7 +196,7 @@
                     <label class="label">
                         <span class="label-text">Email Address <span class="text-error">*</span></span>
                     </label>
-                    <input type="email" name="email" placeholder="store@example.com" class="input input-bordered w-full" value="{{ $storeContact['email'] ?? 'contact@minimoda.com' }}" required />
+                    <input type="email" name="email" placeholder="store@example.com" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeContact['email'] ?? 'contact@minimoda.com' }}" required />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Primary email for customer communications</span>
                     </label>
@@ -202,7 +207,7 @@
                     <label class="label">
                         <span class="label-text">Phone Number <span class="text-error">*</span></span>
                     </label>
-                    <input type="tel" name="phone" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="{{ $storeContact['phone'] ?? '+62 812 3456 7890' }}" required />
+                    <input type="tel" name="phone" placeholder="+62 812 3456 7890" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeContact['phone'] ?? '+62 812 3456 7890' }}" required />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">Customer service contact number</span>
                     </label>
@@ -213,7 +218,7 @@
                     <label class="label">
                         <span class="label-text">WhatsApp Number</span>
                     </label>
-                    <input type="tel" name="whatsapp" placeholder="+62 812 3456 7890" class="input input-bordered w-full" value="{{ $storeContact['whatsapp'] ?? '+62 812 3456 7890' }}" />
+                    <input type="tel" name="whatsapp" placeholder="+62 812 3456 7890" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeContact['whatsapp'] ?? '+62 812 3456 7890' }}" />
                     <label class="label">
                         <span class="label-text-alt text-base-content/60">WhatsApp contact for customer support</span>
                     </label>
@@ -232,7 +237,7 @@
                     <label class="label">
                         <span class="label-text">Province <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="store-province" name="province_code" required>
+                    <select class="select select-bordered {{ $disabled }} w-full" id="store-province" name="province_code" required>
                         <option value="">Select Province</option>
                     </select>
                     <input type="hidden" name="province_name" id="province-name">
@@ -243,7 +248,7 @@
                     <label class="label">
                         <span class="label-text">City / Regency <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="store-regency" name="regency_code" required disabled>
+                    <select class="select select-bordered {{ $disabled }} w-full" id="store-regency" name="regency_code" required disabled>
                         <option value="">Select province first</option>
                     </select>
                     <input type="hidden" name="regency_name" id="regency-name">
@@ -254,7 +259,7 @@
                     <label class="label">
                         <span class="label-text">District / Kecamatan <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full" id="store-district" name="district_code" required disabled>
+                    <select class="select select-bordered {{ $disabled }} w-full" id="store-district" name="district_code" required disabled>
                         <option value="">Select regency first</option>
                     </select>
                     <input type="hidden" name="district_name" id="district-name">
@@ -265,7 +270,7 @@
                     <label class="label">
                         <span class="label-text">Village / Kelurahan</span>
                     </label>
-                    <select class="select select-bordered w-full" id="store-village" name="village_code" disabled>
+                    <select class="select select-bordered {{ $disabled }} w-full" id="store-village" name="village_code" disabled>
                         <option value="">Select district first</option>
                     </select>
                     <input type="hidden" name="village_name" id="village-name">
@@ -276,7 +281,7 @@
                     <label class="label">
                         <span class="label-text">Street Address <span class="text-error">*</span></span>
                     </label>
-                    <textarea name="street" placeholder="Street address, building number, etc." class="textarea textarea-bordered w-full h-24" required>{{ $storeAddress['street'] ?? 'Jl. Sudirman No. 123' }}</textarea>
+                    <textarea name="street" placeholder="Street address, building number, etc." class="textarea textarea-bordered {{ $disabled }} w-full h-24" required>{{ $storeAddress['street'] ?? 'Jl. Sudirman No. 123' }}</textarea>
                 </div>
 
                 <!-- Postal Code & Country -->
@@ -285,14 +290,14 @@
                         <label class="label">
                             <span class="label-text">Postal Code</span>
                         </label>
-                        <input type="text" name="postal_code" placeholder="12345" class="input input-bordered w-full" value="{{ $storeAddress['postal_code'] ?? '12180' }}" />
+                        <input type="text" name="postal_code" placeholder="12345" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeAddress['postal_code'] ?? '12180' }}" />
                     </div>
 
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text">Country</span>
                         </label>
-                        <input type="text" name="country" placeholder="Country" class="input input-bordered w-full" value="{{ $storeAddress['country'] ?? 'Indonesia' }}" readonly />
+                        <input type="text" name="country" placeholder="Country" class="input input-bordered {{ $disabled }} w-full" value="{{ $storeAddress['country'] ?? 'Indonesia' }}" readonly />
                     </div>
                 </div>
 
@@ -374,15 +379,16 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" class="btn btn-ghost">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="iconify lucide--save size-4"></span>
-                        Save Changes
-                    </button>
-                </div>
-            </form>
+                @if(hasPermission('settings.generals.store.update'))
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="iconify lucide--save size-4"></span>
+                            Save Changes
+                        </button>
+                    </div>
+                @endif
         </div>
+            </form>
     </div>
 </div>
 @endsection

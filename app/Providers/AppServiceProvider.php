@@ -73,7 +73,7 @@ class AppServiceProvider extends ServiceProvider
         // Register View Composers for both sidebar views
         \Illuminate\Support\Facades\View::composer(
             ['partials.sidebar', 'partials.sidebar-dynamic'],
-            \App\Http\View\Composers\SidebarComposer::class
+            \App\Http\ViewComposers\SidebarComposer::class
         );
     }
 }
