@@ -349,6 +349,11 @@
                                 href="{{ route('settings.general.system') }}">
                                 <span class="grow">System Config</span>
                             </a>
+                            <a
+                                class="menu-item {{ request()->routeIs('settings.general.api-tokens') ? 'active' : '' }}"
+                                href="{{ route('settings.general.api-tokens') }}">
+                                <span class="grow">API Tokens</span>
+                            </a>
                         </div>
                     </div>
                 </div>

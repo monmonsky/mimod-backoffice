@@ -63,6 +63,18 @@ class UserSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'API',
+                'email' => 'api@mimod.com',
+                'phone' => '081234567894',
+                'password' => Hash::make('api-secure-password-2024'),
+                'email_verified_at' => now(),
+                'phone_verified_at' => now(),
+                'status' => 'active',
+                'two_factor_enabled' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('users')->insert($users);

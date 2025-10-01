@@ -154,6 +154,12 @@ Route::group(['prefix' => 'settings'], function () {
 
         Route::get('/system', 'App\Http\Controllers\Settings\GeneralController@systemConfig')->name('settings.general.system');
         Route::post('/system', 'App\Http\Controllers\Settings\GeneralController@updateSystemConfig')->name('settings.general.system.update');
+
+        Route::get('/api-tokens', 'App\Http\Controllers\Settings\ApiTokenController@index')->name('settings.general.api-tokens');
+        Route::post('/api-tokens/generate', 'App\Http\Controllers\Settings\ApiTokenController@generate')->name('settings.general.api-tokens.generate');
+        Route::delete('/api-tokens/{tokenId}', 'App\Http\Controllers\Settings\ApiTokenController@revoke')->name('settings.general.api-tokens.revoke');
+        Route::delete('/api-tokens', 'App\Http\Controllers\Settings\ApiTokenController@revokeAll')->name('settings.general.api-tokens.revoke-all');
+        Route::get('/api-tokens/{tokenId}/show', 'App\Http\Controllers\Settings\ApiTokenController@show')->name('settings.general.api-tokens.show');
     });
 
     // Payment Settings Routes

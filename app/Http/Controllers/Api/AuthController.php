@@ -49,6 +49,13 @@ class AuthController extends Controller
                 return $this->response->generateResponse($this->responseBuilder);
             }
 
+            // Block API user from web login
+            if ($user->name === 'API') {
+                $this->responseBuilder->setStatus(false);
+                $this->responseBuilder->setMessage('This account is for API access only. Please use API token authentication.');
+                return $this->response->generateResponse($this->responseBuilder);
+            }
+
             // Check if user is active
             if ($user->status !== 'active') {
                 $this->responseBuilder->setStatus(false);
