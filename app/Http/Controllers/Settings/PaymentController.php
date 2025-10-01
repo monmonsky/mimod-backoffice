@@ -25,7 +25,7 @@ class PaymentController extends Controller
         $bankTransfer = $this->settingsRepo->getValue('payment.bank_transfer');
         $cod = $this->settingsRepo->getValue('payment.cod');
 
-        return view('pages.settings.payment.payment-methods', compact('midtrans', 'bankTransfer', 'cod'));
+        return view('pages.settings.payments.payment-methods', compact('midtrans', 'bankTransfer', 'cod'));
     }
 
     /**
@@ -35,7 +35,7 @@ class PaymentController extends Controller
     {
         $config = $this->settingsRepo->getValue('payment.midtrans');
 
-        return view('pages.settings.payment.midtrans-config', compact('config'));
+        return view('pages.settings.payments.midtrans-config', compact('config'));
     }
 
     /**
@@ -302,7 +302,7 @@ class PaymentController extends Controller
     {
         $taxConfig = $this->settingsRepo->getValue('payment.tax');
 
-        return view('pages.settings.payment.tax-settings', compact('taxConfig'));
+        return view('pages.settings.payments.tax-settings', compact('taxConfig'));
     }
 
     /**

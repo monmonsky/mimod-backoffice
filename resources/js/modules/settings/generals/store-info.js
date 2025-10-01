@@ -40,7 +40,7 @@ async function loadProvinces() {
     $provinceSelect.empty().append('<option value="">Loading provinces...</option>').prop('disabled', true);
 
     try {
-        const response = await fetch('/settings/shipping/api/wilayah/provinces');
+        const response = await fetch('/settings/shippings/api/wilayah/provinces');
         const data = await response.json();
 
         if (data.success && data.data) {
@@ -66,7 +66,7 @@ async function loadRegencies(provinceCode) {
     $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
 
     try {
-        const response = await fetch(`/settings/shipping/api/wilayah/regencies/${provinceCode}`);
+        const response = await fetch(`/settings/shippings/api/wilayah/regencies/${provinceCode}`);
         const data = await response.json();
 
         if (data.success && data.data) {
@@ -91,7 +91,7 @@ async function loadDistricts(regencyCode) {
     $('#store-village').empty().append('<option value="">Select district first</option>').prop('disabled', true);
 
     try {
-        const response = await fetch(`/settings/shipping/api/wilayah/districts/${regencyCode}`);
+        const response = await fetch(`/settings/shippings/api/wilayah/districts/${regencyCode}`);
         const data = await response.json();
 
         if (data.success && data.data) {
@@ -115,7 +115,7 @@ async function loadVillages(districtCode) {
     $villageSelect.empty().append('<option value="">Loading villages...</option>').prop('disabled', true);
 
     try {
-        const response = await fetch(`/settings/shipping/api/wilayah/villages/${districtCode}`);
+        const response = await fetch(`/settings/shippings/api/wilayah/villages/${districtCode}`);
         const data = await response.json();
 
         if (data.success && data.data) {

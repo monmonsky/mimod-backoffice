@@ -235,7 +235,7 @@
                             <span class="iconify lucide--refresh-cw size-4"></span>
                             Sync Couriers
                         </button>
-                        <a href="{{ route('settings.shipping.rajaongkir-config') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('settings.shippings.rajaongkir-config') }}" class="btn btn-primary btn-sm">
                             <span class="iconify lucide--settings size-4"></span>
                             Configure API
                         </a>
@@ -509,5 +509,5 @@
 <!-- jQuery (required for Select2) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-@vite(['resources/js/modules/settings/shipping/shipping-methods.js'])
+@vite(['resources/js/modules/settings/shippings/shipping-methods.js'])
 @endsection

@@ -32,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\ShippingSettingsRepositoryInterface::class,
             \App\Repositories\Settings\ShippingSettingsRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\ModuleRepositoryInterface::class,
+            \App\Repositories\ModuleRepository::class
+        );
     }
 
     /**

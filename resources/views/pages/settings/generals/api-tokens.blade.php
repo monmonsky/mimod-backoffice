@@ -314,5 +314,5 @@
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/settings/general/api-tokens.js'])
+@vite(['resources/js/modules/settings/generals/api-tokens.js'])
 @endsection

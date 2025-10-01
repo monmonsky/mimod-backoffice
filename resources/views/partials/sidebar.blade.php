@@ -313,45 +313,50 @@
                     </div>
                 </div>
 
+                <a class="menu-item {{ request()->routeIs('modules.*') ? 'active' : '' }}" href="{{ route('modules.index') }}">
+                    <span class="iconify lucide--layout-grid size-4"></span>
+                    <span class="grow">Modules</span>
+                </a>
+
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Settings</p>
                 <div class="group collapse">
                     <input
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-settings-general"
-                        {{ request()->routeIs('settings.store-info') || request()->routeIs('settings.email-settings') || request()->routeIs('settings.seo-meta') || request()->routeIs('settings.system-config') ? 'checked' : '' }} />
+                        name="sidebar-menu-settings-generals"
+                        {{ request()->routeIs('settings.generals.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--settings size-4"></span>
-                        <span class="grow">General</span>
+                        <span class="grow">Generals</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item {{ request()->routeIs('settings.general.store') ? 'active' : '' }}"
-                                href="{{ route('settings.general.store') }}">
+                                class="menu-item {{ request()->routeIs('settings.generals.store') ? 'active' : '' }}"
+                                href="{{ route('settings.generals.store') }}">
                                 <span class="grow">Store Info</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.general.email') ? 'active' : '' }}"
-                                href="{{ route('settings.general.email') }}">
+                                class="menu-item {{ request()->routeIs('settings.generals.email') ? 'active' : '' }}"
+                                href="{{ route('settings.generals.email') }}">
                                 <span class="grow">Email Settings</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.general.seo') ? 'active' : '' }}"
-                                href="{{ route('settings.general.seo') }}">
+                                class="menu-item {{ request()->routeIs('settings.generals.seo') ? 'active' : '' }}"
+                                href="{{ route('settings.generals.seo') }}">
                                 <span class="grow">SEO & Meta</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.general.system') ? 'active' : '' }}"
-                                href="{{ route('settings.general.system') }}">
+                                class="menu-item {{ request()->routeIs('settings.generals.system') ? 'active' : '' }}"
+                                href="{{ route('settings.generals.system') }}">
                                 <span class="grow">System Config</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.general.api-tokens') ? 'active' : '' }}"
-                                href="{{ route('settings.general.api-tokens') }}">
+                                class="menu-item {{ request()->routeIs('settings.generals.api-tokens') ? 'active' : '' }}"
+                                href="{{ route('settings.generals.api-tokens') }}">
                                 <span class="grow">API Tokens</span>
                             </a>
                         </div>
@@ -363,29 +368,29 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-settings-payment"
-                        {{ request()->routeIs('settings.payment.*') ? 'checked' : '' }} />
+                        name="sidebar-menu-settings-payments"
+                        {{ request()->routeIs('settings.payments.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--wallet size-4"></span>
-                        <span class="grow">Payment</span>
+                        <span class="grow">Payments</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item {{ request()->routeIs('settings.payment.methods') ? 'active' : '' }}"
-                                href="{{ route('settings.payment.methods') }}">
+                                class="menu-item {{ request()->routeIs('settings.payments.methods') ? 'active' : '' }}"
+                                href="{{ route('settings.payments.methods') }}">
                                 <span class="grow">Payment Methods</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.payment.midtrans-config') ? 'active' : '' }}"
-                                href="{{ route('settings.payment.midtrans-config') }}">
+                                class="menu-item {{ request()->routeIs('settings.payments.midtrans-config') ? 'active' : '' }}"
+                                href="{{ route('settings.payments.midtrans-config') }}">
                                 <span class="grow">Midtrans Config</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.payment.tax-settings') ? 'active' : '' }}"
-                                href="{{ route('settings.payment.tax-settings') }}">
+                                class="menu-item {{ request()->routeIs('settings.payments.tax-settings') ? 'active' : '' }}"
+                                href="{{ route('settings.payments.tax-settings') }}">
                                 <span class="grow">Tax Settings</span>
                             </a>
                         </div>
@@ -397,29 +402,29 @@
                         aria-label="Sidemenu item trigger"
                         type="checkbox"
                         class="peer"
-                        name="sidebar-menu-settings-shipping"
-                        {{ request()->routeIs('settings.shipping.*') ? 'checked' : '' }} />
+                        name="sidebar-menu-settings-shippings"
+                        {{ request()->routeIs('settings.shippings.*') ? 'checked' : '' }} />
                     <div class="collapse-title px-2.5 py-1.5">
                         <span class="iconify lucide--truck size-4"></span>
-                        <span class="grow">Shipping</span>
+                        <span class="grow">Shippings</span>
                         <span
                             class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
                     </div>
                     <div class="collapse-content ms-6.5 !p-0">
                         <div class="mt-0.5 space-y-0.5">
                             <a
-                                class="menu-item {{ request()->routeIs('settings.shipping.methods') ? 'active' : '' }}"
-                                href="{{ route('settings.shipping.methods') }}">
+                                class="menu-item {{ request()->routeIs('settings.shippings.methods') ? 'active' : '' }}"
+                                href="{{ route('settings.shippings.methods') }}">
                                 <span class="grow">Shipping Methods</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.shipping.rajaongkir-config') ? 'active' : '' }}"
-                                href="{{ route('settings.shipping.rajaongkir-config') }}">
+                                class="menu-item {{ request()->routeIs('settings.shippings.rajaongkir-config') ? 'active' : '' }}"
+                                href="{{ route('settings.shippings.rajaongkir-config') }}">
                                 <span class="grow">RajaOngkir Config</span>
                             </a>
                             <a
-                                class="menu-item {{ request()->routeIs('settings.shipping.origin-address') ? 'active' : '' }}"
-                                href="{{ route('settings.shipping.origin-address') }}">
+                                class="menu-item {{ request()->routeIs('settings.shippings.origin-address') ? 'active' : '' }}"
+                                href="{{ route('settings.shippings.origin-address') }}">
                                 <span class="grow">Origin Address</span>
                             </a>
                         </div>

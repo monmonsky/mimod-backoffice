@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<form id="emailSettingsForm" action="{{ route('settings.general.email.update') }}" method="POST" class="mt-6 space-y-6">
+<form id="emailSettingsForm" action="{{ route('settings.generals.email.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
     <!-- SMTP Configuration -->
@@ -218,8 +218,8 @@
 
 <script>
     // Pass data from Laravel to JavaScript
-    window.testEmailUrl = '{{ route("settings.general.email.test") }}';
+    window.testEmailUrl = '{{ route("settings.generals.email.test") }}';
 </script>
 
-@vite(['resources/js/modules/settings/general/email-settings.js'])
+@vite(['resources/js/modules/settings/generals/email-settings.js'])
 @endsection

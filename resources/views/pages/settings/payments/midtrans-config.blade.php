@@ -39,7 +39,7 @@
             <h2 class="card-title text-lg">API Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure Midtrans API credentials</p>
 
-            <form id="midtransApiForm" action="{{ route('settings.payment.midtrans-config.api.update') }}" method="POST" class="space-y-6">
+            <form id="midtransApiForm" action="{{ route('settings.payments.midtrans-config.api.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Environment Mode -->
                 <div class="form-control">
@@ -188,7 +188,7 @@
             <h2 class="card-title text-lg">Enabled Payment Methods</h2>
             <p class="text-sm text-base-content/70 mb-4">Select which payment methods to enable for customers</p>
 
-            <form id="midtransMethodsForm" action="{{ route('settings.payment.midtrans-config.methods.update') }}" method="POST" class="space-y-6">
+            <form id="midtransMethodsForm" action="{{ route('settings.payments.midtrans-config.methods.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Credit/Debit Card -->
                 <div>
@@ -368,7 +368,7 @@
             <h2 class="card-title text-lg">Transaction Settings</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure transaction behavior and notifications</p>
 
-            <form id="midtransTransactionForm" action="{{ route('settings.payment.midtrans-config.transaction.update') }}" method="POST" class="space-y-6">
+            <form id="midtransTransactionForm" action="{{ route('settings.payments.midtrans-config.transaction.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Payment Expiry -->
                 <div class="form-control">
@@ -450,9 +450,9 @@
 
 <script>
     // Pass data from Laravel to JavaScript
-    window.testMidtransUrl = '{{ route("settings.payment.midtrans-config.test") }}';
-    window.syncMidtransUrl = '{{ route("settings.payment.midtrans-config.sync") }}';
+    window.testMidtransUrl = '{{ route("settings.payments.midtrans-config.test") }}';
+    window.syncMidtransUrl = '{{ route("settings.payments.midtrans-config.sync") }}';
 </script>
 
-@vite(['resources/js/modules/settings/payment/midtrans-config.js'])
+@vite(['resources/js/modules/settings/payments/midtrans-config.js'])
 @endsection

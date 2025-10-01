@@ -140,7 +140,7 @@
             <h2 class="card-title text-lg">Basic Information</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure your store's basic details and contact information</p>
 
-            <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.general.store.update') }}" method="POST">
+            <form id="storeInfoForm" class="space-y-6 mt-3" action="{{ route('settings.generals.store.update') }}" method="POST">
                 @csrf
                 <!-- Store Name -->
                 <div class="form-control">
@@ -400,10 +400,10 @@
         district_code: '{{ $storeAddress['district_code'] ?? '' }}',
         village_code: '{{ $storeAddress['village_code'] ?? '' }}'
     };
-    window.uploadLogoUrl = '{{ route("settings.general.store.upload-logo") }}';
-    window.deleteLogoUrl = '{{ route("settings.general.store.delete-logo") }}';
+    window.uploadLogoUrl = '{{ route("settings.generals.store.upload-logo") }}';
+    window.deleteLogoUrl = '{{ route("settings.generals.store.delete-logo") }}';
     window.existingLogo = '{{ $storeInfo['logo'] ?? '' }}';
 </script>
 
-@vite(['resources/js/modules/settings/general/store-info.js'])
+@vite(['resources/js/modules/settings/generals/store-info.js'])
 @endsection

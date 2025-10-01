@@ -52,7 +52,7 @@ async function handleGenerateToken($form) {
     $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Generating...');
 
     try {
-        const response = await fetch('/settings/general/api-tokens/generate', {
+        const response = await fetch('/settings/generals/api-tokens/generate', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': requestData._token,
@@ -144,7 +144,7 @@ window.revokeToken = async function(tokenId, tokenName) {
     Toast.showToast('Revoking token...', 'info', 1000);
 
     try {
-        const response = await fetch(`/settings/general/api-tokens/${tokenId}`, {
+        const response = await fetch(`/settings/generals/api-tokens/${tokenId}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -183,7 +183,7 @@ window.revokeAllTokens = async function() {
     Toast.showToast('Revoking all tokens...', 'info', 1000);
 
     try {
-        const response = await fetch('/settings/general/api-tokens', {
+        const response = await fetch('/settings/generals/api-tokens', {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
@@ -218,7 +218,7 @@ window.showTokenDetails = async function(tokenId) {
     Toast.showToast('Loading token details...', 'info', 1000);
 
     try {
-        const response = await fetch(`/settings/general/api-tokens/${tokenId}/show`, {
+        const response = await fetch(`/settings/generals/api-tokens/${tokenId}/show`, {
             method: 'GET',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),

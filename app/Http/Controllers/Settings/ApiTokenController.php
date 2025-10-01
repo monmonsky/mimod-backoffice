@@ -28,7 +28,7 @@ class ApiTokenController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('pages.settings.general.api-tokens', compact('apiUser', 'tokens'));
+        return view('pages.settings.generals.api-tokens', compact('apiUser', 'tokens'));
     }
 
     /**

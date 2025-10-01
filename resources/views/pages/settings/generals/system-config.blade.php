@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<form id="systemConfigForm" action="{{ route('settings.general.system.update') }}" method="POST" class="mt-6 space-y-6">
+<form id="systemConfigForm" action="{{ route('settings.generals.system.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
     <!-- General Settings -->
@@ -245,5 +245,5 @@
 <!-- jQuery from CDN -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-@vite(['resources/js/modules/settings/general/system-config.js'])
+@vite(['resources/js/modules/settings/generals/system-config.js'])
 @endsection

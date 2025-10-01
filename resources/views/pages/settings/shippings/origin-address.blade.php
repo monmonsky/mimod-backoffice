@@ -312,5 +312,5 @@
     };
 </script>
 
-@vite(['resources/js/modules/settings/shipping/origin-address.js'])
+@vite(['resources/js/modules/settings/shippings/origin-address.js'])
 @endsection

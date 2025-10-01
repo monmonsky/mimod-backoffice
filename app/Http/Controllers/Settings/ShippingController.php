@@ -26,7 +26,7 @@ class ShippingController extends Controller
         $rajaongkir = $this->settingsRepo->getValue('shipping.rajaongkir');
         $methods = $this->settingsRepo->getValue('shipping.methods');
 
-        return view('pages.settings.shipping.shipping-methods', compact('rajaongkir', 'methods'));
+        return view('pages.settings.shippings.shipping-methods', compact('rajaongkir', 'methods'));
     }
 
     /**
@@ -36,7 +36,7 @@ class ShippingController extends Controller
     {
         $config = $this->settingsRepo->getValue('shipping.rajaongkir');
 
-        return view('pages.settings.shipping.rajaongkir-config', compact('config'));
+        return view('pages.settings.shippings.rajaongkir-config', compact('config'));
     }
 
     /**
@@ -154,7 +154,7 @@ class ShippingController extends Controller
     {
         $origin = $this->settingsRepo->getValue('shipping.origin');
 
-        return view('pages.settings.shipping.origin-address', compact('origin'));
+        return view('pages.settings.shippings.origin-address', compact('origin'));
     }
 
     /**

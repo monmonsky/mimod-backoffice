@@ -26,7 +26,7 @@ class GeneralController extends Controller
         $storeSocial = $this->settingsRepo->getValue('store.social');
         $operatingHours = $this->settingsRepo->getValue('store.operating_hours');
 
-        return view('pages.settings.general.store-info', compact(
+        return view('pages.settings.generals.store-info', compact(
             'storeInfo',
             'storeContact',
             'storeAddress',
@@ -207,7 +207,7 @@ class GeneralController extends Controller
         $smtpSettings = $this->settingsRepo->getValue('email.smtp');
         $notifications = $this->settingsRepo->getValue('email.notifications');
 
-        return view('pages.settings.general.email-settings', compact('smtpSettings', 'notifications'));
+        return view('pages.settings.generals.email-settings', compact('smtpSettings', 'notifications'));
     }
 
     /**
@@ -358,7 +358,7 @@ class GeneralController extends Controller
         $seoOpengraph = $this->settingsRepo->getValue('seo.opengraph');
         $seoTwitter = $this->settingsRepo->getValue('seo.twitter');
 
-        return view('pages.settings.general.seo-meta', compact('seoBasic', 'seoOpengraph', 'seoTwitter'));
+        return view('pages.settings.generals.seo-meta', compact('seoBasic', 'seoOpengraph', 'seoTwitter'));
     }
 
     /**
@@ -438,7 +438,7 @@ class GeneralController extends Controller
         $securitySettings = $this->settingsRepo->getValue('system.security');
         $maintenanceSettings = $this->settingsRepo->getValue('system.maintenance');
 
-        return view('pages.settings.general.system-config', compact('generalSettings', 'securitySettings', 'maintenanceSettings'));
+        return view('pages.settings.generals.system-config', compact('generalSettings', 'securitySettings', 'maintenanceSettings'));
     }
 
     /**

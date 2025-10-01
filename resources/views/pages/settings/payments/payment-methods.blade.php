@@ -78,7 +78,7 @@
 
                     <!-- Actions -->
                     <div class="flex gap-2">
-                        <a href="{{ route('settings.payment.midtrans-config') }}" class="btn btn-outline btn-sm">
+                        <a href="{{ route('settings.payments.midtrans-config') }}" class="btn btn-outline btn-sm">
                             <span class="iconify lucide--settings size-4"></span>
                             Configure
                         </a>

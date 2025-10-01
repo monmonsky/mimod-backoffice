@@ -296,7 +296,7 @@
             <h2 class="card-title text-lg">API Configuration</h2>
             <p class="text-sm text-base-content/70 mb-4">Configure RajaOngkir API credentials and settings</p>
 
-            <form id="rajaongkirApiForm" action="{{ route('settings.shipping.rajaongkir-config.update') }}" method="POST" class="space-y-6">
+            <form id="rajaongkirApiForm" action="{{ route('settings.shippings.rajaongkir-config.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <!-- Account Type -->
                 <div class="form-control">
@@ -599,7 +599,7 @@
             <h2 class="card-title text-lg">Enabled Couriers</h2>
             <p class="text-sm text-base-content/70 mb-4">Select which couriers to enable for customers</p>
 
-            <form id="couriersForm" action="{{ route('settings.shipping.rajaongkir-config.update') }}" method="POST" class="space-y-6">
+            <form id="couriersForm" action="{{ route('settings.shippings.rajaongkir-config.update') }}" method="POST" class="space-y-6">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     @php
@@ -700,12 +700,12 @@
 <!-- Pass Laravel data to JavaScript -->
 <script>
     window.csrfToken = '{{ csrf_token() }}';
-    window.testApiRoute = '{{ route("settings.shipping.rajaongkir-config.test") }}';
-    window.calculateApiRoute = '{{ route("settings.shipping.api.calculate") }}';
-    window.provincesApiRoute = '{{ route("settings.shipping.api.provinces") }}';
-    window.citiesApiRoute = '{{ route("settings.shipping.api.cities", ["provinceId" => ":provinceId"]) }}';
-    window.districtsApiRoute = '{{ route("settings.shipping.api.districts", ["cityId" => ":cityId"]) }}';
+    window.testApiRoute = '{{ route("settings.shippings.rajaongkir-config.test") }}';
+    window.calculateApiRoute = '{{ route("settings.shippings.api.calculate") }}';
+    window.provincesApiRoute = '{{ route("settings.shippings.api.provinces") }}';
+    window.citiesApiRoute = '{{ route("settings.shippings.api.cities", ["provinceId" => ":provinceId"]) }}';
+    window.districtsApiRoute = '{{ route("settings.shippings.api.districts", ["cityId" => ":cityId"]) }}';
 </script>
 
-@vite(['resources/js/modules/settings/shipping/rajaongkir-config.js'])
+@vite(['resources/js/modules/settings/shippings/rajaongkir-config.js'])
 @endsection

@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<form id="seoMetaForm" action="{{ route('settings.general.seo.update') }}" method="POST" class="mt-6 space-y-6">
+<form id="seoMetaForm" action="{{ route('settings.generals.seo.update') }}" method="POST" class="mt-6 space-y-6">
     @csrf
 
     <!-- Basic SEO Settings -->
@@ -201,5 +201,5 @@
 <!-- jQuery from CDN -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-@vite(['resources/js/modules/settings/general/seo-meta.js'])
+@vite(['resources/js/modules/settings/generals/seo-meta.js'])
 @endsection
