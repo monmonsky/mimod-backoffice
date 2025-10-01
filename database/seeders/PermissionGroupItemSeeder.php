@@ -13,77 +13,68 @@ class PermissionGroupItemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get permission groups
-        $productFull = DB::table('permission_groups')->where('name', 'product_full')->first();
-        $productReadOnly = DB::table('permission_groups')->where('name', 'product_read_only')->first();
-        $orderFull = DB::table('permission_groups')->where('name', 'order_full')->first();
-        $orderReadOnly = DB::table('permission_groups')->where('name', 'order_read_only')->first();
-        $userManagementFull = DB::table('permission_groups')->where('name', 'user_management_full')->first();
+        DB::table('permission_group_items')->truncate();
 
         $groupItems = [];
 
-        // Product Full - All product and category permissions
-        $productPermissions = DB::table('permissions')
-            ->whereIn('module', ['product', 'category'])
-            ->get();
+        // Dashboard Management Group
+        $dashboardManagement = DB::table('permission_groups')
+            ->where('name', 'dashboard_management')
+            ->first();
 
-        foreach ($productPermissions as $permission) {
-            $groupItems[] = [
-                'group_id' => $productFull->id,
-                'permission_id' => $permission->id,
-            ];
+        if ($dashboardManagement) {
+            $dashboardPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'dashboard.%')
+                ->get();
+
+            foreach ($dashboardPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $dashboardManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
         }
 
-        // Product Read Only - Only read permissions
-        $productReadPermissions = DB::table('permissions')
-            ->whereIn('module', ['product', 'category'])
-            ->where('action', 'read')
-            ->get();
+        // Access Control Management Group
+        $accessControlManagement = DB::table('permission_groups')
+            ->where('name', 'access_control_management')
+            ->first();
 
-        foreach ($productReadPermissions as $permission) {
-            $groupItems[] = [
-                'group_id' => $productReadOnly->id,
-                'permission_id' => $permission->id,
-            ];
+        if ($accessControlManagement) {
+            $accessControlPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'access-control.%')
+                ->get();
+
+            foreach ($accessControlPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $accessControlManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
         }
 
-        // Order Full - All order permissions
-        $orderPermissions = DB::table('permissions')
-            ->where('module', 'order')
-            ->get();
+        // Settings Management Group
+        $settingsManagement = DB::table('permission_groups')
+            ->where('name', 'settings_management')
+            ->first();
 
-        foreach ($orderPermissions as $permission) {
-            $groupItems[] = [
-                'group_id' => $orderFull->id,
-                'permission_id' => $permission->id,
-            ];
+        if ($settingsManagement) {
+            $settingsPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'settings.%')
+                ->get();
+
+            foreach ($settingsPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $settingsManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
         }
 
-        // Order Read Only - Only read permissions
-        $orderReadPermissions = DB::table('permissions')
-            ->where('module', 'order')
-            ->where('action', 'read')
-            ->get();
-
-        foreach ($orderReadPermissions as $permission) {
-            $groupItems[] = [
-                'group_id' => $orderReadOnly->id,
-                'permission_id' => $permission->id,
-            ];
+        if (!empty($groupItems)) {
+            DB::table('permission_group_items')->insert($groupItems);
         }
 
-        // User Management Full - All user, role, and permission permissions
-        $userManagementPermissions = DB::table('permissions')
-            ->whereIn('module', ['user', 'role', 'permission'])
-            ->get();
-
-        foreach ($userManagementPermissions as $permission) {
-            $groupItems[] = [
-                'group_id' => $userManagementFull->id,
-                'permission_id' => $permission->id,
-            ];
-        }
-
-        DB::table('permission_group_items')->insert($groupItems);
+        $this->command->info('Permission group items seeded successfully.');
     }
 }

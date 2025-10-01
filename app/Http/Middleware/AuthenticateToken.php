@@ -85,8 +85,22 @@ class AuthenticateToken
                 ->withCookie(Cookie::forget('auth_token'));
         }
 
+        // Convert user object to array properly (including dynamic properties)
+        $userData = (array) $user;
+
+        // Ensure role and permissions are included
+        if (isset($user->role)) {
+            $userData['role'] = $user->role;
+        }
+        if (isset($user->role_display)) {
+            $userData['role_display'] = $user->role_display;
+        }
+        if (isset($user->permissions)) {
+            $userData['permissions'] = $user->permissions;
+        }
+
         // Attach user to request
-        $request->merge(['user' => (array) $user]);
+        $request->merge(['user' => $userData]);
 
         return $next($request);
     }

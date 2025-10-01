@@ -45,52 +45,61 @@ Route::middleware('auth.token')->group(function () {
         })->name('user.edit');
     });
 
-    Route::group(['prefix' => 'role'], function () {
-        Route::get('/', function () {
-            return view('pages.role.index');
-        })->name('role.index');
-
-        Route::get('/create', function () {
-            return view('pages.role.create');
-        })->name('role.create');
-
-        Route::get('/module', function () {
-            return view('pages.role.module-access');
-        })->name('role.module');
-    });
-
-    Route::group(['prefix' => 'permission'], function () {
-        Route::get('/', function () {
-            return view('pages.permission.index');
-        })->name('permission.index');
-    });
-
     Route::group(['prefix' => 'access-control'], function () {
         Route::group(['prefix' => 'modules'], function () {
-            Route::get('/', 'App\Http\Controllers\ModuleController@index')->name('modules.index');
-            Route::get('/create', 'App\Http\Controllers\ModuleController@create')->name('modules.create');
-            Route::get('/{id}/edit', 'App\Http\Controllers\ModuleController@edit')->name('modules.edit');
-            Route::get('/all', 'App\Http\Controllers\ModuleController@getAll')->name('modules.all');
-            Route::post('/store', 'App\Http\Controllers\ModuleController@store')->name('modules.store');
-            Route::put('/{id}', 'App\Http\Controllers\ModuleController@update')->name('modules.update');
-            Route::delete('/{id}', 'App\Http\Controllers\ModuleController@destroy')->name('modules.destroy');
-            Route::post('/{id}/toggle-active', 'App\Http\Controllers\ModuleController@toggleActive')->name('modules.toggle-active');
-            Route::post('/{id}/toggle-visible', 'App\Http\Controllers\ModuleController@toggleVisible')->name('modules.toggle-visible');
-            Route::post('/update-order', 'App\Http\Controllers\ModuleController@updateOrder')->name('modules.update-order');
+            Route::get('/', 'App\Http\Controllers\AccessControl\ModuleController@index')->name('modules.index');
+            Route::get('/create', 'App\Http\Controllers\AccessControl\ModuleController@create')->name('modules.create');
+            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\ModuleController@edit')->name('modules.edit');
+            Route::get('/all', 'App\Http\Controllers\AccessControl\ModuleController@getAll')->name('modules.all');
+            Route::post('/store', 'App\Http\Controllers\AccessControl\ModuleController@store')->name('modules.store');
+            Route::put('/{id}', 'App\Http\Controllers\AccessControl\ModuleController@update')->name('modules.update');
+            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\ModuleController@destroy')->name('modules.destroy');
+            Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\ModuleController@toggleActive')->name('modules.toggle-active');
+            Route::post('/{id}/toggle-visible', 'App\Http\Controllers\AccessControl\ModuleController@toggleVisible')->name('modules.toggle-visible');
+            Route::post('/update-order', 'App\Http\Controllers\AccessControl\ModuleController@updateOrder')->name('modules.update-order');
+        });
+
+        Route::group(['prefix' => 'role'], function () {
+            Route::get('/', 'App\Http\Controllers\AccessControl\RoleController@index')->name('role.index');
+            Route::get('/create', 'App\Http\Controllers\AccessControl\RoleController@create')->name('role.create');
+            Route::post('/store', 'App\Http\Controllers\AccessControl\RoleController@store')->name('role.store');
+            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\RoleController@edit')->name('role.edit');
+            Route::put('/{id}', 'App\Http\Controllers\AccessControl\RoleController@update')->name('role.update');
+            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\RoleController@destroy')->name('role.destroy');
+            Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\RoleController@toggleActive')->name('role.toggle-active');
+        });
+
+        Route::group(['prefix' => 'permission'], function () {
+            Route::get('/', 'App\Http\Controllers\AccessControl\PermissionController@index')->name('permission.index');
+            Route::get('/create', 'App\Http\Controllers\AccessControl\PermissionController@create')->name('permission.create');
+            Route::post('/store', 'App\Http\Controllers\AccessControl\PermissionController@store')->name('permission.store');
+            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\PermissionController@edit')->name('permission.edit');
+            Route::put('/{id}', 'App\Http\Controllers\AccessControl\PermissionController@update')->name('permission.update');
+            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\PermissionController@destroy')->name('permission.destroy');
+        });
+
+        Route::group(['prefix' => 'permission-group'], function () {
+            Route::get('/', 'App\Http\Controllers\AccessControl\PermissionGroupController@index')->name('permission-group.index');
+            Route::get('/create', 'App\Http\Controllers\AccessControl\PermissionGroupController@create')->name('permission-group.create');
+            Route::post('/store', 'App\Http\Controllers\AccessControl\PermissionGroupController@store')->name('permission-group.store');
+            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\PermissionGroupController@edit')->name('permission-group.edit');
+            Route::put('/{id}', 'App\Http\Controllers\AccessControl\PermissionGroupController@update')->name('permission-group.update');
+            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\PermissionGroupController@destroy')->name('permission-group.destroy');
+        });
+
+        Route::group(['prefix' => 'activity-log'], function () {
+            Route::get('/', function () {
+                return view('pages.activity-log.index');
+            })->name('activity-log.index');
+        });
+
+        Route::group(['prefix' => 'session'], function () {
+            Route::get('/', function () {
+                return view('pages.session.index');
+            })->name('session.index');
         });
     });
-
-    Route::group(['prefix' => 'activity-log'], function () {
-        Route::get('/', function () {
-            return view('pages.activity-log.index');
-        })->name('activity-log.index');
-    });
-
-    Route::group(['prefix' => 'session'], function () {
-        Route::get('/', function () {
-            return view('pages.session.index');
-        })->name('session.index');
-    });
+    
 
     Route::group(['prefix' => 'reports'], function () {
         Route::get('/sales', function () {

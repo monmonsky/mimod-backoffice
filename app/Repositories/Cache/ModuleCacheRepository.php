@@ -3,7 +3,7 @@
 namespace App\Repositories\Cache;
 
 use App\Repositories\CacheRepository;
-use App\Repositories\Contracts\ModuleRepositoryInterface;
+use App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface;
 
 class ModuleCacheRepository extends CacheRepository
 {

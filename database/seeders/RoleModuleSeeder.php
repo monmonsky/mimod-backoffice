@@ -13,19 +13,26 @@ class RoleModuleSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table('role_modules')->truncate();
+
         // Get roles
         $superAdminRole = DB::table('roles')->where('name', 'super_admin')->first();
         $adminRole = DB::table('roles')->where('name', 'admin')->first();
-        $staffRole = DB::table('roles')->where('name', 'staff')->first();
-        $customerRole = DB::table('roles')->where('name', 'customer')->first();
 
-        // Get all modules
-        $allModules = DB::table('modules')->get();
+        if (!$superAdminRole || !$adminRole) {
+            $this->command->warn('Roles not found');
+            return;
+        }
+
+        // Get all child modules (level 2 and 3)
+        $allModules = DB::table('modules')
+            ->whereNotNull('parent_id')
+            ->get();
 
         $roleModules = [];
 
-        // Super Admin - Full access to all modules
         foreach ($allModules as $module) {
+            // Super Admin - Full access to all modules
             $roleModules[] = [
                 'role_id' => $superAdminRole->id,
                 'module_id' => $module->id,
@@ -38,54 +45,10 @@ class RoleModuleSeeder extends Seeder
                 'granted_by' => null,
                 'granted_at' => now(),
             ];
-        }
 
-        // Admin - Full access except settings
-        foreach ($allModules as $module) {
-            $isSettings = $module->name === 'settings';
-
+            // Admin - View only for all modules
             $roleModules[] = [
                 'role_id' => $adminRole->id,
-                'module_id' => $module->id,
-                'can_view' => true,
-                'can_create' => !$isSettings,
-                'can_update' => !$isSettings,
-                'can_delete' => !$isSettings,
-                'can_export' => true,
-                'custom_permissions' => null,
-                'granted_by' => null,
-                'granted_at' => now(),
-            ];
-        }
-
-        // Staff - Limited access
-        $staffModuleNames = ['dashboard', 'products', 'categories', 'orders', 'customers', 'product_management', 'order_management'];
-        $staffModules = $allModules->whereIn('name', $staffModuleNames);
-
-        foreach ($staffModules as $module) {
-            $isManagementModule = in_array($module->name, ['product_management', 'order_management']);
-
-            $roleModules[] = [
-                'role_id' => $staffRole->id,
-                'module_id' => $module->id,
-                'can_view' => true,
-                'can_create' => !$isManagementModule,
-                'can_update' => !$isManagementModule,
-                'can_delete' => false,
-                'can_export' => false,
-                'custom_permissions' => null,
-                'granted_by' => null,
-                'granted_at' => now(),
-            ];
-        }
-
-        // Customer - Very limited access
-        $customerModuleNames = ['dashboard', 'products', 'orders'];
-        $customerModules = $allModules->whereIn('name', $customerModuleNames);
-
-        foreach ($customerModules as $module) {
-            $roleModules[] = [
-                'role_id' => $customerRole->id,
                 'module_id' => $module->id,
                 'can_view' => true,
                 'can_create' => false,
@@ -98,6 +61,10 @@ class RoleModuleSeeder extends Seeder
             ];
         }
 
-        DB::table('role_modules')->insert($roleModules);
+        if (!empty($roleModules)) {
+            DB::table('role_modules')->insert($roleModules);
+        }
+
+        $this->command->info('Role modules seeded successfully.');
     }
 }

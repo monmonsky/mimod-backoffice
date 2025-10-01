@@ -13,73 +13,466 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $modules = [
-            'user' => 'User Management',
-            'role' => 'Role Management',
-            'permission' => 'Permission Management',
-            'product' => 'Product Management',
-            'category' => 'Category Management',
-            'order' => 'Order Management',
-            'customer' => 'Customer Management',
-            'report' => 'Report Management',
-            'setting' => 'System Settings',
+        DB::table('permissions')->truncate();
+
+        $permissions = [
+            // Dashboard
+            [
+                'name' => 'dashboard.view',
+                'display_name' => 'View Dashboard',
+                'description' => 'Permission to view dashboard',
+                'module' => 'dashboard',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Access Control > Users
+            [
+                'name' => 'access-control.users.view',
+                'display_name' => 'View Users',
+                'description' => 'Permission to view users',
+                'module' => 'access-control.users',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.users.create',
+                'display_name' => 'Create User',
+                'description' => 'Permission to create new user',
+                'module' => 'access-control.users',
+                'action' => 'create',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.users.update',
+                'display_name' => 'Update User',
+                'description' => 'Permission to update user',
+                'module' => 'access-control.users',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.users.delete',
+                'display_name' => 'Delete User',
+                'description' => 'Permission to delete user',
+                'module' => 'access-control.users',
+                'action' => 'delete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Access Control > Roles
+            [
+                'name' => 'access-control.roles.view',
+                'display_name' => 'View Roles',
+                'description' => 'Permission to view roles',
+                'module' => 'access-control.roles',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.roles.create',
+                'display_name' => 'Create Role',
+                'description' => 'Permission to create new role',
+                'module' => 'access-control.roles',
+                'action' => 'create',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.roles.update',
+                'display_name' => 'Update Role',
+                'description' => 'Permission to update role',
+                'module' => 'access-control.roles',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.roles.delete',
+                'display_name' => 'Delete Role',
+                'description' => 'Permission to delete role',
+                'module' => 'access-control.roles',
+                'action' => 'delete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Access Control > Permissions
+            [
+                'name' => 'access-control.permissions.view',
+                'display_name' => 'View Permissions',
+                'description' => 'Permission to view permissions',
+                'module' => 'access-control.permissions',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.permissions.create',
+                'display_name' => 'Create Permission',
+                'description' => 'Permission to create new permission',
+                'module' => 'access-control.permissions',
+                'action' => 'create',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.permissions.update',
+                'display_name' => 'Update Permission',
+                'description' => 'Permission to update permission',
+                'module' => 'access-control.permissions',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.permissions.delete',
+                'display_name' => 'Delete Permission',
+                'description' => 'Permission to delete permission',
+                'module' => 'access-control.permissions',
+                'action' => 'delete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Access Control > Modules
+            [
+                'name' => 'access-control.modules.view',
+                'display_name' => 'View Modules',
+                'description' => 'Permission to view modules',
+                'module' => 'access-control.modules',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.modules.create',
+                'display_name' => 'Create Module',
+                'description' => 'Permission to create new module',
+                'module' => 'access-control.modules',
+                'action' => 'create',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.modules.update',
+                'display_name' => 'Update Module',
+                'description' => 'Permission to update module',
+                'module' => 'access-control.modules',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.modules.delete',
+                'display_name' => 'Delete Module',
+                'description' => 'Permission to delete module',
+                'module' => 'access-control.modules',
+                'action' => 'delete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Access Control > Activity Logs
+            [
+                'name' => 'access-control.activity-logs.view',
+                'display_name' => 'View Activity Logs',
+                'description' => 'Permission to view activity logs',
+                'module' => 'access-control.activity-logs',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'access-control.activity-logs.export',
+                'display_name' => 'Export Activity Logs',
+                'description' => 'Permission to export activity logs',
+                'module' => 'access-control.activity-logs',
+                'action' => 'export',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Generals > Store Info
+            [
+                'name' => 'settings.generals.store.view',
+                'display_name' => 'View Store Info',
+                'description' => 'Permission to view store information settings',
+                'module' => 'settings.generals.store',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.store.update',
+                'display_name' => 'Update Store Info',
+                'description' => 'Permission to update store information settings',
+                'module' => 'settings.generals.store',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Generals > Email Settings
+            [
+                'name' => 'settings.generals.email.view',
+                'display_name' => 'View Email Settings',
+                'description' => 'Permission to view email settings',
+                'module' => 'settings.generals.email',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.email.update',
+                'display_name' => 'Update Email Settings',
+                'description' => 'Permission to update email settings',
+                'module' => 'settings.generals.email',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Generals > SEO & Meta
+            [
+                'name' => 'settings.generals.seo.view',
+                'display_name' => 'View SEO Settings',
+                'description' => 'Permission to view SEO and meta settings',
+                'module' => 'settings.generals.seo',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.seo.update',
+                'display_name' => 'Update SEO Settings',
+                'description' => 'Permission to update SEO and meta settings',
+                'module' => 'settings.generals.seo',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Generals > System Config
+            [
+                'name' => 'settings.generals.system.view',
+                'display_name' => 'View System Config',
+                'description' => 'Permission to view system configuration',
+                'module' => 'settings.generals.system',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.system.update',
+                'display_name' => 'Update System Config',
+                'description' => 'Permission to update system configuration',
+                'module' => 'settings.generals.system',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Generals > API Tokens
+            [
+                'name' => 'settings.generals.api-tokens.view',
+                'display_name' => 'View API Tokens',
+                'description' => 'Permission to view API tokens',
+                'module' => 'settings.generals.api-tokens',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.api-tokens.generate',
+                'display_name' => 'Generate API Tokens',
+                'description' => 'Permission to generate API tokens',
+                'module' => 'settings.generals.api-tokens',
+                'action' => 'generate',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.generals.api-tokens.revoke',
+                'display_name' => 'Revoke API Tokens',
+                'description' => 'Permission to revoke API tokens',
+                'module' => 'settings.generals.api-tokens',
+                'action' => 'revoke',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Payments > Payment Methods
+            [
+                'name' => 'settings.payments.methods.view',
+                'display_name' => 'View Payment Methods',
+                'description' => 'Permission to view payment methods',
+                'module' => 'settings.payments.methods',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.payments.methods.update',
+                'display_name' => 'Update Payment Methods',
+                'description' => 'Permission to update payment methods',
+                'module' => 'settings.payments.methods',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Payments > Midtrans Config
+            [
+                'name' => 'settings.payments.midtrans.view',
+                'display_name' => 'View Midtrans Config',
+                'description' => 'Permission to view Midtrans configuration',
+                'module' => 'settings.payments.midtrans',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.payments.midtrans.update',
+                'display_name' => 'Update Midtrans Config',
+                'description' => 'Permission to update Midtrans configuration',
+                'module' => 'settings.payments.midtrans',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Payments > Tax Settings
+            [
+                'name' => 'settings.payments.tax.view',
+                'display_name' => 'View Tax Settings',
+                'description' => 'Permission to view tax settings',
+                'module' => 'settings.payments.tax',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.payments.tax.update',
+                'display_name' => 'Update Tax Settings',
+                'description' => 'Permission to update tax settings',
+                'module' => 'settings.payments.tax',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Shippings > Shipping Methods
+            [
+                'name' => 'settings.shippings.methods.view',
+                'display_name' => 'View Shipping Methods',
+                'description' => 'Permission to view shipping methods',
+                'module' => 'settings.shippings.methods',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.shippings.methods.update',
+                'display_name' => 'Update Shipping Methods',
+                'description' => 'Permission to update shipping methods',
+                'module' => 'settings.shippings.methods',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Shippings > RajaOngkir Config
+            [
+                'name' => 'settings.shippings.rajaongkir.view',
+                'display_name' => 'View RajaOngkir Config',
+                'description' => 'Permission to view RajaOngkir configuration',
+                'module' => 'settings.shippings.rajaongkir',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.shippings.rajaongkir.update',
+                'display_name' => 'Update RajaOngkir Config',
+                'description' => 'Permission to update RajaOngkir configuration',
+                'module' => 'settings.shippings.rajaongkir',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Settings > Shippings > Origin Address
+            [
+                'name' => 'settings.shippings.origin.view',
+                'display_name' => 'View Origin Address',
+                'description' => 'Permission to view origin address',
+                'module' => 'settings.shippings.origin',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'settings.shippings.origin.update',
+                'display_name' => 'Update Origin Address',
+                'description' => 'Permission to update origin address',
+                'module' => 'settings.shippings.origin',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
-
-        $actions = ['create', 'read', 'update', 'delete', 'export', 'import'];
-
-        $permissions = [];
-
-        foreach ($modules as $module => $displayModule) {
-            foreach ($actions as $action) {
-                $permissions[] = [
-                    'name' => "{$module}.{$action}",
-                    'display_name' => ucfirst($action) . ' ' . $displayModule,
-                    'description' => "Permission to {$action} {$displayModule}",
-                    'module' => $module,
-                    'action' => $action,
-                    'is_active' => true,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-        }
-
-        // Additional special permissions
-        $specialPermissions = [
-            [
-                'name' => 'order.approve',
-                'display_name' => 'Approve Orders',
-                'description' => 'Permission to approve orders',
-                'module' => 'order',
-                'action' => 'approve',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'order.reject',
-                'display_name' => 'Reject Orders',
-                'description' => 'Permission to reject orders',
-                'module' => 'order',
-                'action' => 'reject',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'report.view_financial',
-                'display_name' => 'View Financial Reports',
-                'description' => 'Permission to view financial reports',
-                'module' => 'report',
-                'action' => 'view_financial',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ];
-
-        $permissions = array_merge($permissions, $specialPermissions);
 
         DB::table('permissions')->insert($permissions);
+
+        $this->command->info('Permissions seeded successfully.');
     }
 }

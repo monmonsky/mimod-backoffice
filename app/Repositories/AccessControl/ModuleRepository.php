@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\AccessControl;
 
-use App\Repositories\Contracts\ModuleRepositoryInterface;
+use App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class ModuleRepository implements ModuleRepositoryInterface

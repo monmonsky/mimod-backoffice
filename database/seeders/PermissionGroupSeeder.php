@@ -13,43 +13,29 @@ class PermissionGroupSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table('permission_groups')->truncate();
+
         $groups = [
             [
-                'name' => 'product_full',
-                'display_name' => 'Product Full Access',
-                'description' => 'Full access to product management',
+                'name' => 'dashboard_management',
+                'display_name' => 'Dashboard Management',
+                'description' => 'Permissions for dashboard access',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'product_read_only',
-                'display_name' => 'Product Read Only',
-                'description' => 'Read-only access to products',
+                'name' => 'access_control_management',
+                'display_name' => 'Access Control Management',
+                'description' => 'Permissions for user access control management',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'order_full',
-                'display_name' => 'Order Full Access',
-                'description' => 'Full access to order management',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'order_read_only',
-                'display_name' => 'Order Read Only',
-                'description' => 'Read-only access to orders',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'user_management_full',
-                'display_name' => 'User Management Full',
-                'description' => 'Full access to user management',
+                'name' => 'settings_management',
+                'display_name' => 'Settings Management',
+                'description' => 'Permissions for application settings management',
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -57,5 +43,7 @@ class PermissionGroupSeeder extends Seeder
         ];
 
         DB::table('permission_groups')->insert($groups);
+
+        $this->command->info('Permission groups seeded successfully.');
     }
 }

@@ -12,7 +12,7 @@
 
         <div class="size-full">
             <div class="flex">
-            
+
                 @include('partials.sidebar-dynamic')
 
                 <div class="flex h-screen min-w-0 grow flex-col overflow-auto">

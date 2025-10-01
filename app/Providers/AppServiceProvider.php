@@ -34,8 +34,8 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            \App\Repositories\Contracts\ModuleRepositoryInterface::class,
-            \App\Repositories\ModuleRepository::class
+            \App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface::class,
+            \App\Repositories\AccessControl\ModuleRepository::class
         );
 
         // Module Cache Repository (Singleton for performance)
@@ -43,9 +43,25 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Cache\ModuleCacheRepository::class,
             function ($app) {
                 return new \App\Repositories\Cache\ModuleCacheRepository(
-                    $app->make(\App\Repositories\Contracts\ModuleRepositoryInterface::class)
+                    $app->make(\App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface::class)
                 );
             }
+        );
+
+        // Access Control Repositories
+        $this->app->bind(
+            \App\Repositories\Contracts\AccessControl\RoleRepositoryInterface::class,
+            \App\Repositories\AccessControl\RoleRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\PermissionRepositoryInterface::class,
+            \App\Repositories\PermissionRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\PermissionGroupRepositoryInterface::class,
+            \App\Repositories\PermissionGroupRepository::class
         );
     }
 

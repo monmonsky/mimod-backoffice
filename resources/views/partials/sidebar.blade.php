@@ -269,53 +269,25 @@
                 </div>
 
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Access Control</p>
-                <div class="group collapse">
-                    <input
-                        aria-label="Sidemenu item trigger"
-                        type="checkbox"
-                        class="peer"
-                        name="sidebar-menu-access-control"
-                        {{ request()->routeIs('user.*') || request()->routeIs('role.*') || request()->routeIs('permission.*') || request()->routeIs('activity-log.*') || request()->routeIs('session.*') ? 'checked' : '' }} />
-                    <div class="collapse-title px-2.5 py-1.5">
-                        <span class="iconify lucide--shield size-4"></span>
-                        <span class="grow">User Management</span>
-                        <span
-                            class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
-                    </div>
-                    <div class="collapse-content ms-6.5 !p-0">
-                        <div class="mt-0.5 space-y-0.5">
-                            <a
-                                class="menu-item {{ request()->routeIs('user.*') ? 'active' : '' }}"
-                                href="{{ route('user.index') }}">
-                                <span class="grow">Users</span>
-                            </a>
-                            <a
-                                class="menu-item {{ request()->routeIs('role.*') ? 'active' : '' }}"
-                                href="{{ route('role.index') }}">
-                                <span class="grow">Roles</span>
-                            </a>
-                            <a
-                                class="menu-item {{ request()->routeIs('permission.*') ? 'active' : '' }}"
-                                href="{{ route('permission.index') }}">
-                                <span class="grow">Permissions</span>
-                            </a>
-                            <a
-                                class="menu-item {{ request()->routeIs('activity-log.*') ? 'active' : '' }}"
-                                href="{{ route('activity-log.index') }}">
-                                <span class="grow">Activity Logs</span>
-                            </a>
-                            <a
-                                class="menu-item {{ request()->routeIs('session.*') ? 'active' : '' }}"
-                                href="{{ route('session.index') }}">
-                                <span class="grow">Sessions</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
+                <a class="menu-item {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}">
+                    <span class="iconify lucide--users size-4"></span>
+                    <span class="grow">Users</span>
+                </a>
+                <a class="menu-item {{ request()->routeIs('role.*') ? 'active' : '' }}" href="{{ route('role.index') }}">
+                    <span class="iconify lucide--shield size-4"></span>
+                    <span class="grow">Roles</span>
+                </a>
+                <a class="menu-item {{ request()->routeIs('permissions.*') ? 'active' : '' }}" href="{{ route('permission.index') }}">
+                    <span class="iconify lucide--key-round size-4"></span>
+                    <span class="grow">Permissions</span>
+                </a>
                 <a class="menu-item {{ request()->routeIs('modules.*') ? 'active' : '' }}" href="{{ route('modules.index') }}">
-                    <span class="iconify lucide--layout-grid size-4"></span>
+                    <span class="iconify lucide--layers size-4"></span>
                     <span class="grow">Modules</span>
+                </a>
+                <a class="menu-item {{ request()->routeIs('activity-log.*') ? 'active' : '' }}" href="{{ route('activity-log.index') }}">
+                    <span class="iconify lucide--file-text size-4"></span>
+                    <span class="grow">Activity Logs</span>
                 </a>
 
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Settings</p>

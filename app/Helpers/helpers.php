@@ -112,15 +112,54 @@ if (!function_exists('hasPermission')) {
     /**
      * Check if current user has specific permission
      *
-     * @param string $permission Permission to check
+     * @param string $permission Permission to check (e.g., 'dashboard.view', 'users.create')
      * @return bool
      */
     function hasPermission(string $permission): bool
     {
-        $permissions = currentUser('permissions', []);
+        $user = currentUser();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Super admin has all permissions
+        if (isset($user['role']) && $user['role'] === 'super_admin') {
+            return true;
+        }
+
+        $permissions = $user['permissions'] ?? [];
 
         if (is_array($permissions)) {
-            return in_array($permission, $permissions);
+            // Check exact permission name
+            foreach ($permissions as $perm) {
+                if (is_string($perm) && $perm === $permission) {
+                    return true;
+                }
+                // If permission is object/array with 'name' key
+                if (is_array($perm) && isset($perm['name']) && $perm['name'] === $permission) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('hasAnyPermission')) {
+    /**
+     * Check if current user has any of the given permissions
+     *
+     * @param array $permissions Array of permissions to check
+     * @return bool
+     */
+    function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if (hasPermission($permission)) {
+                return true;
+            }
         }
 
         return false;

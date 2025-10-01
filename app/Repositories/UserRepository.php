@@ -31,9 +31,37 @@ class UserRepository implements UserRepositoryInterface
 
     public function findById(string $id)
     {
-        return $this->table()
+        $user = $this->table()
             ->where('id', $id)
             ->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        // Get user role
+        $role = DB::table('user_roles')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->where('user_roles.user_id', $id)
+            ->where('user_roles.is_active', true)
+            ->select('roles.name', 'roles.display_name')
+            ->first();
+
+        // Get user permissions
+        $permissions = DB::table('role_permissions')
+            ->join('user_roles', 'role_permissions.role_id', '=', 'user_roles.role_id')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('user_roles.user_id', $id)
+            ->where('user_roles.is_active', true)
+            ->select('permissions.name', 'permissions.display_name')
+            ->get();
+
+        // Attach role and permissions to user object
+        $user->role = $role ? $role->name : null;
+        $user->role_display = $role ? $role->display_name : null;
+        $user->permissions = $permissions->pluck('name')->toArray();
+
+        return $user;
     }
 
     public function updateLastLogin(string $userId, string $ip)

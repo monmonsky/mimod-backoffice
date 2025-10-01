@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\AccessControl;
 
-use App\Repositories\Contracts\ModuleRepositoryInterface;
+use App\Http\Controllers\Controller;
+use App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface;
 use App\Repositories\Cache\ModuleCacheRepository;
 use Illuminate\Http\Request;
 
