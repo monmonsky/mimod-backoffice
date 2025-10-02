@@ -1,13 +1,13 @@
-import Toast from "../../../components/toast";
+import Ajax from '../../../utils/ajax.js';
 import * as FilePond from 'filepond';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 
 // Import CSS
 import 'filepond/dist/filepond.css';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
-import 'select2/dist/css/select2.min.css';
 
 // jQuery and Select2 are loaded from CDN in blade file
+/* global $, Toast */
 // Initialize when DOM is ready
 $(document).ready(function() {
     initializeSelect2();
@@ -183,34 +183,79 @@ function setupCascadeHandlers() {
 /**
  * Load saved location values from backend
  */
-function loadSavedValues() {
-    // This function will be populated with server data in blade template
+async function loadSavedValues() {
     // Check if window has savedLocationData
-    if (window.savedLocationData) {
-        const data = window.savedLocationData;
+    if (!window.savedLocationData) return;
 
-        if (data.province_code) {
-            setTimeout(() => {
-                $('#store-province').val(data.province_code).trigger('change');
+    const data = window.savedLocationData;
 
-                if (data.regency_code) {
-                    setTimeout(() => {
-                        $('#store-regency').val(data.regency_code).trigger('change');
+    // Wait for provinces to load first
+    await new Promise(resolve => {
+        const checkProvinces = setInterval(() => {
+            if ($('#store-province option').length > 1) {
+                clearInterval(checkProvinces);
+                resolve();
+            }
+        }, 100);
+    });
 
-                        if (data.district_code) {
-                            setTimeout(() => {
-                                $('#store-district').val(data.district_code).trigger('change');
+    // Set province and load regencies
+    if (data.province_code) {
+        $('#store-province').val(data.province_code).trigger('change');
 
-                                if (data.village_code) {
-                                    setTimeout(() => {
-                                        $('#store-village').val(data.village_code).trigger('change');
-                                    }, 500);
-                                }
-                            }, 500);
+        // Wait for regencies to load
+        if (data.regency_code) {
+            await new Promise(resolve => {
+                const checkRegencies = setInterval(() => {
+                    if ($('#store-regency option').length > 1 && !$('#store-regency').prop('disabled')) {
+                        clearInterval(checkRegencies);
+                        resolve();
+                    }
+                }, 100);
+                // Timeout after 5 seconds
+                setTimeout(() => {
+                    clearInterval(checkRegencies);
+                    resolve();
+                }, 5000);
+            });
+
+            $('#store-regency').val(data.regency_code).trigger('change');
+
+            // Wait for districts to load
+            if (data.district_code) {
+                await new Promise(resolve => {
+                    const checkDistricts = setInterval(() => {
+                        if ($('#store-district option').length > 1 && !$('#store-district').prop('disabled')) {
+                            clearInterval(checkDistricts);
+                            resolve();
                         }
-                    }, 500);
+                    }, 100);
+                    setTimeout(() => {
+                        clearInterval(checkDistricts);
+                        resolve();
+                    }, 5000);
+                });
+
+                $('#store-district').val(data.district_code).trigger('change');
+
+                // Wait for villages to load
+                if (data.village_code) {
+                    await new Promise(resolve => {
+                        const checkVillages = setInterval(() => {
+                            if ($('#store-village option').length > 1 && !$('#store-village').prop('disabled')) {
+                                clearInterval(checkVillages);
+                                resolve();
+                            }
+                        }, 100);
+                        setTimeout(() => {
+                            clearInterval(checkVillages);
+                            resolve();
+                        }, 5000);
+                    });
+
+                    $('#store-village').val(data.village_code).trigger('change');
                 }
-            }, 500);
+            }
         }
     }
 }
@@ -340,39 +385,20 @@ function setupFormHandler() {
         e.preventDefault();
 
         const formData = new FormData(this);
-        const $submitBtn = $form.find('button[type="submit"]');
-        const originalBtnText = $submitBtn.html();
-
-        // Show loading state
-        $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Saving...');
 
         try {
-            const response = await fetch($form.attr('action'), {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Toast.showToast(data.message || 'Settings saved successfully!', 'success');
-            } else {
-                if (data.errors) {
-                    const errorMessages = Object.values(data.errors).flat().join(', ');
-                    Toast.showToast(errorMessages, 'error');
-                } else {
-                    Toast.showToast(data.message || 'Failed to save settings', 'error');
+            await Ajax.post($form.attr('action'), formData, {
+                loadingMessage: 'Saving store information...',
+                successMessage: 'Store information saved successfully',
+                onSuccess: () => {
+                    setTimeout(() => {
+                        // Force hard reload to bypass cache
+                        window.location.href = window.location.href.split('?')[0] + '?t=' + new Date().getTime();
+                    }, 1000);
                 }
-            }
+            });
         } catch (error) {
-            console.error('Error:', error);
-            Toast.showToast('An error occurred while saving settings', 'error');
-        } finally {
-            $submitBtn.prop('disabled', false).html(originalBtnText);
+            // Error already handled by Ajax helper
         }
     });
 }

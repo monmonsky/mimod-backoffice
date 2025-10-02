@@ -62,6 +62,9 @@ class GeneralController extends Controller
                 $storeInfo['logo'] = $path;
                 $this->settingsRepo->updateValue('store.info', $storeInfo);
 
+                // Log activity
+                logActivity('update', 'Updated store logo', 'Settings');
+
                 return response()->json([
                     'success' => true,
                     'path' => $path,
@@ -96,6 +99,9 @@ class GeneralController extends Controller
 
             $storeInfo['logo'] = null;
             $this->settingsRepo->updateValue('store.info', $storeInfo);
+
+            // Log activity
+            logActivity('delete', 'Deleted store logo', 'Settings');
 
             return response()->json([
                 'success' => true,
@@ -169,6 +175,9 @@ class GeneralController extends Controller
             $this->settingsRepo->updateValue('store.operating_hours', [
                 'hours' => $request->operating_hours,
             ]);
+
+            // Log activity
+            logActivity('update', 'Updated store information settings', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
@@ -264,6 +273,9 @@ class GeneralController extends Controller
                 }
             );
 
+            // Log activity
+            logActivity('test', 'Sent test email to: ' . $testEmail, 'Settings');
+
             return response()->json([
                 'success' => true,
                 'message' => 'Test email sent successfully to ' . $testEmail,
@@ -319,6 +331,9 @@ class GeneralController extends Controller
                 'password_reset' => $request->has('password_reset'),
                 'newsletter' => $request->has('newsletter'),
             ]);
+
+            // Log activity
+            logActivity('update', 'Updated email settings', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
@@ -399,6 +414,9 @@ class GeneralController extends Controller
                 'twitter_description' => $request->twitter_description,
                 'twitter_image' => $request->twitter_image,
             ]);
+
+            // Log activity
+            logActivity('update', 'Updated SEO meta settings', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
@@ -485,6 +503,9 @@ class GeneralController extends Controller
                 'maintenance_message' => $request->maintenance_message,
                 'maintenance_end_time' => $request->maintenance_end_time,
             ]);
+
+            // Log activity
+            logActivity('update', 'Updated system configuration', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {

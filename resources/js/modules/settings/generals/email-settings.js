@@ -1,6 +1,9 @@
-import Toast from "../../../components/toast";
+import Ajax from '../../../utils/ajax.js';
+import Toast from '../../../components/toast.js';
 
 // jQuery is loaded from CDN in blade file
+/* global $ */
+
 // Initialize when DOM is ready
 $(document).ready(function() {
     setupFormHandler();
@@ -22,39 +25,19 @@ function setupFormHandler() {
         e.preventDefault();
 
         const formData = new FormData(this);
-        const $submitBtn = $form.find('button[type="submit"]');
-        const originalBtnText = $submitBtn.html();
-
-        // Show loading state
-        $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Saving...');
 
         try {
-            const response = await fetch($form.attr('action'), {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Toast.showToast(data.message || 'Email settings saved successfully!', 'success');
-            } else {
-                if (data.errors) {
-                    const errorMessages = Object.values(data.errors).flat().join(', ');
-                    Toast.showToast(errorMessages, 'error');
-                } else {
-                    Toast.showToast(data.message || 'Failed to save settings', 'error');
+            await Ajax.post($form.attr('action'), formData, {
+                loadingMessage: 'Saving email settings...',
+                successMessage: 'Email settings saved successfully',
+                onSuccess: () => {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 }
-            }
+            });
         } catch (error) {
-            console.error('Error:', error);
-            Toast.showToast('An error occurred while saving settings', 'error');
-        } finally {
-            $submitBtn.prop('disabled', false).html(originalBtnText);
+            // Error already handled by Ajax helper
         }
     });
 }
@@ -85,35 +68,13 @@ function setupTestEmailHandler() {
             return;
         }
 
-        const originalBtnText = $testEmailBtn.html();
-
-        // Show loading state
-        $testEmailBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Sending...');
-
         try {
-            const response = await fetch(window.testEmailUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ test_email: testEmail })
+            await Ajax.post(window.testEmailUrl, { test_email: testEmail }, {
+                loadingMessage: 'Sending test email...',
+                successMessage: 'Test email sent successfully'
             });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Toast.showToast(data.message || 'Test email sent successfully!', 'success');
-            } else {
-                Toast.showToast(data.message || 'Failed to send test email', 'error');
-            }
         } catch (error) {
-            console.error('Error:', error);
-            Toast.showToast('An error occurred while sending test email', 'error');
-        } finally {
-            $testEmailBtn.prop('disabled', false).html(originalBtnText);
+            // Error already handled by Ajax helper
         }
     });
 }

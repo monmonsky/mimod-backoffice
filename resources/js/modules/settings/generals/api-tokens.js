@@ -1,6 +1,9 @@
-import Toast from "../../../components/toast";
+import Ajax from '../../../utils/ajax.js';
+import Toast from '../../../components/toast.js';
 
 // jQuery is loaded from CDN
+/* global $ */
+
 $(document).ready(function() {
     setupFormHandler();
 });
@@ -34,8 +37,6 @@ function setupFormHandler() {
  */
 async function handleGenerateToken($form) {
     const formData = new FormData($form[0]);
-    const $submitBtn = $form.find('button[type="submit"]');
-    const originalBtnText = $submitBtn.html();
 
     // Get ability type
     const abilityType = $('input[name="ability_type"]:checked').val();
@@ -45,56 +46,30 @@ async function handleGenerateToken($form) {
     const requestData = {
         token_name: formData.get('token_name'),
         abilities: abilities,
-        _token: $('meta[name="csrf-token"]').attr('content')
     };
 
-    // Show loading state
-    $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Generating...');
-
     try {
-        const response = await fetch('/settings/generals/api-tokens/generate', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': requestData._token,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
+        const result = await Ajax.post('/settings/generals/api-tokens/generate', requestData, {
+            loadingMessage: 'Generating token...',
+            successMessage: 'Token generated successfully',
+            useGlobalLoading: false // Use custom flow for modal
         });
 
-        const data = await response.json();
+        // Close generate modal
+        document.getElementById('generateTokenModal').close();
 
-        if (response.ok && data.success) {
-            // Close generate modal
-            document.getElementById('generateTokenModal').close();
+        // Show success modal with token
+        showTokenSuccessModal(result.data.token);
 
-            // Show success modal with token
-            showTokenSuccessModal(data.data.token);
+        // Reset form
+        $form[0].reset();
 
-            // Reset form
-            $form[0].reset();
-
-            Toast.showToast(data.message || 'Token generated successfully!', 'success');
-
-            // Reload page after 5 seconds
-            setTimeout(() => {
-                window.location.reload();
-            }, 5000);
-        } else {
-            // Handle validation errors
-            if (data.errors) {
-                const errorMessages = Object.values(data.errors).flat().join(', ');
-                Toast.showToast(errorMessages, 'error');
-            } else {
-                Toast.showToast(data.message || 'Failed to generate token', 'error');
-            }
-        }
+        // Reload page after 5 seconds
+        setTimeout(() => {
+            window.location.reload();
+        }, 5000);
     } catch (error) {
-        console.error('Error:', error);
-        Toast.showToast('An error occurred while generating token', 'error');
-    } finally {
-        $submitBtn.prop('disabled', false).html(originalBtnText);
+        // Error already handled by Ajax helper
     }
 }
 
@@ -140,34 +115,18 @@ window.revokeToken = async function(tokenId, tokenName) {
         return;
     }
 
-    // Show loading toast
-    Toast.showToast('Revoking token...', 'info', 1000);
-
     try {
-        const response = await fetch(`/settings/generals/api-tokens/${tokenId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
+        await Ajax.delete(`/settings/generals/api-tokens/${tokenId}`, {
+            loadingMessage: 'Revoking token...',
+            successMessage: 'Token revoked successfully',
+            onSuccess: () => {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            Toast.showToast(data.message || 'Token revoked successfully', 'success');
-
-            // Reload page after short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            Toast.showToast(data.message || 'Failed to revoke token', 'error');
-        }
     } catch (error) {
-        console.error('Error:', error);
-        Toast.showToast('An error occurred while revoking token', 'error');
+        // Error already handled by Ajax helper
     }
 };
 
@@ -179,34 +138,18 @@ window.revokeAllTokens = async function() {
         return;
     }
 
-    // Show loading toast
-    Toast.showToast('Revoking all tokens...', 'info', 1000);
-
     try {
-        const response = await fetch('/settings/generals/api-tokens', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
+        await Ajax.delete('/settings/generals/api-tokens', {
+            loadingMessage: 'Revoking all tokens...',
+            successMessage: 'All tokens revoked successfully',
+            onSuccess: () => {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            Toast.showToast(data.message || 'All tokens revoked successfully', 'success');
-
-            // Reload page after short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            Toast.showToast(data.message || 'Failed to revoke tokens', 'error');
-        }
     } catch (error) {
-        console.error('Error:', error);
-        Toast.showToast('An error occurred while revoking tokens', 'error');
+        // Error already handled by Ajax helper
     }
 };
 
@@ -214,30 +157,16 @@ window.revokeAllTokens = async function() {
  * Show token details modal
  */
 window.showTokenDetails = async function(tokenId) {
-    // Show loading toast
-    Toast.showToast('Loading token details...', 'info', 1000);
-
     try {
-        const response = await fetch(`/settings/generals/api-tokens/${tokenId}/show`, {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            }
+        const result = await Ajax.get(`/settings/generals/api-tokens/${tokenId}/show`, {
+            loadingMessage: 'Loading token details...',
+            useGlobalLoading: false
         });
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            displayTokenDetails(data.data);
-            document.getElementById('tokenDetailsModal').showModal();
-        } else {
-            Toast.showToast(data.message || 'Failed to get token details', 'error');
-        }
+        displayTokenDetails(result.data);
+        document.getElementById('tokenDetailsModal').showModal();
     } catch (error) {
-        console.error('Error:', error);
-        Toast.showToast('An error occurred while fetching token details', 'error');
+        // Error already handled by Ajax helper
     }
 };
 

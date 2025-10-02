@@ -285,9 +285,9 @@
                     <span class="iconify lucide--layers size-4"></span>
                     <span class="grow">Modules</span>
                 </a>
-                <a class="menu-item {{ request()->routeIs('activity-log.*') ? 'active' : '' }}" href="{{ route('activity-log.index') }}">
+                <a class="menu-item {{ request()->routeIs('access-control.user-activities.*') ? 'active' : '' }}" href="{{ route('access-control.user-activities.index') }}">
                     <span class="iconify lucide--file-text size-4"></span>
-                    <span class="grow">Activity Logs</span>
+                    <span class="grow">User Activities</span>
                 </a>
 
                 <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Settings</p>

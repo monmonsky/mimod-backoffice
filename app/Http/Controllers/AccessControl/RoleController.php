@@ -92,6 +92,9 @@ class RoleController extends Controller
 
             DB::commit();
 
+            // Log activity
+            logActivity('create', 'Created new role: ' . $role->display_name, 'Role', $role->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role created successfully',
@@ -175,6 +178,9 @@ class RoleController extends Controller
 
             DB::commit();
 
+            // Log activity
+            logActivity('update', 'Updated role: ' . $role->display_name, 'Role', $role->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role updated successfully',
@@ -199,7 +205,13 @@ class RoleController extends Controller
     public function destroy($id)
     {
         try {
+            $role = $this->roleRepo->findById($id);
+            $roleName = $role->display_name;
+
             $this->roleRepo->delete($id);
+
+            // Log activity
+            logActivity('delete', 'Deleted role: ' . $roleName, 'Role', $id);
 
             return response()->json([
                 'success' => true,
@@ -217,6 +229,10 @@ class RoleController extends Controller
     {
         try {
             $role = $this->roleRepo->toggleActive($id);
+
+            // Log activity
+            $status = $role->is_active ? 'activated' : 'deactivated';
+            logActivity('update', 'Role ' . $status . ': ' . $role->display_name, 'Role', $role->id);
 
             return response()->json([
                 'success' => true,

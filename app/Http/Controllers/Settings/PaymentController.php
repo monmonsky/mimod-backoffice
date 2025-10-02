@@ -23,9 +23,11 @@ class PaymentController extends Controller
     {
         $midtrans = $this->settingsRepo->getValue('payment.midtrans');
         $bankTransfer = $this->settingsRepo->getValue('payment.bank_transfer');
-        $cod = $this->settingsRepo->getValue('payment.cod');
 
-        return view('pages.settings.payments.payment-methods', compact('midtrans', 'bankTransfer', 'cod'));
+        // Get banks from bank_transfer settings
+        $banks = $bankTransfer['banks'] ?? [];
+
+        return view('pages.settings.payments.payment-methods', compact('midtrans', 'bankTransfer', 'banks'));
     }
 
     /**
@@ -65,6 +67,9 @@ class PaymentController extends Controller
             $currentConfig['server_key_production'] = $request->server_key_production;
 
             $this->settingsRepo->updateValue('payment.midtrans', $currentConfig);
+
+            // Log activity
+            logActivity('update', 'Updated Midtrans API configuration', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
@@ -124,6 +129,9 @@ class PaymentController extends Controller
 
             $this->settingsRepo->updateValue('payment.midtrans', $currentConfig);
 
+            // Log activity
+            logActivity('update', 'Updated Midtrans payment methods', 'Settings');
+
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -161,6 +169,9 @@ class PaymentController extends Controller
             $currentConfig['error_redirect_url'] = $request->error_redirect_url;
 
             $this->settingsRepo->updateValue('payment.midtrans', $currentConfig);
+
+            // Log activity
+            logActivity('update', 'Updated Midtrans transaction settings', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
@@ -325,6 +336,9 @@ class PaymentController extends Controller
                 'tax_rounding' => $request->tax_rounding,
             ]);
 
+            // Log activity
+            logActivity('update', 'Updated tax settings', 'Settings');
+
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -351,6 +365,197 @@ class PaymentController extends Controller
                 ], 500);
             }
             return redirect()->back()->with('error', 'Failed to update tax settings');
+        }
+    }
+
+    /**
+     * Toggle payment method active status
+     */
+    public function togglePaymentMethod(Request $request, $method)
+    {
+        try {
+            $settingKey = match($method) {
+                'manual_bank' => 'payment.bank_transfer',
+                'midtrans' => 'payment.midtrans',
+                default => null
+            };
+
+            if (!$settingKey) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid payment method',
+                ], 400);
+            }
+
+            $currentConfig = $this->settingsRepo->getValue($settingKey) ?? [];
+            $currentConfig['is_active'] = $request->is_active == 1;
+
+            $this->settingsRepo->updateValue($settingKey, $currentConfig);
+
+            // Log activity
+            $status = $request->is_active == 1 ? 'activated' : 'deactivated';
+            logActivity('update', 'Payment method ' . $status . ': ' . $method, 'Settings');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment method status updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update payment method: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Store new bank account
+     */
+    public function storeBankAccount(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'bank_name' => 'required|string|max:255',
+                'account_number' => 'required|string|max:50',
+                'account_holder' => 'required|string|max:255',
+                'branch' => 'nullable|string|max:255',
+            ]);
+
+            $currentConfig = $this->settingsRepo->getValue('payment.bank_transfer') ?? [];
+            $banks = $currentConfig['banks'] ?? [];
+
+            // Add new bank
+            $banks[] = [
+                'id' => uniqid('bank_'),
+                'bank_name' => $validated['bank_name'],
+                'account_number' => $validated['account_number'],
+                'account_holder' => $validated['account_holder'],
+                'branch' => $validated['branch'] ?? null,
+                'is_active' => true,
+                'created_at' => now()->toDateTimeString(),
+            ];
+
+            $currentConfig['banks'] = $banks;
+            $this->settingsRepo->updateValue('payment.bank_transfer', $currentConfig);
+
+            // Log activity
+            $bankData = end($banks);
+            logActivity('create', 'Added new bank account: ' . $bankData['bank_name'], 'Settings');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bank account added successfully',
+                'data' => $bankData,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add bank account: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get bank account details
+     */
+    public function getBankAccount($bankId)
+    {
+        try {
+            $currentConfig = $this->settingsRepo->getValue('payment.bank_transfer') ?? [];
+            $banks = $currentConfig['banks'] ?? [];
+
+            $bank = collect($banks)->firstWhere('id', $bankId);
+
+            if (!$bank) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bank account not found',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $bank,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get bank account: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete bank account
+     */
+    public function deleteBankAccount($bankId)
+    {
+        try {
+            $currentConfig = $this->settingsRepo->getValue('payment.bank_transfer') ?? [];
+            $banks = $currentConfig['banks'] ?? [];
+
+            $bankToDelete = array_values(array_filter($banks, function($bank) use ($bankId) {
+                return $bank['id'] === $bankId;
+            }))[0] ?? null;
+
+            $banks = array_filter($banks, function($bank) use ($bankId) {
+                return $bank['id'] !== $bankId;
+            });
+
+            $currentConfig['banks'] = array_values($banks);
+            $this->settingsRepo->updateValue('payment.bank_transfer', $currentConfig);
+
+            // Log activity
+            if ($bankToDelete) {
+                logActivity('delete', 'Deleted bank account: ' . $bankToDelete['bank_name'], 'Settings');
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bank account deleted successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete bank account: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle bank account active status
+     */
+    public function toggleBankActive($bankId)
+    {
+        try {
+            $currentConfig = $this->settingsRepo->getValue('payment.bank_transfer') ?? [];
+            $banks = $currentConfig['banks'] ?? [];
+
+            $banks = array_map(function($bank) use ($bankId) {
+                if ($bank['id'] === $bankId) {
+                    $bank['is_active'] = !($bank['is_active'] ?? true);
+                }
+                return $bank;
+            }, $banks);
+
+            $currentConfig['banks'] = $banks;
+            $this->settingsRepo->updateValue('payment.bank_transfer', $currentConfig);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bank account status updated successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update bank status: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

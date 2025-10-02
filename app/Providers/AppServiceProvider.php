@@ -63,6 +63,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\PermissionGroupRepositoryInterface::class,
             \App\Repositories\PermissionGroupRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\UserActivityRepositoryInterface::class,
+            \App\Repositories\AccessControl\UserActivityRepository::class
+        );
     }
 
     /**

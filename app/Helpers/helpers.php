@@ -186,3 +186,110 @@ if (!function_exists('userInitials')) {
         return strtoupper(substr($name, 0, 2));
     }
 }
+
+if (!function_exists('logActivity')) {
+    /**
+     * Log user activity
+     *
+     * @param string $action Action performed (login, logout, create, update, delete, view, export, etc.)
+     * @param string|null $description Description of the activity
+     * @param string|null $subjectType Subject type (Model name: User, Role, Permission, Module, Settings, etc.)
+     * @param int|null $subjectId Subject ID
+     * @param array|null $properties Additional properties (old/new values, metadata, etc.)
+     * @return bool
+     *
+     * @example
+     * // Simple login log
+     * logActivity('login', 'User logged in successfully');
+     *
+     * // Log with subject
+     * logActivity('create', 'Created new user: John Doe', 'User', 123);
+     *
+     * // Log with properties (changes tracking)
+     * logActivity('update', 'Updated role permissions', 'Role', 1, [
+     *     'old_permissions' => ['dashboard.view'],
+     *     'new_permissions' => ['dashboard.view', 'users.create']
+     * ]);
+     *
+     * // Log delete action
+     * logActivity('delete', 'Deleted permission: test.permission', 'Permission', 15, [
+     *     'permission_name' => 'test.permission'
+     * ]);
+     *
+     * // Log settings change
+     * logActivity('update', 'Updated email settings', 'Settings', null, [
+     *     'changed_fields' => ['smtp_host', 'smtp_port']
+     * ]);
+     */
+    function logActivity(
+        string $action,
+        ?string $description = null,
+        ?string $subjectType = null,
+        ?int $subjectId = null,
+        ?array $properties = null
+    ): bool {
+        try {
+            $userId = userId();
+
+            if (!$userId) {
+                return false;
+            }
+
+            $data = [
+                'user_id' => $userId,
+                'action' => $action,
+                'subject_type' => $subjectType,
+                'subject_id' => $subjectId,
+                'description' => $description,
+                'properties' => $properties ? json_encode($properties) : null,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            \Illuminate\Support\Facades\DB::table('user_activities')->insert($data);
+
+            return true;
+        } catch (\Exception $e) {
+            // Log error silently, don't break application flow
+            \Illuminate\Support\Facades\Log::error('Failed to log activity: ' . $e->getMessage());
+            return false;
+        }
+    }
+}
+
+if (!function_exists('logException')) {
+    /**
+     * Log exception to user activities
+     *
+     * @param \Exception $exception The exception to log
+     * @param string|null $context Additional context
+     * @return bool
+     *
+     * @example
+     * try {
+     *     // some code
+     * } catch (\Exception $e) {
+     *     logException($e, 'Failed to create user');
+     * }
+     */
+    function logException(\Exception $exception, ?string $context = null): bool
+    {
+        $description = $context ? $context . ': ' . $exception->getMessage() : $exception->getMessage();
+
+        return logActivity(
+            'error',
+            $description,
+            'Exception',
+            null,
+            [
+                'exception_class' => get_class($exception),
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'trace' => $exception->getTraceAsString(),
+            ]
+        );
+    }
+}

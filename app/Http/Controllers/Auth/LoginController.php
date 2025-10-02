@@ -25,6 +25,9 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        // Log logout activity
+        logActivity('logout', 'User logged out');
+
         // Get token from cookie
         $token = $request->cookie('auth_token');
 

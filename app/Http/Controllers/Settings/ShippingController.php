@@ -70,6 +70,9 @@ class ShippingController extends Controller
                 ],
             ]);
 
+            // Log activity
+            logActivity('update', 'Updated RajaOngkir configuration', 'Settings');
+
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -195,6 +198,9 @@ class ShippingController extends Controller
                 'contact_person' => $request->contact_person,
                 'phone' => $request->phone,
             ]);
+
+            // Log activity
+            logActivity('update', 'Updated shipping origin address', 'Settings');
 
             // Return JSON response for AJAX
             if ($request->expectsJson() || $request->ajax()) {

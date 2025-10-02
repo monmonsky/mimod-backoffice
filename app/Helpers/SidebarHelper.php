@@ -112,7 +112,7 @@ if (!function_exists('groupModulesBySection')) {
                 $grouped['overview'][] = $module;
             }
             // Access control modules
-            elseif (in_array($module->name, ['users', 'roles', 'permissions', 'modules', 'activity-logs'])) {
+            elseif (in_array($module->name, ['users', 'roles', 'permissions', 'modules', 'user-activities'])) {
                 $grouped['access_control'][] = $module;
             }
             // Settings modules (generals, payments, shippings)
