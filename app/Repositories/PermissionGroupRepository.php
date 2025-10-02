@@ -112,4 +112,27 @@ class PermissionGroupRepository implements PermissionGroupRepositoryInterface
             ->count();
         return $count > 0;
     }
+
+    public function getStatistics()
+    {
+        $total = $this->table()->count();
+
+        $totalPermissions = DB::table('permission_group_items')
+            ->distinct()
+            ->count('permission_id');
+
+        $averageSize = $total > 0
+            ? DB::table('permission_group_items')
+                ->select('group_id', DB::raw('COUNT(permission_id) as count'))
+                ->groupBy('group_id')
+                ->get()
+                ->avg('count')
+            : 0;
+
+        return [
+            'total' => $total,
+            'total_permissions' => $totalPermissions,
+            'average_size' => $averageSize ?? 0
+        ];
+    }
 }

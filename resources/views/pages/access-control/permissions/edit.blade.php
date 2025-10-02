@@ -91,5 +91,5 @@
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/permissions/edit.js'])
+@vite(['resources/js/modules/access-control/permissions/edit.js'])
 @endsection

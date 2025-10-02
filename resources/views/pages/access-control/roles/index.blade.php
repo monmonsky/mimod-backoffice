@@ -155,6 +155,13 @@
                             <td class="text-sm">{{ \Carbon\Carbon::parse($role->created_at)->format('Y-m-d') }}</td>
                             <td>
                                 <div class="inline-flex">
+                                    <button
+                                        aria-label="View details"
+                                        class="btn btn-square btn-ghost btn-sm"
+                                        onclick="showRoleDetail({{ $role->id }})">
+                                        <span class="iconify lucide--eye text-base-content/80 size-4"></span>
+                                    </button>
+
                                     @if(hasPermission('access-control.roles.update'))
                                     <a
                                         aria-label="Edit role"
@@ -192,8 +199,64 @@
         </div>
     </div>
 </div>
+
+<!-- Role Detail Modal -->
+<dialog id="roleDetailModal" class="modal">
+    <div class="modal-box w-11/12 max-w-3xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+
+        <h3 class="font-bold text-lg mb-4">Role Details</h3>
+
+        <!-- Loading State -->
+        <div id="modalLoading" class="flex justify-center items-center py-12">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+        </div>
+
+        <!-- Content -->
+        <div id="modalContent" class="hidden">
+            <!-- Role Info -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="text-sm font-medium text-base-content/60">Role Name</label>
+                    <p id="roleName" class="text-base font-medium"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-base-content/60">Display Name</label>
+                    <p id="roleDisplayName" class="text-base font-medium"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-base-content/60">Priority</label>
+                    <p id="rolePriority" class="text-base font-medium"></p>
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-base-content/60">Status</label>
+                    <p id="roleStatus"></p>
+                </div>
+                <div class="col-span-2">
+                    <label class="text-sm font-medium text-base-content/60">Description</label>
+                    <p id="roleDescription" class="text-base"></p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Permissions -->
+            <div>
+                <h4 class="font-semibold mb-3">Permissions (<span id="permissionCount">0</span>)</h4>
+                <div id="permissionsList" class="max-h-96 overflow-y-auto">
+                    <!-- Permissions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/roles/index.js'])
+@vite(['resources/js/modules/access-control/roles/index.js'])
 @endsection

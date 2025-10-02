@@ -179,5 +179,5 @@
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/modules/edit.js'])
+@vite(['resources/js/modules/access-control/modules/edit.js'])
 @endsection

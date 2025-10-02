@@ -1,8 +1,8 @@
-import Toast from "../../components/toast.js";
+import $ from 'jquery';
+import Ajax from '../../../utils/ajax.js';
 
 $(document).ready(function() {
-    const $form = $('#editRoleForm');
-    const roleId = $form.data('id');
+    const $form = $('#createRoleForm');
 
     // Select All button for permission groups
     $('.select-all-group').on('click', function() {
@@ -37,9 +37,6 @@ $(document).ready(function() {
     $form.on('submit', async function(e) {
         e.preventDefault();
 
-        const $submitBtn = $form.find('button[type="submit"]');
-        const originalBtnText = $submitBtn.html();
-
         const formData = new FormData(this);
 
         // Collect permissions
@@ -55,44 +52,24 @@ $(document).ready(function() {
             priority: formData.get('priority'),
             is_active: $('input[name="is_active"]').is(':checked'),
             is_system: $('input[name="is_system"]').is(':checked'),
-            permissions: permissions,
-            _token: $('meta[name="csrf-token"]').attr('content')
+            permissions: permissions
         };
 
-        $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Updating...');
-
         try {
-            const response = await fetch(`/access-control/role/${roleId}`, {
-                method: 'PUT',
-                headers: {
-                    'X-CSRF-TOKEN': requestData._token,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
+            await Ajax.create('/access-control/role/store', requestData, {
+                loadingMessage: 'Creating role...',
+                successMessage: 'Role created successfully',
+                onSuccess: () => {
+                    setTimeout(() => {
+                        window.location.href = '/access-control/role';
+                    }, 1000);
                 },
-                body: JSON.stringify(requestData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                Toast.showToast(result.message, 'success');
-                setTimeout(() => {
-                    window.location.href = '/access-control/role';
-                }, 1000);
-            } else {
-                if (result.errors) {
-                    const errorMessages = Object.values(result.errors).flat().join('<br>');
-                    Toast.showToast(errorMessages, 'error');
-                } else {
-                    Toast.showToast(result.message || 'Failed to update role', 'error');
+                onError: (xhr) => {
+                    // Error already handled by Ajax helper with toast
                 }
-                $submitBtn.prop('disabled', false).html(originalBtnText);
-            }
+            });
         } catch (error) {
-            console.error('Error updating role:', error);
-            Toast.showToast('An error occurred while updating role', 'error');
-            $submitBtn.prop('disabled', false).html(originalBtnText);
+            // Error already handled by Ajax helper
         }
     });
 });

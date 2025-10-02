@@ -85,6 +85,7 @@ Route::middleware('auth.token')->group(function () {
             Route::get('/create', 'App\Http\Controllers\AccessControl\RoleController@create')->name('role.create')->middleware('permission:access-control.roles.create');
             Route::post('/store', 'App\Http\Controllers\AccessControl\RoleController@store')->name('role.store')->middleware('permission:access-control.roles.create');
             Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\RoleController@edit')->name('role.edit')->middleware('permission:access-control.roles.update');
+            Route::get('/{id}/detail', 'App\Http\Controllers\AccessControl\RoleController@detail')->name('role.detail')->middleware('permission:access-control.roles.view');
             Route::put('/{id}', 'App\Http\Controllers\AccessControl\RoleController@update')->name('role.update')->middleware('permission:access-control.roles.update');
             Route::delete('/{id}', 'App\Http\Controllers\AccessControl\RoleController@destroy')->name('role.destroy')->middleware('permission:access-control.roles.delete');
             Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\RoleController@toggleActive')->name('role.toggle-active')->middleware('permission:access-control.roles.update');

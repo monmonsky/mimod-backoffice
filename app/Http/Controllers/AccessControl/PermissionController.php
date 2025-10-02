@@ -23,7 +23,8 @@ class PermissionController extends Controller
     public function index()
     {
         $permissions = $this->permissionRepo->getAllWithGroup();
-        return view('pages.access-control.permissions.index', compact('permissions'));
+        $statistics = $this->permissionRepo->getStatistics();
+        return view('pages.access-control.permissions.index', compact('permissions', 'statistics'));
     }
 
     public function create()

@@ -88,5 +88,5 @@
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/permissions/create.js'])
+@vite(['resources/js/modules/access-control/permissions/create.js'])
 @endsection

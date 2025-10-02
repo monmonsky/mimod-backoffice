@@ -96,4 +96,22 @@ class PermissionRepository implements PermissionRepositoryInterface
             ->orderBy('permissions.name')
             ->get();
     }
+
+    public function getStatistics()
+    {
+        $total = $this->table()->count();
+
+        $grouped = $this->table()
+            ->join('permission_group_items', 'permissions.id', '=', 'permission_group_items.permission_id')
+            ->distinct()
+            ->count('permissions.id');
+
+        $ungrouped = $total - $grouped;
+
+        return [
+            'total' => $total,
+            'grouped' => $grouped,
+            'ungrouped' => $ungrouped
+        ];
+    }
 }

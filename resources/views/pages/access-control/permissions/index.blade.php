@@ -1,37 +1,90 @@
 @extends('layouts.app')
 
-@section('title', 'Permission Management')
-@section('page_title', 'Permission Management')
-@section('page_subtitle', 'Manage system permissions')
+@section('title', 'Permissions')
+@section('page_title', 'Permission')
+@section('page_subtitle', 'Permission Management')
 
 @section('content')
-<div class="container mx-auto p-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h2 class="text-2xl font-bold">Permission List</h2>
-            <p class="text-base-content/60 text-sm mt-1">Manage all system permissions</p>
-        </div>
-        <div class="flex gap-2">
-            @if(hasPermission('access-control.permissions.view'))
-            <a href="{{ route('permission-group.index') }}" class="btn btn-secondary">
-                <span class="iconify lucide--layers size-5"></span>
-                Permission Groups
-            </a>
-            @endif
+<div class="flex items-center justify-between">
+    <p class="text-lg font-medium">Permission Management</p>
+    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
+        <ul>
+            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
+            <li>Access Control</li>
+            <li class="opacity-80">Permissions</li>
+        </ul>
+    </div>
+</div>
 
-            @if(hasPermission('access-control.permissions.create'))
-            <a href="{{ route('permission.create') }}" class="btn btn-primary">
-                <span class="iconify lucide--plus size-5"></span>
-                Add Permission
-            </a>
-            @endif
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Total Permissions</p>
+                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
+                    <p class="text-xs text-base-content/60 mt-1">All system permissions</p>
+                </div>
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <span class="iconify lucide--shield-check size-5 text-primary"></span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Permissions Table -->
-    <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">In Groups</p>
+                    <p class="text-2xl font-semibold mt-1 text-info">{{ $statistics['grouped'] }}</p>
+                    <p class="text-xs text-base-content/60 mt-1">Organized permissions</p>
+                </div>
+                <div class="bg-info/10 p-3 rounded-lg">
+                    <span class="iconify lucide--layers size-5 text-info"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Ungrouped</p>
+                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics['ungrouped'] }}</p>
+                    <p class="text-xs text-base-content/60 mt-1">Need categorization</p>
+                </div>
+                <div class="bg-warning/10 p-3 rounded-lg">
+                    <span class="iconify lucide--alert-circle size-5 text-warning"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permissions Table -->
+<div class="card bg-base-100 shadow mt-6">
+    <div class="card-body">
+        <div class="mb-4 flex items-center justify-between">
+            <h3 class="card-title">Permission List</h3>
+            <div class="flex gap-2">
+                @if(hasPermission('access-control.permissions.view'))
+                <a href="{{ route('permission-group.index') }}" class="btn btn-secondary btn-sm">
+                    <span class="iconify lucide--layers size-4"></span>
+                    Groups
+                </a>
+                @endif
+
+                @if(hasPermission('access-control.permissions.create'))
+                <a href="{{ route('permission.create') }}" class="btn btn-primary btn-sm">
+                    <span class="iconify lucide--plus size-4"></span>
+                    Add Permission
+                </a>
+                @endif
+            </div>
+        </div>
             <div class="overflow-x-auto">
                 <table class="table table-zebra">
                     <thead>
@@ -91,9 +144,8 @@
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/permissions/index.js'])
+@vite(['resources/js/modules/access-control/permissions/index.js'])
 @endsection

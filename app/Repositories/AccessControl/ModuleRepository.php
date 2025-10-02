@@ -135,4 +135,19 @@ class ModuleRepository implements ModuleRepositoryInterface
 
         return $this->table()->where('id', $id)->first();
     }
+
+    public function getStatistics()
+    {
+        $total = $this->table()->count();
+        $active = $this->table()->where('is_active', true)->count();
+        $visible = $this->table()->where('is_visible', true)->count();
+        $parents = $this->table()->whereNull('parent_id')->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'visible' => $visible,
+            'parents' => $parents
+        ];
+    }
 }

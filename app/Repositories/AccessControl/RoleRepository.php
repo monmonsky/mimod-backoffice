@@ -202,4 +202,24 @@ class RoleRepository implements RoleRepositoryInterface
             ->select('permissions.id', 'permissions.name', 'permissions.display_name')
             ->get();
     }
+
+    public function getRolePermissionsWithDetails($roleId)
+    {
+        return DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $roleId)
+            ->select('permissions.id', 'permissions.name', 'permissions.display_name', 'permissions.module')
+            ->orderBy('permissions.module')
+            ->orderBy('permissions.name')
+            ->get()
+            ->map(function ($permission) {
+                return [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'display_name' => $permission->display_name,
+                    'module' => $permission->module
+                ];
+            })
+            ->toArray();
+    }
 }

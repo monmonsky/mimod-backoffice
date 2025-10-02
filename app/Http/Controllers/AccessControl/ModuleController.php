@@ -27,7 +27,8 @@ class ModuleController extends Controller
     {
         // Use cache for better performance
         $modules = $this->moduleCache->getAllWithChildren();
-        return view('pages.access-control.modules.index', compact('modules'));
+        $statistics = $this->moduleRepo->getStatistics();
+        return view('pages.access-control.modules.index', compact('modules', 'statistics'));
     }
 
     /**

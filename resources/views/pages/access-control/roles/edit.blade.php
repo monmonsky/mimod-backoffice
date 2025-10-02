@@ -243,5 +243,5 @@
 @endsection
 
 @section('customjs')
-@vite(['resources/js/modules/roles/edit.js'])
+@vite(['resources/js/modules/access-control/roles/edit.js'])
 @endsection

@@ -1,5 +1,7 @@
+import $ from 'jquery';
 import Sortable from 'sortablejs';
-import Toast from '../../components/toast.js';
+import Toast from '../../../components/toast.js';
+import Ajax from '../../../utils/ajax.js';
 
 let sortableInstance = null;
 let hasChanges = false;
@@ -145,42 +147,20 @@ function initToggleButtons() {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const button = this.querySelector('button[type="submit"]');
-            const originalText = button.innerHTML;
             const url = this.action;
 
-            button.disabled = true;
-            button.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
-
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
+                await Ajax.post(url, null, {
+                    loadingMessage: 'Updating module...',
+                    successMessage: 'Module updated successfully',
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
                     }
                 });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    Toast.showToast(result.message, 'success', 2000);
-
-                    // Reload page after short delay
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 800);
-                } else {
-                    Toast.showToast(result.message || 'Failed to update module', 'error');
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                }
             } catch (error) {
-                console.error('Error toggling module:', error);
-                Toast.showToast('An error occurred while updating module', 'error');
-                button.disabled = false;
-                button.innerHTML = originalText;
+                // Error already handled by Ajax helper
             }
         });
     });
@@ -205,42 +185,20 @@ function initDeleteButtons() {
 
             if (!confirmed) return;
 
-            const button = this.querySelector('button[type="submit"]');
-            const originalText = button.innerHTML;
             const url = this.action;
 
-            button.disabled = true;
-            button.innerHTML = '<span class="loading loading-spinner loading-xs"></span>';
-
             try {
-                const response = await fetch(url, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
+                await Ajax.delete(url, {
+                    loadingMessage: 'Deleting module...',
+                    successMessage: 'Module deleted successfully',
+                    onSuccess: () => {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
                     }
                 });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    Toast.showToast(result.message, 'success', 2000);
-
-                    // Reload page after short delay
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 800);
-                } else {
-                    Toast.showToast(result.message || 'Failed to delete module', 'error');
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                }
             } catch (error) {
-                console.error('Error deleting module:', error);
-                Toast.showToast('An error occurred while deleting module', 'error');
-                button.disabled = false;
-                button.innerHTML = originalText;
+                // Error already handled by Ajax helper
             }
         });
     });

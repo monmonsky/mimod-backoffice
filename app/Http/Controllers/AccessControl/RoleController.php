@@ -63,14 +63,14 @@ class RoleController extends Controller
                 'display_name' => 'required|string|max:100',
                 'description' => 'nullable|string',
                 'priority' => 'required|integer|min:0|max:100',
-                'is_active' => 'boolean',
-                'is_system' => 'boolean',
+                'is_active' => 'nullable|boolean',
+                'is_system' => 'nullable|boolean',
                 'modules' => 'array',
                 'permissions' => 'array',
             ]);
 
-            $validated['is_active'] = $request->has('is_active') ? true : false;
-            $validated['is_system'] = $request->has('is_system') ? true : false;
+            // is_active dan is_system sudah di-handle oleh JavaScript
+            // Tidak perlu override lagi di sini
 
             // Extract modules and permissions before creating role
             $modules = $request->input('modules', []);
@@ -144,14 +144,14 @@ class RoleController extends Controller
                 'display_name' => 'required|string|max:100',
                 'description' => 'nullable|string',
                 'priority' => 'required|integer|min:0|max:100',
-                'is_active' => 'boolean',
-                'is_system' => 'boolean',
+                'is_active' => 'nullable|boolean',
+                'is_system' => 'nullable|boolean',
                 'modules' => 'array',
                 'permissions' => 'array',
             ]);
 
-            $validated['is_active'] = $request->has('is_active') ? true : false;
-            $validated['is_system'] = $request->has('is_system') ? true : false;
+            // is_active dan is_system sudah di-handle oleh JavaScript
+            // Tidak perlu override lagi di sini
 
             // Extract permissions before updating role
             $permissions = $request->input('permissions', []);
@@ -222,6 +222,42 @@ class RoleController extends Controller
                 'success' => true,
                 'message' => 'Role status updated successfully',
                 'data' => $role
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function detail($id)
+    {
+        try {
+            $role = $this->roleRepo->findById($id);
+
+            if (!$role) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role not found'
+                ], 404);
+            }
+
+            // Get role permissions with details
+            $permissions = $this->roleRepo->getRolePermissionsWithDetails($id);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'display_name' => $role->display_name,
+                    'description' => $role->description,
+                    'priority' => $role->priority,
+                    'is_active' => $role->is_active,
+                    'is_system' => $role->is_system,
+                    'permissions' => $permissions
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json([
