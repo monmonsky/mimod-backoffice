@@ -96,7 +96,7 @@
                                 </label>
                             </fieldset>
 
-                            <button type="submit" class="btn btn-primary btn-wide mt-4 max-w-full gap-3 md:mt-6"><span class="iconify lucide--log-in size-4"></span> Login</button>
+                            <button type="submit" class="btn btn-primary btn-wide mt-4 max-w-full gap-3 md:mt-6" id="submitButton"><span class="iconify lucide--log-in size-4"></span> Login</button>
                         </form>
                     </div>
                 </div>
