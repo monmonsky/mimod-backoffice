@@ -77,6 +77,75 @@
                     @endif
                 @endif
 
+                {{-- Catalog Section --}}
+                @if(!empty($grouped['catalog']))
+                    @php
+                        $hasCatalogPermission = false;
+                        foreach($grouped['catalog'] as $parent) {
+                            if (isset($parent->children)) {
+                                foreach($parent->children as $child) {
+                                    $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
+                                    if (hasPermission($permissionName)) {
+                                        $hasCatalogPermission = true;
+                                        break 2;
+                                    }
+                                }
+                            }
+                        }
+                    @endphp
+
+                    @if($hasCatalogPermission)
+                        <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Catalog</p>
+                        @foreach($grouped['catalog'] as $parent)
+                            @php
+                                $hasChildPermission = false;
+                                if (isset($parent->children)) {
+                                    foreach($parent->children as $child) {
+                                        $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
+                                        if (hasPermission($permissionName)) {
+                                            $hasChildPermission = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            @endphp
+
+                            @if($hasChildPermission && isset($parent->children) && count($parent->children) > 0)
+                                <div class="group collapse">
+                                    <input
+                                        aria-label="Sidemenu item trigger"
+                                        type="checkbox"
+                                        class="peer"
+                                        name="sidebar-menu-catalog-{{ $parent->name }}"
+                                        {{ request()->routeIs('catalog.' . $parent->name . '.*') ? 'checked' : '' }} />
+                                    <div class="collapse-title px-2.5 py-1.5">
+                                        @if($parent->icon)
+                                            <span class="iconify {{ $parent->icon }} size-4"></span>
+                                        @endif
+                                        <span class="grow">{{ $parent->display_name }}</span>
+                                        <span class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
+                                    </div>
+                                    <div class="collapse-content ms-6.5 !p-0">
+                                        <div class="mt-0.5 space-y-0.5">
+                                            @foreach($parent->children as $child)
+                                                @php
+                                                    $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
+                                                @endphp
+                                                @if(hasPermission($permissionName))
+                                                    <a class="menu-item {{ request()->routeIs($child->route) ? 'active' : '' }}"
+                                                       href="{{ route($child->route) }}">
+                                                        <span class="grow">{{ $child->display_name }}</span>
+                                                    </a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    @endif
+                @endif
+
                 {{-- Settings Section --}}
                 @if(!empty($grouped['settings']))
                     @php

@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Catalog\AddProductsController;
+use App\Http\Controllers\Catalog\AllProductsController;
+use App\Http\Controllers\Catalog\BrandsController;
+use App\Http\Controllers\Catalog\CategoriesController;
+use App\Http\Controllers\Catalog\VariantsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -126,7 +131,7 @@ Route::middleware('auth.token')->group(function () {
             })->name('session.index');
         });
     });
-    
+
 
     Route::group(['prefix' => 'reports'], function () {
         Route::get('/sales', function () {
@@ -260,6 +265,31 @@ Route::middleware('auth.token')->group(function () {
             Route::get('/api/wilayah/regencies/{provinceCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahRegencies')->name('settings.shippings.api.wilayah.regencies')->middleware('permission:settings.shippings.origin.view');
             Route::get('/api/wilayah/districts/{regencyCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahDistricts')->name('settings.shippings.api.wilayah.districts')->middleware('permission:settings.shippings.origin.view');
             Route::get('/api/wilayah/villages/{districtCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahVillages')->name('settings.shippings.api.wilayah.villages')->middleware('permission:settings.shippings.origin.view');
+        });
+    });
+
+    // Catalog
+    Route::group(['prefix' => 'catalog'], function () {
+        Route::prefix('products')->group(function () {
+            Route::controller(AllProductsController::class)->group(function () {
+                Route::get('/all-products', 'allProducts')->name('catalog.products.all-products')->middleware('permission:catalog.products.all-products.view');
+            });
+
+            Route::controller(AddProductsController::class)->group(function () {
+                Route::get('/add-products', 'addProducts')->name('catalog.products.add-products')->middleware('permission:catalog.products.add-products.view');
+            });
+
+            Route::controller(CategoriesController::class)->group(function () {
+                Route::get('/categories', 'categories')->name('catalog.products.categories')->middleware('permission:catalog.products.categories.view');
+            });
+
+            Route::controller(BrandsController::class)->group(function () {
+                Route::get('/brands', 'brands')->name('catalog.products.brands')->middleware('permission:catalog.products.brands.view');
+            });
+
+            Route::controller(VariantsController::class)->group(function () {
+                Route::get('/variants', 'variants')->name('catalog.products.variants')->middleware('permission:catalog.products.variants.view');
+            });
         });
     });
 });

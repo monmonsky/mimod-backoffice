@@ -103,8 +103,9 @@ if (!function_exists('groupModulesBySection')) {
         $grouped = [
             'overview' => [],
             'access_control' => [],
+            'catalog' => [],
             'settings' => []
-        ];
+        ]; 
 
         foreach ($modules as $module) {
             // Dashboard is overview
@@ -114,6 +115,10 @@ if (!function_exists('groupModulesBySection')) {
             // Access control modules
             elseif (in_array($module->name, ['users', 'roles', 'permissions', 'modules', 'user-activities'])) {
                 $grouped['access_control'][] = $module;
+            }
+            // Catalog modules
+            elseif (in_array($module->name, ['products'])) {
+                $grouped['catalog'][] = $module;
             }
             // Settings modules (generals, payments, shippings)
             else {

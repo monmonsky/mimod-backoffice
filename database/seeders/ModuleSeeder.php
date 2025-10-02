@@ -91,6 +91,64 @@ class ModuleSeeder extends Seeder
             ]);
         }
 
+        $catalogModules = [
+            [
+                'name' => 'products',
+                'display_name' => 'Products',
+                'description' => 'Products management',
+                'icon' => 'lucide--box',
+                'route' => null,
+                'component' => 'Products',
+                'sort_order' => 7,
+            ],
+        ];
+
+        $catalogParentIds = [];
+        foreach ($catalogModules as $catalog) {
+            $id = DB::table('modules')->insertGetId([
+                'name' => $catalog['name'],
+                'display_name' => $catalog['display_name'],
+                'description' => $catalog['description'],
+                'icon' => $catalog['icon'],
+                'parent_id' => null,
+                'route' => $catalog['route'],
+                'component' => null,
+                'sort_order' => $catalog['sort_order'],
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $catalogParentIds[$catalog['name']] = $id;
+        }
+
+        $catalogsChildren = [
+            // Generals children
+            ['parent' => 'products', 'name' => 'all-products', 'display_name' => 'All Products', 'route' => 'catalog.products.all-products', 'component' => 'AllProducts', 'sort_order' => 1],
+            ['parent' => 'products', 'name' => 'add-products', 'display_name' => 'Add Products', 'route' => 'catalog.products.add-products', 'component' => 'AddProducts', 'sort_order' => 2],
+            ['parent' => 'products', 'name' => 'categories', 'display_name' => 'Categories', 'route' => 'catalog.products.categories', 'component' => 'Categories', 'sort_order' => 3],
+            ['parent' => 'products', 'name' => 'brands', 'display_name' => 'Brands', 'route' => 'catalog.products.brands', 'component' => 'Brands', 'sort_order' => 4],
+            ['parent' => 'products', 'name' => 'variants', 'display_name' => 'Variants', 'route' => 'catalog.products.variants', 'component' => 'Variants', 'sort_order' => 5],
+        ];
+
+        foreach ($catalogsChildren as $child) {
+            DB::table('modules')->insert([
+                'name' => $child['name'],
+                'display_name' => $child['display_name'],
+                'description' => null,
+                'icon' => null,
+                'parent_id' => $catalogParentIds[$child['parent']],
+                'route' => $child['route'],
+                'component' => $child['component'],
+                'sort_order' => $child['sort_order'],
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+
         // Level 1: Settings parent modules (generals, payments, shippings)
         $settingsParents = [
             [
@@ -99,7 +157,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'General settings',
                 'icon' => 'lucide--settings',
                 'route' => null,
-                'sort_order' => 7,
+                'sort_order' => 8,
             ],
             [
                 'name' => 'payments',
@@ -107,7 +165,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Payment settings',
                 'icon' => 'lucide--wallet',
                 'route' => null,
-                'sort_order' => 8,
+                'sort_order' => 9,
             ],
             [
                 'name' => 'shippings',
@@ -115,7 +173,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Shipping settings',
                 'icon' => 'lucide--truck',
                 'route' => null,
-                'sort_order' => 9,
+                'sort_order' => 10,
             ],
         ];
 
