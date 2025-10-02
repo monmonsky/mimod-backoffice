@@ -479,6 +479,66 @@ class PermissionSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+
+            // Catalog > Products > All Product
+            [
+                'name' => 'catalog.products.all-products.view',
+                'display_name' => 'View All Products',
+                'description' => 'Permission to view all products',
+                'module' => 'all-products',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Catalog > Products > Add Product
+            [
+                'name' => 'catalog.products.add-products.view',
+                'display_name' => 'View Add Products',
+                'description' => 'Permission to view add products',
+                'module' => 'add-products',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Catalog > Products > Categories
+            [
+                'name' => 'catalog.products.categories.view',
+                'display_name' => 'View Categories Products',
+                'description' => 'Permission to view categories products',
+                'module' => 'categories',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Catalog > Products > Brands
+            [
+                'name' => 'catalog.products.brands.view',
+                'display_name' => 'View Brands Products',
+                'description' => 'Permission to view brands products',
+                'module' => 'brands',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Catalog > Products > Variants
+            [
+                'name' => 'catalog.products.variants.view',
+                'display_name' => 'View variants Products',
+                'description' => 'Permission to view variants products',
+                'module' => 'variants',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('permissions')->insert($permissions);

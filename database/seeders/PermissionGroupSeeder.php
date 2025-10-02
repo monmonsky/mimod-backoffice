@@ -40,6 +40,14 @@ class PermissionGroupSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'catalog_management',
+                'display_name' => 'Catalog Management',
+                'description' => 'Permissions for application catalog management',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('permission_groups')->insert($groups);
