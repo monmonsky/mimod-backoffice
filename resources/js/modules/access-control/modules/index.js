@@ -33,24 +33,16 @@ function initSortable() {
             const draggedRow = evt.item;
             const groupName = draggedRow.dataset.groupName;
 
-            console.log('Group dragged:', groupName);
-
             // Move all modules in this group along with the group header
             const allModuleRows = document.querySelectorAll(`.module-row[data-group-name="${groupName}"], .child-row[data-group-name="${groupName}"]`);
-
-            console.log('Moving', allModuleRows.length, 'rows with group', groupName);
 
             // Insert all module rows right after the group header
             let insertAfter = draggedRow;
             allModuleRows.forEach(moduleRow => {
-                const moduleName = moduleRow.querySelector('td:nth-child(3)')?.textContent.trim();
-                console.log('  Moving:', moduleName);
                 moduleRow.remove();
                 insertAfter.after(moduleRow);
                 insertAfter = moduleRow;
             });
-
-            console.log('Group', groupName, 'moved successfully');
 
             hasChanges = true;
             showSaveButton();
@@ -100,21 +92,13 @@ function initSaveButton() {
             const moduleOrders = [];
             let currentSortOrder = 10;
 
-            console.log('Total groups found:', groupHeaders.length);
-
-            groupHeaders.forEach((groupHeader, groupIndex) => {
+            groupHeaders.forEach((groupHeader) => {
                 const groupName = groupHeader.dataset.groupName;
-                console.log(`\nGroup ${groupIndex + 1}: ${groupName}`);
 
                 // Get all modules in this group (regardless of visibility)
                 const modulesInGroup = document.querySelectorAll(`.sortable-module[data-group-name="${groupName}"]`);
 
-                console.log(`  Found ${modulesInGroup.length} modules in ${groupName}`);
-
                 modulesInGroup.forEach((moduleRow) => {
-                    const moduleName = moduleRow.querySelector('td:nth-child(3)')?.textContent.trim() || 'Unknown';
-                    console.log(`    ${moduleName} (ID: ${moduleRow.dataset.moduleId}) -> sort_order: ${currentSortOrder}`);
-
                     moduleOrders.push({
                         id: moduleRow.dataset.moduleId,
                         sort_order: currentSortOrder
@@ -123,9 +107,6 @@ function initSaveButton() {
                     currentSortOrder += 10; // Increment by 10 for gap
                 });
             });
-
-            console.log('\nTotal modules to save:', moduleOrders.length);
-            console.log('Module orders:', moduleOrders);
 
             // Update module order
             if (moduleOrders.length > 0) {

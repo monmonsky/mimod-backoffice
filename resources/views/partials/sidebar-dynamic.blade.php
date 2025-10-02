@@ -33,20 +33,14 @@
 
                 @php
                     $grouped = groupModulesBySection($sidebarModules ?? []);
-
-                    // Map group names to display labels
-                    $groupLabels = [
-                        'overview' => 'Overview',
-                        'catalog' => 'Catalog',
-                        'access_control' => 'Access Control',
-                        'settings' => 'Settings',
-                    ];
                 @endphp
 
                 {{-- Loop through all groups dynamically --}}
                 @foreach($grouped as $groupKey => $groupModules)
                     @php
-                        $groupLabel = $groupLabels[$groupKey] ?? ucwords(str_replace('_', ' ', $groupKey));
+                        // Auto-generate label from group_name
+                        // Examples: 'overview' -> 'Overview', 'access_control' -> 'Access Control'
+                        $groupLabel = ucwords(str_replace('_', ' ', $groupKey));
                     @endphp
 
                     <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">{{ $groupLabel }}</p>
