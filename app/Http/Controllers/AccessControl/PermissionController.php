@@ -45,6 +45,9 @@ class PermissionController extends Controller
 
             $permission = $this->permissionRepo->create($validated);
 
+            // Log activity
+            logActivity('create', 'Created new permission: ' . $permission->display_name, 'Permission', $permission->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permission created successfully',
@@ -83,6 +86,9 @@ class PermissionController extends Controller
 
             $permission = $this->permissionRepo->update($id, $validated);
 
+            // Log activity
+            logActivity('update', 'Updated permission: ' . $permission->display_name, 'Permission', $permission->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permission updated successfully',
@@ -105,7 +111,13 @@ class PermissionController extends Controller
     public function destroy($id)
     {
         try {
+            $permission = $this->permissionRepo->findById($id);
+            $permissionName = $permission->display_name;
+
             $this->permissionRepo->delete($id);
+
+            // Log activity
+            logActivity('delete', 'Deleted permission: ' . $permissionName, 'Permission', $id);
 
             return response()->json([
                 'success' => true,

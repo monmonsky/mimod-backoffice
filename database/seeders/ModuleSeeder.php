@@ -63,12 +63,12 @@ class ModuleSeeder extends Seeder
                 'sort_order' => 5,
             ],
             [
-                'name' => 'activity-logs',
-                'display_name' => 'Activity Logs',
-                'description' => 'System activity logs',
+                'name' => 'user-activities',
+                'display_name' => 'User Activities',
+                'description' => 'User activity logs',
                 'icon' => 'lucide--file-text',
-                'route' => 'activity-log.index',
-                'component' => 'ActivityLogs',
+                'route' => 'access-control.user-activities.index',
+                'component' => 'UserActivities',
                 'sort_order' => 6,
             ],
         ];

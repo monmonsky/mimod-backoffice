@@ -37,6 +37,9 @@ class PermissionGroupController extends Controller
 
             $group = $this->permissionGroupRepo->create($validated);
 
+            // Log activity
+            logActivity('create', 'Created new permission group: ' . $group->name, 'PermissionGroup', $group->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permission group created successfully',
@@ -72,6 +75,9 @@ class PermissionGroupController extends Controller
 
             $group = $this->permissionGroupRepo->update($id, $validated);
 
+            // Log activity
+            logActivity('update', 'Updated permission group: ' . $group->name, 'PermissionGroup', $group->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Permission group updated successfully',
@@ -102,7 +108,13 @@ class PermissionGroupController extends Controller
                 ], 422);
             }
 
+            $group = $this->permissionGroupRepo->findById($id);
+            $groupName = $group->name;
+
             $this->permissionGroupRepo->delete($id);
+
+            // Log activity
+            logActivity('delete', 'Deleted permission group: ' . $groupName, 'PermissionGroup', $id);
 
             return response()->json([
                 'success' => true,

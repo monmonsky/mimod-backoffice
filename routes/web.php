@@ -111,11 +111,12 @@ Route::middleware('auth.token')->group(function () {
             Route::delete('/{id}', 'App\Http\Controllers\AccessControl\PermissionGroupController@destroy')->name('permission-group.destroy')->middleware('permission:access-control.permissions.delete');
         });
 
-        // Activity Logs
-        Route::group(['prefix' => 'activity-log'], function () {
-            Route::get('/', function () {
-                return view('pages.activity-log.index');
-            })->name('activity-log.index')->middleware('permission:access-control.activity-logs.view');
+        // User Activities
+        Route::group(['prefix' => 'user-activities'], function () {
+            Route::get('/', 'App\Http\Controllers\AccessControl\UserActivityController@index')->name('access-control.user-activities.index')->middleware('permission:access-control.user-activities.view');
+            Route::get('/{id}', 'App\Http\Controllers\AccessControl\UserActivityController@show')->name('access-control.user-activities.show')->middleware('permission:access-control.user-activities.view');
+            Route::delete('/clear', 'App\Http\Controllers\AccessControl\UserActivityController@clear')->name('access-control.user-activities.clear')->middleware('permission:access-control.user-activities.clear');
+            Route::get('/export/csv', 'App\Http\Controllers\AccessControl\UserActivityController@export')->name('access-control.user-activities.export')->middleware('permission:access-control.user-activities.export');
         });
 
         // Session (optional, might not have permission yet)
@@ -216,6 +217,13 @@ Route::middleware('auth.token')->group(function () {
         // Payment Settings Routes
         Route::prefix('payments')->group(function () {
             Route::get('/methods', 'App\Http\Controllers\Settings\PaymentController@paymentMethods')->name('settings.payments.methods')->middleware('permission:settings.payments.methods.view');
+            Route::post('/methods/{method}/toggle', 'App\Http\Controllers\Settings\PaymentController@togglePaymentMethod')->name('settings.payments.methods.toggle')->middleware('permission:settings.payments.methods.update');
+
+            // Bank Account Routes
+            Route::post('/methods/banks/store', 'App\Http\Controllers\Settings\PaymentController@storeBankAccount')->name('settings.payments.methods.banks.store')->middleware('permission:settings.payments.methods.update');
+            Route::get('/methods/banks/{bankId}', 'App\Http\Controllers\Settings\PaymentController@getBankAccount')->name('settings.payments.methods.banks.show')->middleware('permission:settings.payments.methods.view');
+            Route::delete('/methods/banks/{bankId}', 'App\Http\Controllers\Settings\PaymentController@deleteBankAccount')->name('settings.payments.methods.banks.delete')->middleware('permission:settings.payments.methods.update');
+            Route::post('/methods/banks/{bankId}/toggle', 'App\Http\Controllers\Settings\PaymentController@toggleBankActive')->name('settings.payments.methods.banks.toggle')->middleware('permission:settings.payments.methods.update');
 
             Route::get('/midtrans-config', 'App\Http\Controllers\Settings\PaymentController@midtransConfig')->name('settings.payments.midtrans-config')->middleware('permission:settings.payments.midtrans.view');
             Route::post('/midtrans-config/api', 'App\Http\Controllers\Settings\PaymentController@updateMidtransApi')->name('settings.payments.midtrans-config.api.update')->middleware('permission:settings.payments.midtrans.update');

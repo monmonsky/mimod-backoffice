@@ -67,6 +67,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            // Log activity
+            logActivity('create', 'Created new user: ' . $user->name, 'User', $user->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'User created successfully',
@@ -129,6 +132,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            // Log activity
+            logActivity('update', 'Updated user: ' . $user->name, 'User', $user->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'User updated successfully',
@@ -153,7 +159,13 @@ class UserController extends Controller
     public function destroy($id)
     {
         try {
+            $user = $this->userRepo->findById($id);
+            $userName = $user->name;
+
             $this->userRepo->delete($id);
+
+            // Log activity
+            logActivity('delete', 'Deleted user: ' . $userName, 'User', $id);
 
             return response()->json([
                 'success' => true,
@@ -171,6 +183,10 @@ class UserController extends Controller
     {
         try {
             $user = $this->userRepo->toggleActive($id);
+
+            // Log activity
+            $status = $user->is_active ? 'activated' : 'deactivated';
+            logActivity('update', 'User ' . $status . ': ' . $user->name, 'User', $user->id);
 
             return response()->json([
                 'success' => true,

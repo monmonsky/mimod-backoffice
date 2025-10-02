@@ -5,6 +5,8 @@
 @section('page_subtitle', 'Store Information')
 
 @push('styles')
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     /* Select2 DaisyUI Integration */
     .select2-container--default .select2-selection--single {
@@ -237,7 +239,7 @@
                     <label class="label">
                         <span class="label-text">Province <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered {{ $disabled }} w-full" id="store-province" name="province_code" required>
+                    <select id="store-province" name="province_code" required>
                         <option value="">Select Province</option>
                     </select>
                     <input type="hidden" name="province_name" id="province-name">
@@ -248,7 +250,7 @@
                     <label class="label">
                         <span class="label-text">City / Regency <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered {{ $disabled }} w-full" id="store-regency" name="regency_code" required disabled>
+                    <select id="store-regency" name="regency_code" required disabled>
                         <option value="">Select province first</option>
                     </select>
                     <input type="hidden" name="regency_name" id="regency-name">
@@ -259,7 +261,7 @@
                     <label class="label">
                         <span class="label-text">District / Kecamatan <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered {{ $disabled }} w-full" id="store-district" name="district_code" required disabled>
+                    <select id="store-district" name="district_code" required disabled>
                         <option value="">Select regency first</option>
                     </select>
                     <input type="hidden" name="district_name" id="district-name">
@@ -270,7 +272,7 @@
                     <label class="label">
                         <span class="label-text">Village / Kelurahan</span>
                     </label>
-                    <select class="select select-bordered {{ $disabled }} w-full" id="store-village" name="village_code" disabled>
+                    <select id="store-village" name="village_code" disabled>
                         <option value="">Select district first</option>
                     </select>
                     <input type="hidden" name="village_name" id="village-name">

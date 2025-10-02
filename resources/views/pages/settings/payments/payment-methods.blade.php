@@ -28,15 +28,9 @@
         <div class="card-body">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="card-title text-lg">Digital Payment Methods</h2>
-                    <p class="text-sm text-base-content/70">Configure digital payment gateways and e-wallets</p>
+                    <h2 class="card-title text-lg">Payment Methods</h2>
+                    <p class="text-sm text-base-content/70">Configure payment methods for your store</p>
                 </div>
-                @if($canUpdate)
-                    <button type="button" class="btn btn-primary btn-sm">
-                        <span class="iconify lucide--plus size-4"></span>
-                        Add Payment Method
-                    </button>
-                @endif
             </div>
 
             <!-- Midtrans -->
@@ -115,9 +109,11 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="badge badge-success badge-sm">Active</span>
+                        @if($canUpdate)
                         <div class="form-control">
-                            <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" checked />
+                            <input type="checkbox" class="toggle toggle-primary toggle-payment-method" data-method="manual_bank" checked />
                         </div>
+                        @endif
                     </div>
                 </div>
 
@@ -125,22 +121,55 @@
                     <!-- Bank Accounts -->
                     <div>
                         <p class="text-sm font-medium mb-2">Configured Bank Accounts:</p>
+                        @if(count($banks) > 0)
                         <div class="space-y-2">
-                            <div class="flex items-center justify-between p-2 bg-base-200 rounded">
-                                <div>
-                                    <p class="font-medium text-sm">BCA - Bank Central Asia</p>
-                                    <p class="text-xs text-base-content/60">1234567890 - a/n PT Minimoda Indonesia</p>
+                            @foreach($banks as $bank)
+                            <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="iconify lucide--building-2 size-5 text-primary"></span>
+                                        <div>
+                                            <p class="font-medium text-sm">{{ $bank['bank_name'] }}</p>
+                                            <p class="text-xs text-base-content/60">{{ $bank['account_number'] }} - a/n {{ $bank['account_holder'] }}</p>
+                                            @if(isset($bank['branch']) && $bank['branch'])
+                                            <p class="text-xs text-base-content/50">Cabang: {{ $bank['branch'] }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                <button class="btn btn-ghost btn-xs">Edit</button>
-                            </div>
-                            <div class="flex items-center justify-between p-2 bg-base-200 rounded">
-                                <div>
-                                    <p class="font-medium text-sm">Mandiri</p>
-                                    <p class="text-xs text-base-content/60">0987654321 - a/n PT Minimoda Indonesia</p>
+                                <div class="flex items-center gap-2">
+                                    @if(isset($bank['is_active']) && $bank['is_active'])
+                                        <span class="badge badge-success badge-sm">Active</span>
+                                    @else
+                                        <span class="badge badge-error badge-sm">Inactive</span>
+                                    @endif
+                                    @if($canUpdate)
+                                    <div class="dropdown dropdown-end">
+                                        <button tabindex="0" class="btn btn-ghost btn-xs">
+                                            <span class="iconify lucide--more-vertical size-4"></span>
+                                        </button>
+                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-10">
+                                            <li><a onclick="toggleBankActive('{{ $bank['id'] }}')">
+                                                <span class="iconify lucide--power size-4"></span>
+                                                {{ isset($bank['is_active']) && $bank['is_active'] ? 'Deactivate' : 'Activate' }}
+                                            </a></li>
+                                            <li><a onclick="deleteBankAccount('{{ $bank['id'] }}', '{{ $bank['bank_name'] }}')">
+                                                <span class="iconify lucide--trash-2 size-4 text-error"></span>
+                                                Delete
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                    @endif
                                 </div>
-                                <button class="btn btn-ghost btn-xs">Edit</button>
                             </div>
+                            @endforeach
                         </div>
+                        @else
+                        <div class="alert alert-info">
+                            <span class="iconify lucide--info size-5"></span>
+                            <span>No bank accounts configured yet. Add your first bank account to accept manual bank transfers.</span>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Actions -->
@@ -150,51 +179,8 @@
                                 <span class="iconify lucide--plus size-4"></span>
                                 Add Bank Account
                             </button>
-                            <button type="button" class="btn btn-outline btn-sm">
-                                <span class="iconify lucide--settings size-4"></span>
-                                Settings
-                            </button>
                         </div>
                     @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- COD (Cash on Delivery) -->
-            <div class="border border-base-300 rounded-lg p-4 space-y-4">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="avatar placeholder">
-                            <div class="bg-warning text-warning-content rounded-lg w-12">
-                                <span class="iconify lucide--truck size-6"></span>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="font-medium text-base">Cash on Delivery (COD)</h3>
-                            <p class="text-sm text-base-content/60">Pay cash when product is delivered</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="badge badge-error badge-sm">Inactive</span>
-                        <div class="form-control">
-                            <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pl-15 space-y-3">
-                    <!-- Configuration Status -->
-                    <div class="flex items-center gap-2">
-                        <span class="iconify lucide--alert-circle size-4 text-warning"></span>
-                        <span class="text-sm">Configure COD settings to enable this payment method</span>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex gap-2">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="cod_settings_modal.showModal()">
-                            <span class="iconify lucide--settings size-4"></span>
-                            Configure COD
-                        </button>
                     </div>
                 </div>
             </div>
@@ -330,13 +316,13 @@
             </form>
         </div>
 
-        <form>
+        <form id="addBankForm">
             <div class="space-y-4">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Bank Name <span class="text-error">*</span></span>
                     </label>
-                    <select class="select select-bordered w-full {{ $disabled }}">
+                    <select name="bank_name" class="select select-bordered w-full" required>
                         <option disabled selected>Select Bank</option>
                         <option>BCA - Bank Central Asia</option>
                         <option>Mandiri</option>
@@ -344,6 +330,10 @@
                         <option>BRI - Bank Rakyat Indonesia</option>
                         <option>CIMB Niaga</option>
                         <option>Permata Bank</option>
+                        <option>BTN - Bank Tabungan Negara</option>
+                        <option>Danamon</option>
+                        <option>OCBC NISP</option>
+                        <option>Maybank</option>
                         <option>Other</option>
                     </select>
                 </div>
@@ -352,21 +342,21 @@
                     <label class="label">
                         <span class="label-text">Account Number <span class="text-error">*</span></span>
                     </label>
-                    <input type="text" placeholder="Enter account number" class="input input-bordered w-full {{ $disabled }}" />
+                    <input type="text" name="account_number" placeholder="Enter account number" class="input input-bordered w-full" required />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Account Holder Name <span class="text-error">*</span></span>
                     </label>
-                    <input type="text" placeholder="Enter account holder name" class="input input-bordered w-full {{ $disabled }}" />
+                    <input type="text" name="account_holder" placeholder="Enter account holder name" class="input input-bordered w-full" required />
                 </div>
 
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Branch (Optional)</span>
                     </label>
-                    <input type="text" placeholder="Enter branch name" class="input input-bordered w-full {{ $disabled }}" />
+                    <input type="text" name="branch" placeholder="Enter branch name" class="input input-bordered w-full" />
                 </div>
             </div>
 
@@ -385,76 +375,11 @@
     </form>
 </dialog>
 
-<!-- Modal: COD Settings -->
-<dialog id="cod_settings_modal" class="modal">
-    <div class="modal-box max-w-md">
-        <div class="flex items-center justify-between text-lg font-medium mb-4">
-            <span>COD Settings</span>
-            <form method="dialog">
-                <button class="btn btn-sm btn-ghost btn-circle" aria-label="Close modal">
-                    <span class="iconify lucide--x size-4"></span>
-                </button>
-            </form>
-        </div>
-
-        <form>
-            <div class="space-y-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">COD Fee</span>
-                    </label>
-                    <label class="input input-bordered flex items-center gap-2">
-                        <span class="text-base-content/60">Rp</span>
-                        <input type="number" placeholder="5000" class="grow {{ $disabled }}" value="5000" />
-                    </label>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Additional fee for COD orders</span>
-                    </label>
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Maximum Order Amount</span>
-                    </label>
-                    <label class="input input-bordered flex items-center gap-2">
-                        <span class="text-base-content/60">Rp</span>
-                        <input type="number" placeholder="1000000" class="grow {{ $disabled }}" value="1000000" />
-                    </label>
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Maximum amount for COD orders (0 = no limit)</span>
-                    </label>
-                </div>
-
-                <div class="form-control">
-                    <label class="label cursor-pointer justify-start gap-3">
-                        <input type="checkbox" class="toggle toggle-primary {{ $disabled }}" />
-                        <div>
-                            <span class="label-text font-medium">Require Confirmation Call</span>
-                            <p class="text-xs text-base-content/60">Call customer before processing COD order</p>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            @if($canUpdate)
-            <div class="modal-action">
-                <button type="submit" class="btn btn-primary">
-                    <span class="iconify lucide--save size-4"></span>
-                    Save Settings
-                </button>
-            </div>
-            @endif
-        </form>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
 </div>
 @endsection
 
 @section('customjs')
-<script>
-    // Add any custom JavaScript
-</script>
+<!-- jQuery from CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+@vite(['resources/js/modules/settings/payments/payment-methods.js'])
 @endsection

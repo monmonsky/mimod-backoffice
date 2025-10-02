@@ -98,6 +98,9 @@ class ModuleController extends Controller
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
 
+            // Log activity
+            logActivity('create', 'Created new module: ' . $module->display_name, 'Module', $module->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module created successfully',
@@ -141,6 +144,9 @@ class ModuleController extends Controller
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
 
+            // Log activity
+            logActivity('update', 'Updated module: ' . $module->display_name, 'Module', $module->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module updated successfully',
@@ -166,10 +172,16 @@ class ModuleController extends Controller
     public function destroy($id)
     {
         try {
+            $module = $this->moduleRepo->findById($id);
+            $moduleName = $module->display_name;
+
             $this->moduleRepo->delete($id);
 
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
+
+            // Log activity
+            logActivity('delete', 'Deleted module: ' . $moduleName, 'Module', $id);
 
             return response()->json([
                 'success' => true,
@@ -194,6 +206,10 @@ class ModuleController extends Controller
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
 
+            // Log activity
+            $status = $module->is_active ? 'activated' : 'deactivated';
+            logActivity('update', 'Module ' . $status . ': ' . $module->display_name, 'Module', $module->id);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Module status updated successfully',
@@ -217,6 +233,10 @@ class ModuleController extends Controller
 
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
+
+            // Log activity
+            $status = $module->is_visible ? 'shown' : 'hidden';
+            logActivity('update', 'Module visibility ' . $status . ': ' . $module->display_name, 'Module', $module->id);
 
             return response()->json([
                 'success' => true,
