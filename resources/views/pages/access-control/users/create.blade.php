@@ -54,6 +54,22 @@
                         </label>
                     </div>
 
+                    <!-- Phone -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Phone Number <span class="text-error">*</span></span>
+                        </label>
+                        <input
+                            type="text"
+                            name="phone"
+                            class="input input-bordered w-full"
+                            placeholder="Enter phone number"
+                            required />
+                        <label class="label">
+                            <span class="label-text-alt text-error hidden" id="error-phone"></span>
+                        </label>
+                    </div>
+
                     <!-- Password -->
                     <div class="form-control">
                         <label class="label">
@@ -137,7 +153,6 @@
 
 @section('customjs')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @vite(['resources/js/modules/access-control/users/create.js'])
 @endsection

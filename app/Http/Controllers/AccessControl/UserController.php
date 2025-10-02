@@ -42,6 +42,7 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email|max:255',
+                'phone' => 'required|string|max:20',
                 'password' => 'required|string|min:8|confirmed',
                 'role_id' => 'nullable|exists:roles,id',
                 'is_active' => 'boolean',
@@ -102,12 +103,14 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email,' . $id,
+                'phone' => 'required|string|max:20',
                 'password' => 'nullable|string|min:8|confirmed',
                 'role_id' => 'nullable|exists:roles,id',
-                'is_active' => 'boolean',
+                'is_active' => 'nullable',
             ]);
 
-            $validated['is_active'] = $request->has('is_active') ? true : false;
+            // is_active sudah di-handle oleh JavaScript (kirim '1' atau '0')
+            // Tidak perlu override lagi di sini
 
             // Extract role_id before updating user
             $roleId = $request->input('role_id');

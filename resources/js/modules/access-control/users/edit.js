@@ -1,9 +1,8 @@
 import $ from 'jquery';
-import Swal from 'sweetalert2';
+import Ajax from '../../../utils/ajax.js';
 
 $(document).ready(function () {
     const $form = $('#editUserForm');
-    const $submitBtn = $('#submitBtn');
     const userId = $form.data('user-id');
 
     $form.on('submit', async function (e) {
@@ -16,58 +15,41 @@ $(document).ready(function () {
         // Get form data
         const formData = new FormData(this);
 
-        // Disable submit button
-        $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner"></span> Updating...');
+        // Convert checkbox to boolean value if exists
+        const isActiveCheckbox = $('input[name="is_active"]');
+        if (isActiveCheckbox.length) {
+            formData.delete('is_active');
+            formData.append('is_active', isActiveCheckbox.is(':checked') ? '1' : '0');
+        }
+
+        // Add PUT method override for Laravel
+        formData.append('_method', 'PUT');
 
         try {
-            const response = await fetch(`/user/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'Accept': 'application/json',
-                    'X-HTTP-Method-Override': 'PUT'
+            await Ajax.post(`/user/${userId}`, formData, {
+                loadingMessage: 'Updating user...',
+                successMessage: 'User updated successfully',
+                onSuccess: () => {
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = '/user';
+                    }, 1000);
                 },
-                body: formData
-            });
+                onError: (xhr) => {
+                    // Handle validation errors
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        Object.keys(xhr.responseJSON.errors).forEach(key => {
+                            const errorMessage = xhr.responseJSON.errors[key][0];
 
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: data.message || 'User updated successfully',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-
-                window.location.href = '/user';
-            } else {
-                // Handle validation errors
-                if (data.errors) {
-                    Object.keys(data.errors).forEach(key => {
-                        const errorMessage = data.errors[key][0];
-                        $(`#error-${key}`).removeClass('hidden').text(errorMessage);
-                        $(`[name="${key}"]`).addClass('input-error');
-                    });
+                            // Show error below field
+                            $(`#error-${key}`).removeClass('hidden').text(errorMessage);
+                            $(`[name="${key}"]`).addClass('input-error');
+                        });
+                    }
                 }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: data.message || 'Please check the form for errors',
-                });
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An unexpected error occurred. Please try again.',
             });
-        } finally {
-            // Re-enable submit button
-            $submitBtn.prop('disabled', false).html('<span class="iconify lucide--save size-4"></span> Update User');
+        } catch (error) {
+            // Error already handled by Ajax helper
         }
     });
 });

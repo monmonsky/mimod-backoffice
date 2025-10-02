@@ -145,20 +145,23 @@
                                 @endif
                             </td>
                             <td>
-                                @if(hasPermission('access-control.users.update'))
-                                <input
-                                    type="checkbox"
-                                    class="toggle toggle-success toggle-sm"
-                                    data-id="{{ $user->id }}"
-                                    {{ $user->status === 'active' ? 'checked' : '' }}
-                                    onchange="toggleStatus(this)" />
-                                @else
-                                    @if($user->status === 'active')
-                                        <span class="badge badge-success badge-sm">Active</span>
+                                <div class="flex items-center gap-2">
+                                    @if(hasPermission('access-control.users.update'))
+                                    <input
+                                        type="checkbox"
+                                        class="toggle toggle-success toggle-sm"
+                                        data-id="{{ $user->id }}"
+                                        {{ $user->status === 'active' ? 'checked' : '' }}
+                                        onchange="toggleStatus(this)" />
+                                    <span class="badge badge-sm {{ $user->status === 'active' ? 'badge-success' : 'badge-error' }}">
+                                        {{ $user->status === 'active' ? 'Active' : 'Inactive' }}
+                                    </span>
                                     @else
-                                        <span class="badge badge-error badge-sm">Inactive</span>
+                                        <span class="badge badge-sm {{ $user->status === 'active' ? 'badge-success' : 'badge-error' }}">
+                                            {{ $user->status === 'active' ? 'Active' : 'Inactive' }}
+                                        </span>
                                     @endif
-                                @endif
+                                </div>
                             </td>
                             <td>
                                 @if($user->last_login_at)
@@ -199,95 +202,5 @@
 @endsection
 
 @section('customjs')
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-// Search functionality
-$('#searchInput').on('keyup', function() {
-    const value = $(this).val().toLowerCase();
-    $('#usersTable tbody tr').filter(function() {
-        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-    });
-});
-
-// Toggle user status
-function toggleStatus(checkbox) {
-    const userId = $(checkbox).data('id');
-    const isActive = $(checkbox).is(':checked');
-
-    $.ajax({
-        url: `/user/${userId}/toggle-active`,
-        type: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: response.message,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
-        },
-        error: function(xhr) {
-            // Revert checkbox state
-            $(checkbox).prop('checked', !isActive);
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: xhr.responseJSON?.message || 'Failed to update user status'
-            });
-        }
-    });
-}
-
-// Delete user
-function deleteUser(userId, userName) {
-    Swal.fire({
-        title: 'Delete User?',
-        text: `Are you sure you want to delete "${userName}"? This action cannot be undone.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: `/user/${userId}`,
-                type: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Deleted!',
-                            text: response.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload();
-                        });
-                    }
-                },
-                error: function(xhr) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: xhr.responseJSON?.message || 'Failed to delete user'
-                    });
-                }
-            });
-        }
-    });
-}
-</script>
+@vite(['resources/js/modules/access-control/users/index.js'])
 @endsection

@@ -240,13 +240,12 @@ class UserRepository implements UserRepositoryInterface
      */
     public function create(array $data)
     {
-        $data['id'] = Str::uuid()->toString();
         $data['created_at'] = now();
         $data['updated_at'] = now();
 
         // Convert is_active to status field
         if (isset($data['is_active'])) {
-            $data['status'] = $data['is_active'] ? 'active' : 'inactive';
+            $data['status'] = ($data['is_active'] === '1' || $data['is_active'] === 1 || $data['is_active'] === true) ? 'active' : 'inactive';
             unset($data['is_active']);
         } else {
             $data['status'] = 'active'; // Default to active
@@ -257,9 +256,10 @@ class UserRepository implements UserRepositoryInterface
             $data['password'] = bcrypt($data['password']);
         }
 
-        $this->table()->insert($data);
+        // Use insertGetId to get auto-generated ID
+        $id = $this->table()->insertGetId($data);
 
-        return $this->findById($data['id']);
+        return $this->findById($id);
     }
 
     /**
@@ -271,7 +271,7 @@ class UserRepository implements UserRepositoryInterface
 
         // Convert is_active to status field
         if (isset($data['is_active'])) {
-            $data['status'] = $data['is_active'] ? 'active' : 'inactive';
+            $data['status'] = ($data['is_active'] === '1' || $data['is_active'] === 1 || $data['is_active'] === true) ? 'active' : 'inactive';
             unset($data['is_active']);
         }
 
@@ -350,18 +350,17 @@ class UserRepository implements UserRepositoryInterface
                 ->update([
                     'is_active' => true,
                     'expires_at' => $expiresAt,
-                    'updated_at' => now()
+                    'assigned_at' => now()
                 ]);
         } else {
             // Create new role assignment
             DB::table('user_roles')->insert([
-                'id' => Str::uuid()->toString(),
                 'user_id' => $userId,
                 'role_id' => $roleId,
                 'is_active' => true,
                 'expires_at' => $expiresAt,
-                'created_at' => now(),
-                'updated_at' => now()
+                'assigned_by' => null,
+                'assigned_at' => now()
             ]);
         }
 

@@ -58,6 +58,23 @@
                         </label>
                     </div>
 
+                    <!-- Phone -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Phone Number <span class="text-error">*</span></span>
+                        </label>
+                        <input
+                            type="text"
+                            name="phone"
+                            class="input input-bordered w-full"
+                            placeholder="Enter phone number"
+                            value="{{ $user->phone }}"
+                            required />
+                        <label class="label">
+                            <span class="label-text-alt text-error hidden" id="error-phone"></span>
+                        </label>
+                    </div>
+
                     <!-- Password -->
                     <div class="form-control">
                         <label class="label">
