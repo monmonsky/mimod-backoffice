@@ -150,4 +150,27 @@ class ModuleRepository implements ModuleRepositoryInterface
             'parents' => $parents
         ];
     }
+
+    /**
+     * Update sort order for all modules in a group
+     * Multiplies by 10 to create gaps between groups for future insertions
+     */
+    public function updateGroupSortOrder($groupName, $baseSortOrder)
+    {
+        // Get all modules in this group
+        $modules = $this->table()
+            ->where('group_name', $groupName)
+            ->orderBy('sort_order')
+            ->get();
+
+        // Update each module with incremental sort_order
+        foreach ($modules as $index => $module) {
+            $this->table()->where('id', $module->id)->update([
+                'sort_order' => $baseSortOrder + $index,
+                'updated_at' => now()
+            ]);
+        }
+
+        return true;
+    }
 }

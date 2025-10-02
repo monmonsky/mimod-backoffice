@@ -42,7 +42,8 @@ class UserRepository implements UserRepositoryInterface
             ->select(
                 'users.*',
                 'roles.name as role',
-                'roles.display_name as role_display'
+                'roles.display_name as role_display',
+                'roles.priority as role_priority'
             )
             ->first();
 
@@ -215,10 +216,11 @@ class UserRepository implements UserRepositoryInterface
 
     /**
      * Get all users with their roles
+     * Filtered by current user's role priority
      */
     public function getAllWithRoles()
     {
-        return DB::table('users')
+        $query = DB::table('users')
             ->leftJoin('user_roles', function($join) {
                 $join->on('users.id', '=', 'user_roles.user_id')
                      ->where('user_roles.is_active', '=', true);
@@ -229,10 +231,23 @@ class UserRepository implements UserRepositoryInterface
                 'roles.id as role_id',
                 'roles.name as role_name',
                 'roles.display_name as role_display_name',
+                'roles.priority as role_priority',
                 'user_roles.expires_at as role_expires_at'
-            )
-            ->orderBy('users.id', 'asc')
-            ->get();
+            );
+
+        // Filter by role priority (user can only see users with same or lower priority)
+        // Higher priority = HIGHER number (Super Admin = 100)
+        // Lower priority = LOWER number (Customer = 10)
+        // So we use <= to show users with same or LOWER number (lower actual priority)
+        $currentUser = currentUser();
+        if ($currentUser && isset($currentUser['role_priority'])) {
+            $query->where(function($q) use ($currentUser) {
+                $q->where('roles.priority', '<=', $currentUser['role_priority'])
+                  ->orWhereNull('roles.priority'); // Include users without role
+            });
+        }
+
+        return $query->orderBy('users.id', 'asc')->get();
     }
 
     /**

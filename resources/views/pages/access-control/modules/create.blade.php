@@ -90,7 +90,7 @@
             <p class="text-sm text-base-content/70 mb-4">Configure module hierarchy and ordering</p>
 
             <div class="space-y-6">
-                <!-- Parent Module & Sort Order -->
+                <!-- Parent Module & Component -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
                         <label class="label">
@@ -109,24 +109,13 @@
 
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Sort Order</span>
+                            <span class="label-text">Component</span>
                         </label>
-                        <input type="number" name="sort_order" class="input input-bordered w-full" value="0" placeholder="0">
+                        <input type="text" name="component" class="input input-bordered w-full" placeholder="e.g., UserManagement">
                         <label class="label">
-                            <span class="label-text-alt text-base-content/60">Lower numbers appear first</span>
+                            <span class="label-text-alt text-base-content/60">Frontend component name</span>
                         </label>
                     </div>
-                </div>
-
-                <!-- Component -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Component</span>
-                    </label>
-                    <input type="text" name="component" class="input input-bordered w-full" placeholder="e.g., UserManagement">
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Frontend component name</span>
-                    </label>
                 </div>
             </div>
         </div>

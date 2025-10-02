@@ -82,6 +82,7 @@ Route::middleware('auth.token')->group(function () {
             Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\ModuleController@toggleActive')->name('modules.toggle-active')->middleware('permission:access-control.modules.update');
             Route::post('/{id}/toggle-visible', 'App\Http\Controllers\AccessControl\ModuleController@toggleVisible')->name('modules.toggle-visible')->middleware('permission:access-control.modules.update');
             Route::post('/update-order', 'App\Http\Controllers\AccessControl\ModuleController@updateOrder')->name('modules.update-order')->middleware('permission:access-control.modules.update');
+            Route::post('/update-group-order', 'App\Http\Controllers\AccessControl\ModuleController@updateGroupOrder')->name('modules.update-group-order')->middleware('permission:access-control.modules.update');
         });
 
         // Roles

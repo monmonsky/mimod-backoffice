@@ -26,9 +26,13 @@ class ModuleController extends Controller
     public function index()
     {
         // Use cache for better performance
-        $modules = $this->moduleCache->getAllWithChildren();
-        $statistics = $this->moduleRepo->getStatistics();
-        return view('pages.access-control.modules.index', compact('modules', 'statistics'));
+        $groupedModules = $this->moduleCache->getGroupedModules();
+        $statistics = $this->moduleCache->getStatistics();
+
+        // Get all modules (cached) for the blade to use
+        $allModules = $this->moduleCache->getAll();
+
+        return view('pages.access-control.modules.index', compact('groupedModules', 'statistics', 'allModules'));
     }
 
     /**
@@ -266,23 +270,75 @@ class ModuleController extends Controller
                 ], 422);
             }
 
+            \Log::info('Updating module order', ['count' => count($order), 'data' => $order]);
+
+            $updatedCount = 0;
             foreach ($order as $item) {
                 if (isset($item['id']) && isset($item['sort_order'])) {
                     $this->moduleRepo->updateSortOrder($item['id'], $item['sort_order']);
+                    $updatedCount++;
+                }
+            }
+
+            \Log::info('Module order updated', ['updated_count' => $updatedCount]);
+
+            // Clear cache (will be lazy loaded on next request)
+            $this->moduleCache->clearCache();
+
+            // Log activity
+            logActivity('update', 'Updated module order (' . $updatedCount . ' modules)', 'Module');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Module order updated successfully',
+                'updated_count' => $updatedCount
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to update module order', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update module group order
+     * When a group is moved, all modules in that group are updated
+     */
+    public function updateGroupOrder(Request $request)
+    {
+        try {
+            $groups = $request->input('groups');
+
+            if (!$groups || !is_array($groups)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid group data'
+                ], 422);
+            }
+
+            // Update sort_order for all modules in each group
+            foreach ($groups as $index => $groupData) {
+                if (isset($groupData['group_name'])) {
+                    $this->moduleRepo->updateGroupSortOrder($groupData['group_name'], ($index + 1) * 10);
                 }
             }
 
             // Clear cache (will be lazy loaded on next request)
             $this->moduleCache->clearCache();
 
+            // Log activity
+            logActivity('update', 'Updated module group ordering', 'Module');
+
             return response()->json([
                 'success' => true,
-                'message' => 'Module order updated successfully'
+                'message' => 'Module group order updated successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update order: ' . $e->getMessage()
+                'message' => 'Failed to update group order: ' . $e->getMessage()
             ], 500);
         }
     }

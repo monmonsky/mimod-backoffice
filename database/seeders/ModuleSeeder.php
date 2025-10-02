@@ -25,6 +25,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'dashboard',
                 'component' => 'Dashboard',
                 'sort_order' => 1,
+                'group_name' => 'overview',
             ],
             [
                 'name' => 'users',
@@ -34,6 +35,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'user.index',
                 'component' => 'Users',
                 'sort_order' => 2,
+                'group_name' => 'access_control',
             ],
             [
                 'name' => 'roles',
@@ -43,6 +45,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'role.index',
                 'component' => 'Roles',
                 'sort_order' => 3,
+                'group_name' => 'access_control',
             ],
             [
                 'name' => 'permissions',
@@ -52,6 +55,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'permission.index',
                 'component' => 'Permissions',
                 'sort_order' => 4,
+                'group_name' => 'access_control',
             ],
             [
                 'name' => 'modules',
@@ -61,6 +65,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'modules.index',
                 'component' => 'Modules',
                 'sort_order' => 5,
+                'group_name' => 'access_control',
             ],
             [
                 'name' => 'user-activities',
@@ -70,6 +75,7 @@ class ModuleSeeder extends Seeder
                 'route' => 'access-control.user-activities.index',
                 'component' => 'UserActivities',
                 'sort_order' => 6,
+                'group_name' => 'access_control',
             ],
         ];
 
@@ -81,6 +87,7 @@ class ModuleSeeder extends Seeder
                 'description' => $module['description'],
                 'icon' => $module['icon'],
                 'parent_id' => null,
+                'group_name' => $module['group_name'],
                 'route' => $module['route'],
                 'component' => $module['component'],
                 'sort_order' => $module['sort_order'],
@@ -100,6 +107,7 @@ class ModuleSeeder extends Seeder
                 'route' => null,
                 'component' => 'Products',
                 'sort_order' => 7,
+                'group_name' => 'catalog',
             ],
         ];
 
@@ -111,6 +119,7 @@ class ModuleSeeder extends Seeder
                 'description' => $catalog['description'],
                 'icon' => $catalog['icon'],
                 'parent_id' => null,
+                'group_name' => $catalog['group_name'],
                 'route' => $catalog['route'],
                 'component' => null,
                 'sort_order' => $catalog['sort_order'],
@@ -158,6 +167,7 @@ class ModuleSeeder extends Seeder
                 'icon' => 'lucide--settings',
                 'route' => null,
                 'sort_order' => 8,
+                'group_name' => 'settings',
             ],
             [
                 'name' => 'payments',
@@ -166,6 +176,7 @@ class ModuleSeeder extends Seeder
                 'icon' => 'lucide--wallet',
                 'route' => null,
                 'sort_order' => 9,
+                'group_name' => 'settings',
             ],
             [
                 'name' => 'shippings',
@@ -174,6 +185,7 @@ class ModuleSeeder extends Seeder
                 'icon' => 'lucide--truck',
                 'route' => null,
                 'sort_order' => 10,
+                'group_name' => 'settings',
             ],
         ];
 
@@ -185,6 +197,7 @@ class ModuleSeeder extends Seeder
                 'description' => $parent['description'],
                 'icon' => $parent['icon'],
                 'parent_id' => null,
+                'group_name' => $parent['group_name'],
                 'route' => $parent['route'],
                 'component' => null,
                 'sort_order' => $parent['sort_order'],

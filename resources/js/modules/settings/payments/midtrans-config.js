@@ -1,4 +1,5 @@
 import Toast from "../../../components/toast";
+import Ajax from "../../../utils/ajax";
 
 // jQuery is loaded from CDN in blade file
 // Initialize when DOM is ready
@@ -56,39 +57,14 @@ function setupFormHandlers() {
 async function handleFormSubmit(form) {
     const $form = $(form);
     const formData = new FormData(form);
-    const $submitBtn = $form.find('button[type="submit"]');
-    const originalBtnText = $submitBtn.html();
-
-    // Show loading state
-    $submitBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Saving...');
 
     try {
-        const response = await fetch($form.attr('action'), {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-            },
-            body: formData
+        await Ajax.post($form.attr('action'), formData, {
+            loadingMessage: 'Saving settings...',
+            successMessage: 'Settings saved successfully!'
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            Toast.showToast(data.message || 'Settings saved successfully!', 'success');
-        } else {
-            if (data.errors) {
-                const errorMessages = Object.values(data.errors).flat().join(', ');
-                Toast.showToast(errorMessages, 'error');
-            } else {
-                Toast.showToast(data.message || 'Failed to save settings', 'error');
-            }
-        }
     } catch (error) {
         console.error('Error:', error);
-        Toast.showToast('An error occurred while saving settings', 'error');
-    } finally {
-        $submitBtn.prop('disabled', false).html(originalBtnText);
     }
 }
 
@@ -101,29 +77,12 @@ function setupTestConnection() {
     if ($testBtn.length === 0) return;
 
     $testBtn.on('click', async function() {
-        const originalBtnText = $testBtn.html();
-
-        // Show loading state
-        $testBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Testing...');
-
         try {
-            const response = await fetch(window.testMidtransUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
+            const data = await Ajax.post(window.testMidtransUrl, {}, {
+                loadingMessage: 'Testing connection...',
+                successMessage: 'Connection test successful!',
+                errorMessage: 'Connection test failed'
             });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                Toast.showToast(data.message || 'Connection test successful!', 'success');
-            } else {
-                Toast.showToast(data.message || 'Connection test failed', 'error');
-            }
 
             // Show request and response details in modal
             if (data.request || data.response) {
@@ -131,9 +90,6 @@ function setupTestConnection() {
             }
         } catch (error) {
             console.error('Error:', error);
-            Toast.showToast('An error occurred while testing connection', 'error');
-        } finally {
-            $testBtn.prop('disabled', false).html(originalBtnText);
         }
     });
 }
@@ -147,45 +103,28 @@ function setupSyncPaymentMethods() {
     if ($syncBtn.length === 0) return;
 
     $syncBtn.on('click', async function() {
-        const originalBtnText = $syncBtn.html();
-
-        // Show loading state
-        $syncBtn.prop('disabled', true).html('<span class="loading loading-spinner loading-sm"></span> Syncing...');
-
         try {
-            const response = await fetch(window.syncMidtransUrl, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
+            const data = await Ajax.post(window.syncMidtransUrl, {}, {
+                loadingMessage: 'Syncing payment methods...',
+                showToast: false, // We'll show custom toast with count
+                errorMessage: 'Sync failed'
             });
 
-            const data = await response.json();
+            // Show custom success toast with count
+            const methodsCount = data.data?.total_methods || 0;
+            Toast.showToast(data.message + ` (${methodsCount} methods)`, 'success');
 
-            if (response.ok && data.success) {
-                const methodsCount = data.data?.total_methods || 0;
-                Toast.showToast(data.message + ` (${methodsCount} methods)`, 'success');
-
-                // Show sync details in modal
-                if (data.data) {
-                    showSyncResultModal(data);
-                }
-
-                // Reload page after 2 seconds to show updated timestamp
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            } else {
-                Toast.showToast(data.message || 'Sync failed', 'error');
+            // Show sync details in modal
+            if (data.data) {
+                showSyncResultModal(data);
             }
+
+            // Reload page after 2 seconds to show updated timestamp
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } catch (error) {
             console.error('Error:', error);
-            Toast.showToast('An error occurred while syncing payment methods', 'error');
-        } finally {
-            $syncBtn.prop('disabled', false).html(originalBtnText);
         }
     });
 }

@@ -109,6 +109,62 @@ class ModuleCacheRepository extends CacheRepository
     }
 
     /**
+     * Get modules grouped by group_name (cached)
+     * Returns only one representative module per group (for index page)
+     */
+    public function getGroupedModules()
+    {
+        return $this->remember('grouped_modules', function () {
+            $allModules = $this->moduleRepo->getAll();
+
+            // Group by group_name and get first module of each group (as representative)
+            $groupedModules = $allModules->whereNull('parent_id')
+                ->groupBy('group_name')
+                ->map(function ($group) {
+                    return $group->sortBy('sort_order')->first();
+                })
+                ->sortBy('sort_order')
+                ->values();
+
+            return $groupedModules;
+        });
+    }
+
+    /**
+     * Get all modules in a specific group with their children (cached)
+     */
+    public function getModulesByGroup($groupName)
+    {
+        return $this->remember("group:{$groupName}", function () use ($groupName) {
+            $modules = $this->moduleRepo->getAll()
+                ->where('group_name', $groupName)
+                ->sortBy('sort_order');
+
+            // Attach children to parent modules
+            $parentModules = $modules->whereNull('parent_id');
+
+            foreach ($parentModules as $parent) {
+                $parent->children = $modules
+                    ->where('parent_id', $parent->id)
+                    ->values()
+                    ->all();
+            }
+
+            return $parentModules->values();
+        });
+    }
+
+    /**
+     * Get module statistics (cached)
+     */
+    public function getStatistics()
+    {
+        return $this->remember('statistics', function () {
+            return $this->moduleRepo->getStatistics();
+        });
+    }
+
+    /**
      * Override clearAll to clear all known module cache keys
      */
     protected function clearAll(): bool
@@ -119,8 +175,22 @@ class ModuleCacheRepository extends CacheRepository
             'parents',
             'active',
             'visible',
-            'visible_with_children'
+            'visible_with_children',
+            'grouped_modules',
+            'statistics'
         ];
+
+        // Also clear group-specific caches
+        // Get group names directly from database (not from cache!)
+        $groupNames = \DB::table('modules')
+            ->select('group_name')
+            ->distinct()
+            ->whereNotNull('group_name')
+            ->pluck('group_name');
+
+        foreach ($groupNames as $groupName) {
+            $keys[] = "group:{$groupName}";
+        }
 
         return $this->forgetMany($keys);
     }
@@ -156,6 +226,8 @@ class ModuleCacheRepository extends CacheRepository
         $this->getActive();
         $this->getVisible();
         $this->getVisibleWithChildren();
+        $this->getGroupedModules();
+        $this->getStatistics();
     }
 
     /**
@@ -176,6 +248,8 @@ class ModuleCacheRepository extends CacheRepository
         $this->delete('active');
         $this->delete('visible');
         $this->delete('visible_with_children');
+        $this->delete('grouped_modules');
+        $this->delete('statistics');
 
         // Reload them
         $this->getAll();
@@ -184,5 +258,7 @@ class ModuleCacheRepository extends CacheRepository
         $this->getActive();
         $this->getVisible();
         $this->getVisibleWithChildren();
+        $this->getGroupedModules();
+        $this->getStatistics();
     }
 }

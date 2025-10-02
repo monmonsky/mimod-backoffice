@@ -48,6 +48,20 @@ class UserController extends Controller
                 'is_active' => 'boolean',
             ]);
 
+            // Check if trying to assign a role with higher priority than current user
+            $currentUser = currentUser();
+            if ($request->has('role_id')) {
+                $newRole = DB::table('roles')->where('id', $request->role_id)->first();
+                if ($newRole && $currentUser && isset($currentUser['role_priority'])) {
+                    if ($newRole->priority > $currentUser['role_priority']) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'You cannot assign a role with higher priority than yours.'
+                        ], 403);
+                    }
+                }
+            }
+
             $validated['is_active'] = $request->has('is_active') ? true : false;
 
             // Extract role_id before creating user
@@ -94,6 +108,15 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = $this->userRepo->findById($id);
+
+        // Check if current user has permission to edit this user based on role priority
+        $currentUser = currentUser();
+        if ($currentUser && isset($currentUser['role_priority']) && isset($user->role_priority)) {
+            if ($user->role_priority > $currentUser['role_priority']) {
+                abort(403, 'You do not have permission to edit this user.');
+            }
+        }
+
         $roles = $this->roleRepo->getAll();
         $userRole = $this->userRepo->getUserRole($id);
 
@@ -103,6 +126,18 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Check if current user has permission to update this user based on role priority
+            $user = $this->userRepo->findById($id);
+            $currentUser = currentUser();
+            if ($currentUser && isset($currentUser['role_priority']) && isset($user->role_priority)) {
+                if ($user->role_priority > $currentUser['role_priority']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have permission to update this user.'
+                    ], 403);
+                }
+            }
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email,' . $id,
@@ -111,6 +146,19 @@ class UserController extends Controller
                 'role_id' => 'nullable|exists:roles,id',
                 'is_active' => 'nullable',
             ]);
+
+            // Check if trying to assign a role with higher priority than current user
+            if ($request->has('role_id')) {
+                $newRole = DB::table('roles')->where('id', $request->role_id)->first();
+                if ($newRole && $currentUser && isset($currentUser['role_priority'])) {
+                    if ($newRole->priority > $currentUser['role_priority']) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'You cannot assign a role with higher priority than yours.'
+                        ], 403);
+                    }
+                }
+            }
 
             // is_active sudah di-handle oleh JavaScript (kirim '1' atau '0')
             // Tidak perlu override lagi di sini
@@ -162,6 +210,17 @@ class UserController extends Controller
             $user = $this->userRepo->findById($id);
             $userName = $user->name;
 
+            // Check if current user has permission to delete this user based on role priority
+            $currentUser = currentUser();
+            if ($currentUser && isset($currentUser['role_priority']) && isset($user->role_priority)) {
+                if ($user->role_priority > $currentUser['role_priority']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have permission to delete this user.'
+                    ], 403);
+                }
+            }
+
             $this->userRepo->delete($id);
 
             // Log activity
@@ -182,6 +241,18 @@ class UserController extends Controller
     public function toggleActive($id)
     {
         try {
+            // Check if current user has permission to toggle this user based on role priority
+            $user = $this->userRepo->findById($id);
+            $currentUser = currentUser();
+            if ($currentUser && isset($currentUser['role_priority']) && isset($user->role_priority)) {
+                if ($user->role_priority > $currentUser['role_priority']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have permission to change this user status.'
+                    ], 403);
+                }
+            }
+
             $user = $this->userRepo->toggleActive($id);
 
             // Log activity

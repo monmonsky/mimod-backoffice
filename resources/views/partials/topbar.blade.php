@@ -487,174 +487,57 @@
                 </div>
             </div>
         </div>
-        <div class="drawer drawer-end">
-            <input
-                id="topbar-profile-drawer"
-                type="checkbox"
-                class="drawer-toggle" />
-            <div class="drawer-content">
-                <label
-                    for="topbar-profile-drawer"
-                    class="btn btn-ghost flex items-center gap-2 px-1.5">
-                    <div class="avatar">
-                        <div class="bg-base-200 mask mask-squircle w-8">
-                            <img src="{{ asset('assets/images/avatars/1.png') }}" alt="Avatar" />
-                        </div>
-                    </div>
-                    <div class="text-start">
-                        <p class="text-sm/none">{{ currentUser('name') }}</p>
-                        <p class="text-base-content/50 mt-0.5 text-xs/none">
-                            Team
-                        </p>
-                    </div>
-                </label>
-            </div>
-            <div class="drawer-side">
-                <label
-                    for="topbar-profile-drawer"
-                    aria-label="close sidebar"
-                    class="drawer-overlay"></label>
-                <div class="h-full w-72 p-2 sm:w-84">
-                    <div
-                        class="bg-base-100 rounded-box relative flex h-full flex-col pt-4 sm:pt-8">
-                        <label
-                            for="topbar-profile-drawer"
-                            class="btn btn-xs btn-circle btn-ghost absolute start-2 top-2"
-                            aria-label="Close">
-                            <span class="iconify lucide--x size-4"></span>
-                        </label>
-                        <div class="flex flex-col items-center">
-                            <div class="relative">
-                                <div
-                                    class="avatar bg-base-200 isolate size-20 cursor-pointer overflow-hidden rounded-full px-1 pt-1 md:size-24">
-                                    <img
-                                        src="./images/avatars/1.png"
-                                        alt="User Avatar" />
-                                </div>
-                                <div
-                                    class="bg-base-100 absolute end-0 bottom-0 flex items-center justify-center rounded-full p-1.5 shadow-sm">
-                                    <span
-                                        class="iconify lucide--pencil size-4"></span>
-                                </div>
-                            </div>
-                            <p class="mt-4 text-lg/none font-medium sm:mt-8">
-                                John Doe
-                            </p>
-                            <p class="text-base-content/60 mt-1 text-sm">
-                                john@company.com
-                            </p>
-                            <div
-                                class="mt-4 flex items-center gap-2 *:cursor-pointer sm:mt-6">
-                                <div
-                                    class="avatar bg-base-200 size-10 overflow-hidden rounded-full px-1 pt-1">
-                                    <img
-                                        src="./images/avatars/2.png"
-                                        alt="Team member" />
-                                </div>
-                                <div
-                                    class="avatar bg-base-200 size-10 overflow-hidden rounded-full px-1 pt-1">
-                                    <img
-                                        src="./images/avatars/3.png"
-                                        alt="Team member" />
-                                </div>
-                                <div
-                                    class="avatar bg-base-200 size-10 overflow-hidden rounded-full px-1 pt-1">
-                                    <img
-                                        src="./images/avatars/4.png"
-                                        alt="Team member" />
-                                </div>
-                                <div
-                                    class="bg-base-200 border-base-300 flex size-10 items-center justify-center rounded-full border border-dashed">
-                                    <span
-                                        class="iconify lucide--plus size-4.5"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="border-base-300 mt-4 grow overflow-auto border-t border-dashed px-2 sm:mt-6">
-                            <ul class="menu w-full p-2">
-                                <li class="menu-title">Account</li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--user size-4.5"></span>
-                                        <span>View Profile</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--users size-4.5"></span>
-                                        <span>Team</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--mail-plus size-4.5"></span>
-                                        <span>Invites</span>
-                                        <div class="badge badge-sm">4</div>
-                                    </a>
-                                </li>
-                                <li class="menu-title">Platform</li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--settings size-4.5"></span>
-                                        <span>Settings</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--credit-card size-4.5"></span>
-                                        <span>Billing</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#">
-                                        <span
-                                            class="iconify lucide--help-circle size-4.5"></span>
-                                        <span>Support</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <a
-                                            class="flex gap-2 items-center text-error hover:bg-error/10"
-                                            href="{{ route('logout') }}"
-                                            onclick="event.preventDefault();
-                                                            this.closest('form').submit();">
-                                            <span
-                                                class="iconify lucide--log-out size-4.5"></span>
-                                            <span>Sign Out</span>
-                                        </a>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                        <div
-                            class="rounded-box from-primary to-secondary text-primary-content m-4 mt-auto flex cursor-pointer flex-col items-center justify-center bg-linear-to-br p-4 text-center transition-all hover:opacity-95 sm:p-6">
-                            <div
-                                class="bg-primary-content/10 border-primary-content/10 flex items-center justify-center rounded-full border p-1.5 sm:p-2.5">
-                                <span
-                                    class="iconify lucide--zap size-5 sm:size-6"></span>
-                            </div>
-                            <p
-                                class="mt-2 font-mono text-[11px] font-medium tracking-wider uppercase opacity-70 sm:mt-4">
-                                Upgrade your plan
-                            </p>
-                            <p class="mt-1 leading-none font-medium sm:text-lg">
-                                Save
-                                <span class="font-semibold underline">30%</span>
-                                today
-                            </p>
-                        </div>
+        <div class="dropdown dropdown-bottom dropdown-end">
+            <div
+                tabindex="0"
+                role="button"
+                class="btn btn-ghost flex items-center gap-2 px-1.5">
+                <div class="avatar">
+                    <div class="bg-base-200 mask mask-squircle w-8">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ currentUser('email', 'default') }}" alt="Avatar" />
                     </div>
                 </div>
+                <div class="text-start max-lg:hidden">
+                    <p class="text-sm/none">{{ currentUser('name') }}</p>
+                    <p class="text-base-content/50 mt-0.5 text-xs/none">
+                        {{ userRole('Guest') }}
+                    </p>
+                </div>
             </div>
+            <ul
+                role="menu"
+                tabindex="0"
+                class="dropdown-content menu bg-base-100 rounded-box shadow-base-content/4 mt-1 w-48 p-1 shadow-[0px_10px_40px_0px]">
+                <li>
+                    <a href="#">
+                        <span class="iconify lucide--user size-4"></span>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span class="iconify lucide--settings size-4"></span>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span class="iconify lucide--help-circle size-4"></span>
+                        <span>Help</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('topbar-logout-form').submit();">
+                        <span class="iconify lucide--log-out size-4"></span>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
         </div>
+
+        <form id="topbar-logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+            @csrf
+        </form>
     </div>
 </div>
 

@@ -95,6 +95,9 @@ class AuthenticateToken
         if (isset($user->role_display)) {
             $userData['role_display'] = $user->role_display;
         }
+        if (isset($user->role_priority)) {
+            $userData['role_priority'] = $user->role_priority;
+        }
         if (isset($user->permissions)) {
             $userData['permissions'] = $user->permissions;
         }

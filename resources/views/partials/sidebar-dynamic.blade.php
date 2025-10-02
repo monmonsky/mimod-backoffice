@@ -33,187 +33,25 @@
 
                 @php
                     $grouped = groupModulesBySection($sidebarModules ?? []);
+
+                    // Map group names to display labels
+                    $groupLabels = [
+                        'overview' => 'Overview',
+                        'catalog' => 'Catalog',
+                        'access_control' => 'Access Control',
+                        'settings' => 'Settings',
+                    ];
                 @endphp
 
-                {{-- Overview Section --}}
-                @if(!empty($grouped['overview']))
-                    <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Overview</p>
-                    @foreach($grouped['overview'] as $module)
-                        @if($module->route && hasPermission($module->name . '.view'))
-                            <a class="menu-item {{ request()->routeIs($module->route) ? 'active' : '' }}" href="{{ route($module->route) }}">
-                                @if($module->icon)
-                                    <span class="iconify {{ $module->icon }} size-4"></span>
-                                @endif
-                                <span class="grow">{{ $module->display_name }}</span>
-                            </a>
-                        @endif
-                    @endforeach
-                @endif
-
-                {{-- Access Control Section --}}
-                @if(!empty($grouped['access_control']))
+                {{-- Loop through all groups dynamically --}}
+                @foreach($grouped as $groupKey => $groupModules)
                     @php
-                        $hasAccessControlPermission = false;
-                        foreach($grouped['access_control'] as $module) {
-                            if (hasPermission('access-control.' . $module->name . '.view')) {
-                                $hasAccessControlPermission = true;
-                                break;
-                            }
-                        }
+                        $groupLabel = $groupLabels[$groupKey] ?? ucwords(str_replace('_', ' ', $groupKey));
                     @endphp
 
-                    @if($hasAccessControlPermission)
-                        <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Access Control</p>
-                        @foreach($grouped['access_control'] as $module)
-                            @if(hasPermission('access-control.' . $module->name . '.view'))
-                                <a class="menu-item {{ request()->routeIs($module->route . '*') ? 'active' : '' }}" href="{{ route($module->route) }}">
-                                    @if($module->icon)
-                                        <span class="iconify {{ $module->icon }} size-4"></span>
-                                    @endif
-                                    <span class="grow">{{ $module->display_name }}</span>
-                                </a>
-                            @endif
-                        @endforeach
-                    @endif
-                @endif
-
-                {{-- Catalog Section --}}
-                @if(!empty($grouped['catalog']))
-                    @php
-                        $hasCatalogPermission = false;
-                        foreach($grouped['catalog'] as $parent) {
-                            if (isset($parent->children)) {
-                                foreach($parent->children as $child) {
-                                    $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
-                                    if (hasPermission($permissionName)) {
-                                        $hasCatalogPermission = true;
-                                        break 2;
-                                    }
-                                }
-                            }
-                        }
-                    @endphp
-
-                    @if($hasCatalogPermission)
-                        <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Catalog</p>
-                        @foreach($grouped['catalog'] as $parent)
-                            @php
-                                $hasChildPermission = false;
-                                if (isset($parent->children)) {
-                                    foreach($parent->children as $child) {
-                                        $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
-                                        if (hasPermission($permissionName)) {
-                                            $hasChildPermission = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            @endphp
-
-                            @if($hasChildPermission && isset($parent->children) && count($parent->children) > 0)
-                                <div class="group collapse">
-                                    <input
-                                        aria-label="Sidemenu item trigger"
-                                        type="checkbox"
-                                        class="peer"
-                                        name="sidebar-menu-catalog-{{ $parent->name }}"
-                                        {{ request()->routeIs('catalog.' . $parent->name . '.*') ? 'checked' : '' }} />
-                                    <div class="collapse-title px-2.5 py-1.5">
-                                        @if($parent->icon)
-                                            <span class="iconify {{ $parent->icon }} size-4"></span>
-                                        @endif
-                                        <span class="grow">{{ $parent->display_name }}</span>
-                                        <span class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
-                                    </div>
-                                    <div class="collapse-content ms-6.5 !p-0">
-                                        <div class="mt-0.5 space-y-0.5">
-                                            @foreach($parent->children as $child)
-                                                @php
-                                                    $permissionName = str_replace(['-'], ['.'], 'catalog.' . $parent->name . '.' . $child->name . '.view');
-                                                @endphp
-                                                @if(hasPermission($permissionName))
-                                                    <a class="menu-item {{ request()->routeIs($child->route) ? 'active' : '' }}"
-                                                       href="{{ route($child->route) }}">
-                                                        <span class="grow">{{ $child->display_name }}</span>
-                                                    </a>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
-                    @endif
-                @endif
-
-                {{-- Settings Section --}}
-                @if(!empty($grouped['settings']))
-                    @php
-                        $hasSettingsPermission = false;
-                        foreach($grouped['settings'] as $parent) {
-                            if (isset($parent->children)) {
-                                foreach($parent->children as $child) {
-                                    $permissionName = str_replace(['-'], ['.'], 'settings.' . $parent->name . '.' . $child->name . '.view');
-                                    if (hasPermission($permissionName)) {
-                                        $hasSettingsPermission = true;
-                                        break 2;
-                                    }
-                                }
-                            }
-                        }
-                    @endphp
-
-                    @if($hasSettingsPermission)
-                        <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">Settings</p>
-                        @foreach($grouped['settings'] as $parent)
-                            @php
-                                $hasChildPermission = false;
-                                if (isset($parent->children)) {
-                                    foreach($parent->children as $child) {
-                                        $permissionName = str_replace(['-'], ['.'], 'settings.' . $parent->name . '.' . $child->name . '.view');
-                                        if (hasPermission($permissionName)) {
-                                            $hasChildPermission = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            @endphp
-
-                            @if($hasChildPermission && isset($parent->children) && count($parent->children) > 0)
-                                <div class="group collapse">
-                                    <input
-                                        aria-label="Sidemenu item trigger"
-                                        type="checkbox"
-                                        class="peer"
-                                        name="sidebar-menu-settings-{{ $parent->name }}"
-                                        {{ request()->routeIs('settings.' . $parent->name . '.*') ? 'checked' : '' }} />
-                                    <div class="collapse-title px-2.5 py-1.5">
-                                        @if($parent->icon)
-                                            <span class="iconify {{ $parent->icon }} size-4"></span>
-                                        @endif
-                                        <span class="grow">{{ $parent->display_name }}</span>
-                                        <span class="iconify lucide--chevron-right arrow-icon size-3.5"></span>
-                                    </div>
-                                    <div class="collapse-content ms-6.5 !p-0">
-                                        <div class="mt-0.5 space-y-0.5">
-                                            @foreach($parent->children as $child)
-                                                @php
-                                                    $permissionName = str_replace(['-'], ['.'], 'settings.' . $parent->name . '.' . $child->name . '.view');
-                                                @endphp
-                                                @if(hasPermission($permissionName))
-                                                    <a class="menu-item {{ request()->routeIs($child->route) ? 'active' : '' }}"
-                                                       href="{{ route($child->route) }}">
-                                                        <span class="grow">{{ $child->display_name }}</span>
-                                                    </a>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
-                    @endif
-                @endif
+                    <p class="menu-label px-2.5 pt-3 pb-1.5 first:pt-0">{{ $groupLabel }}</p>
+                    {!! renderSidebarMenu($groupModules) !!}
+                @endforeach
 
             </div>
         </div>
@@ -229,7 +67,7 @@
                 class="bg-base-200 hover:bg-base-300 rounded-box mx-2 mt-0 flex cursor-pointer items-center gap-2.5 px-3 py-2 transition-all">
                 <div class="avatar">
                     <div class="bg-base-200 mask mask-squircle w-8">
-                        <img src="{{ userAvatar() }}" alt="Avatar" />
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ currentUser('email', 'default') }}" alt="Avatar" />
                     </div>
                 </div>
                 <div class="grow -space-y-0.5">

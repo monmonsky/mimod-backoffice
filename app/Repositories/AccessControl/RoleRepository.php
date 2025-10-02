@@ -17,20 +17,49 @@ class RoleRepository implements RoleRepositoryInterface
         return DB::table($this->tableName);
     }
 
+    /**
+     * Get all roles
+     * Filtered by current user's role priority (users can only assign roles with same or lower priority)
+     */
     public function getAll()
     {
-        return $this->table()->orderBy('priority', 'desc')->get();
+        $query = $this->table();
+
+        // Filter by role priority (user can only see roles with same or lower priority)
+        // Higher priority = HIGHER number (Super Admin = 100)
+        // Lower priority = LOWER number (Customer = 10)
+        // So we use <= to show roles with same or LOWER number (lower actual priority)
+        $currentUser = currentUser();
+        if ($currentUser && isset($currentUser['role_priority'])) {
+            $query->where('priority', '<=', $currentUser['role_priority']);
+        }
+
+        return $query->orderBy('priority', 'desc')->get();
     }
 
+    /**
+     * Get all roles with user counts
+     * Filtered by current user's role priority
+     */
     public function getAllWithCounts()
     {
-        return $this->table()
+        $query = $this->table()
             ->leftJoin('user_roles', 'roles.id', '=', 'user_roles.role_id')
             ->select(
                 'roles.*',
                 DB::raw('COUNT(DISTINCT user_roles.user_id) as users_count')
-            )
-            ->groupBy(
+            );
+
+        // Filter by role priority (user can only see roles with same or lower priority)
+        // Higher priority = HIGHER number (Super Admin = 100)
+        // Lower priority = LOWER number (Customer = 10)
+        // So we use <= to show roles with same or LOWER number (lower actual priority)
+        $currentUser = currentUser();
+        if ($currentUser && isset($currentUser['role_priority'])) {
+            $query->where('roles.priority', '<=', $currentUser['role_priority']);
+        }
+
+        return $query->groupBy(
                 'roles.id',
                 'roles.name',
                 'roles.display_name',

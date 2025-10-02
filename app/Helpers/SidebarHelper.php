@@ -96,35 +96,32 @@ if (!function_exists('checkIfMenuExpanded')) {
 
 if (!function_exists('groupModulesBySection')) {
     /**
-     * Group modules by section (Overview, Access Control, Settings)
+     * Group modules by section dynamically based on group_name field
+     * Automatically discovers and creates groups from database
      */
     function groupModulesBySection($modules)
     {
-        $grouped = [
-            'overview' => [],
-            'access_control' => [],
-            'catalog' => [],
-            'settings' => []
-        ]; 
+        $grouped = [];
 
         foreach ($modules as $module) {
-            // Dashboard is overview
-            if ($module->name === 'dashboard') {
-                $grouped['overview'][] = $module;
+            // Get group name from module, default to 'other' if not set
+            $groupName = $module->group_name ?? 'other';
+
+            // Initialize group array if it doesn't exist
+            if (!isset($grouped[$groupName])) {
+                $grouped[$groupName] = [];
             }
-            // Access control modules
-            elseif (in_array($module->name, ['users', 'roles', 'permissions', 'modules', 'user-activities'])) {
-                $grouped['access_control'][] = $module;
-            }
-            // Catalog modules
-            elseif (in_array($module->name, ['products'])) {
-                $grouped['catalog'][] = $module;
-            }
-            // Settings modules (generals, payments, shippings)
-            else {
-                $grouped['settings'][] = $module;
-            }
+
+            $grouped[$groupName][] = $module;
         }
+
+        // Sort groups by the minimum sort_order of modules in each group
+        // This ensures groups appear in the sidebar in the correct order
+        uksort($grouped, function($a, $b) use ($grouped) {
+            $minA = collect($grouped[$a])->min('sort_order') ?? 999;
+            $minB = collect($grouped[$b])->min('sort_order') ?? 999;
+            return $minA <=> $minB;
+        });
 
         return $grouped;
     }
