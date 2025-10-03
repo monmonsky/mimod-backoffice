@@ -85,7 +85,7 @@
 <!-- Filters Card -->
 <div class="card bg-base-100 shadow-sm mt-6">
     <div class="card-body">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-8">
             <h2 class="card-title text-base">
                 <span class="iconify lucide--filter size-4"></span>
                 Filters
@@ -107,21 +107,17 @@
         <form id="filter-form" method="GET" action="{{ route('access-control.user-activities.index') }}">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Search -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Search</span>
-                    </label>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Search</label>
                     <input type="text" name="search" value="{{ $filters['search'] ?? '' }}"
                         placeholder="User name, email, or description..."
-                        class="input input-bordered input-sm">
+                        class="input input-bordered w-full">
                 </div>
 
                 <!-- Action -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Action</span>
-                    </label>
-                    <select name="action" class="select select-bordered select-sm">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Action</label>
+                    <select name="action" class="select select-bordered w-full">
                         <option value="">All Actions</option>
                         <option value="login" {{ ($filters['action'] ?? '') === 'login' ? 'selected' : '' }}>Login</option>
                         <option value="logout" {{ ($filters['action'] ?? '') === 'logout' ? 'selected' : '' }}>Logout</option>
@@ -134,11 +130,9 @@
                 </div>
 
                 <!-- Subject Type -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Subject Type</span>
-                    </label>
-                    <select name="subject_type" class="select select-bordered select-sm">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Subject Type</label>
+                    <select name="subject_type" class="select select-bordered w-full">
                         <option value="">All Types</option>
                         <option value="User" {{ ($filters['subject_type'] ?? '') === 'User' ? 'selected' : '' }}>User</option>
                         <option value="Role" {{ ($filters['subject_type'] ?? '') === 'Role' ? 'selected' : '' }}>Role</option>
@@ -149,29 +143,23 @@
                 </div>
 
                 <!-- Date From -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date From</span>
-                    </label>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Date From</label>
                     <input type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}"
-                        class="input input-bordered input-sm">
+                        class="input input-bordered w-full">
                 </div>
 
                 <!-- Date To -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date To</span>
-                    </label>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Date To</label>
                     <input type="date" name="date_to" value="{{ $filters['date_to'] ?? '' }}"
-                        class="input input-bordered input-sm">
+                        class="input input-bordered w-full">
                 </div>
 
                 <!-- Per Page -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Per Page</span>
-                    </label>
-                    <select name="per_page" class="select select-bordered select-sm">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Per Page</label>
+                    <select name="per_page" class="select select-bordered w-full">
                         <option value="20" {{ ($filters['per_page'] ?? 20) == 20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ ($filters['per_page'] ?? 20) == 50 ? 'selected' : '' }}>50</option>
                         <option value="100" {{ ($filters['per_page'] ?? 20) == 100 ? 'selected' : '' }}>100</option>
@@ -201,7 +189,7 @@
             <table class="table table-zebra">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>No</th>
                         <th>User</th>
                         <th>Action</th>
                         <th>Subject</th>
@@ -212,9 +200,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($activities as $activity)
+                    @forelse($activities as $index => $activity)
                     <tr>
-                        <td>{{ $activity->id }}</td>
+                        <td>{{ $activities->firstItem() + $index }}</td>
                         <td>
                             <div>
                                 <div class="font-medium text-sm">{{ $activity->user_name }}</div>
@@ -280,11 +268,9 @@
         </div>
 
         <!-- Pagination -->
-        @if($activities->hasPages())
-        <div class="flex justify-center mt-6">
-            {{ $activities->links() }}
+        <div class="mt-6">
+            {{ $activities->appends(request()->except('page'))->links('vendor.pagination.custom') }}
         </div>
-        @endif
     </div>
 </div>
 

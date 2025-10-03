@@ -276,13 +276,19 @@ function initModuleSortable(groupName) {
     // Get all module rows for this group
     const moduleRows = document.querySelectorAll(`.module-row[data-group-name="${groupName}"]`);
 
-    if (moduleRows.length <= 1) return; // No need to sort if only 1 module
+    console.log(`[Module Sortable] Init for group: ${groupName}, found ${moduleRows.length} modules`);
+
+    if (moduleRows.length <= 1) {
+        console.log(`[Module Sortable] Skipped - only ${moduleRows.length} module(s)`);
+        return; // No need to sort if only 1 module
+    }
 
     const tbody = document.getElementById('sortableTable');
 
     // Destroy ALL existing sortable instances first to avoid conflicts
     Object.keys(moduleSortableInstances).forEach(key => {
         if (moduleSortableInstances[key] && key !== groupName) {
+            console.log(`[Module Sortable] Destroying instance: ${key}`);
             moduleSortableInstances[key].destroy();
             delete moduleSortableInstances[key];
         }
@@ -294,6 +300,16 @@ function initModuleSortable(groupName) {
         delete moduleSortableInstances[groupName];
     }
 
+    console.log(`[Module Sortable] Creating sortable for: ${groupName}`);
+
+    // Debug: Check if draggable elements exist and have handles
+    const draggableElements = document.querySelectorAll(`.sortable-module[data-group-name="${groupName}"]`);
+    console.log(`[Module Sortable] Found ${draggableElements.length} draggable elements`);
+    draggableElements.forEach((el, idx) => {
+        const handle = el.querySelector('.module-drag-handle');
+        console.log(`[Module Sortable] Element ${idx}: has handle = ${!!handle}`, el);
+    });
+
     // Create new sortable instance ONLY for this group
     moduleSortableInstances[groupName] = new Sortable(tbody, {
         animation: 150,
@@ -302,6 +318,9 @@ function initModuleSortable(groupName) {
         filter: '.child-row, .group-header',
         ghostClass: 'bg-base-300',
         chosenClass: 'bg-primary/10',
+        onStart: function(evt) {
+            console.log('[Module Sortable] Drag started', evt.item);
+        },
         onMove: function(evt) {
             // Only allow moving within same group
             const draggedGroup = evt.dragged.dataset.groupName;

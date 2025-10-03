@@ -90,7 +90,8 @@
                             class="w-24 sm:w-36"
                             placeholder="Search roles"
                             aria-label="Search roles"
-                            type="search" />
+                            type="search"
+                            id="searchInput" />
                     </label>
                 </div>
                 <div class="inline-flex items-center gap-3">
@@ -107,7 +108,7 @@
             </div>
 
             <div class="mt-4 overflow-auto">
-                <table class="table">
+                <table id="rolesTable" class="table">
                     <thead>
                         <tr>
                             <th>Role Name</th>

@@ -18,13 +18,42 @@ function initFilters() {
 
     $filterForm.on('submit', function(e) {
         e.preventDefault();
+
+        // Show loading overlay
+        showLoadingOverlay('Applying filters...');
+
+        // Submit form
         this.submit();
     });
 
     // Reset filters
     $('#reset-filters').on('click', function() {
-        window.location.href = window.location.pathname;
+        showLoadingOverlay('Resetting filters...');
+        setTimeout(() => {
+            window.location.href = window.location.pathname;
+        }, 100);
     });
+}
+
+/**
+ * Show loading overlay
+ */
+function showLoadingOverlay(message = 'Loading...') {
+    // Remove existing overlay if any
+    const existing = document.getElementById('loading-overlay');
+    if (existing) existing.remove();
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.className = 'fixed inset-0 bg-base-300/50 backdrop-blur-sm flex items-center justify-center z-[9999]';
+    overlay.innerHTML = `
+        <div class="bg-base-100 rounded-lg p-6 shadow-xl flex flex-col items-center gap-4">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <p class="text-base-content font-medium">${message}</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
 }
 
 /**
@@ -156,13 +185,13 @@ function initExport() {
         const params = new URLSearchParams(window.location.search);
         const exportUrl = `/access-control/user-activities/export?${params.toString()}`;
 
-        Toast.show('Preparing export...', 'info');
+        Toast.showToast('Preparing export...', 'info');
 
         // Trigger download
         window.location.href = exportUrl;
 
         setTimeout(() => {
-            Toast.show('Export started. Download should begin shortly.', 'success');
+            Toast.showToast('Export started. Download should begin shortly.', 'success');
         }, 500);
     });
 }

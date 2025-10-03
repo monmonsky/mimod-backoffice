@@ -2,6 +2,14 @@ import $ from 'jquery';
 import Ajax from '../../../utils/ajax.js';
 
 $(document).ready(function() {
+    // Search functionality
+    $('#searchInput').on('keyup', function() {
+        const value = $(this).val().toLowerCase();
+        $('#rolesTable tbody tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+
     // Toggle active status
     $('.toggle-form').on('submit', async function(e) {
         e.preventDefault();
