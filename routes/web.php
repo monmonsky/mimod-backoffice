@@ -169,6 +169,66 @@ Route::middleware('auth.token')->group(function () {
             ->middleware('permission:reports.inventory.export');
     });
 
+    // Orders Management
+    Route::group(['prefix' => 'orders'], function () {
+        // All Orders
+        Route::get('/all-orders', 'App\Http\Controllers\Orders\AllOrdersController@index')
+            ->name('orders.all-orders.index')
+            ->middleware('permission:orders.all-orders.view');
+        Route::get('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@show')
+            ->name('orders.all-orders.show')
+            ->middleware('permission:orders.all-orders.view');
+        Route::put('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@update')
+            ->name('orders.all-orders.update')
+            ->middleware('permission:orders.all-orders.update');
+        Route::delete('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@destroy')
+            ->name('orders.all-orders.destroy')
+            ->middleware('permission:orders.all-orders.delete');
+        Route::post('/all-orders/{id}/status', 'App\Http\Controllers\Orders\AllOrdersController@updateStatus')
+            ->name('orders.all-orders.update-status')
+            ->middleware('permission:orders.all-orders.update');
+        Route::post('/all-orders/export', 'App\Http\Controllers\Orders\AllOrdersController@export')
+            ->name('orders.all-orders.export')
+            ->middleware('permission:orders.all-orders.export');
+
+        // Pending Orders
+        Route::get('/pending-orders', 'App\Http\Controllers\Orders\PendingOrdersController@index')
+            ->name('orders.pending-orders.index')
+            ->middleware('permission:orders.pending-orders.view');
+        Route::post('/pending-orders/{id}/confirm', 'App\Http\Controllers\Orders\PendingOrdersController@confirm')
+            ->name('orders.pending-orders.confirm')
+            ->middleware('permission:orders.pending-orders.confirm');
+        Route::post('/pending-orders/{id}/cancel', 'App\Http\Controllers\Orders\PendingOrdersController@cancel')
+            ->name('orders.pending-orders.cancel')
+            ->middleware('permission:orders.pending-orders.cancel');
+
+        // Processing Orders
+        Route::get('/processing-orders', 'App\Http\Controllers\Orders\ProcessingOrdersController@index')
+            ->name('orders.processing-orders.index')
+            ->middleware('permission:orders.processing-orders.view');
+        Route::post('/processing-orders/{id}/ship', 'App\Http\Controllers\Orders\ProcessingOrdersController@ship')
+            ->name('orders.processing-orders.ship')
+            ->middleware('permission:orders.processing-orders.ship');
+
+        // Shipped Orders
+        Route::get('/shipped-orders', 'App\Http\Controllers\Orders\ShippedOrdersController@index')
+            ->name('orders.shipped-orders.index')
+            ->middleware('permission:orders.shipped-orders.view');
+        Route::post('/shipped-orders/{id}/complete', 'App\Http\Controllers\Orders\ShippedOrdersController@complete')
+            ->name('orders.shipped-orders.complete')
+            ->middleware('permission:orders.shipped-orders.complete');
+
+        // Completed Orders
+        Route::get('/completed-orders', 'App\Http\Controllers\Orders\CompletedOrdersController@index')
+            ->name('orders.completed-orders.index')
+            ->middleware('permission:orders.completed-orders.view');
+
+        // Cancelled Orders
+        Route::get('/cancelled-orders', 'App\Http\Controllers\Orders\CancelledOrdersController@index')
+            ->name('orders.cancelled-orders.index')
+            ->middleware('permission:orders.cancelled-orders.view');
+    });
+
     Route::group(['prefix' => 'promotions'], function () {
         Route::get('/coupons', function () {
             return view('pages.promotions.coupons');

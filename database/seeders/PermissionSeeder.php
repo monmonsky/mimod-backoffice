@@ -747,6 +747,148 @@ class PermissionSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+
+            // Orders > All Orders
+            [
+                'name' => 'orders.all-orders.view',
+                'display_name' => 'View All Orders',
+                'description' => 'Permission to view all orders',
+                'module' => 'all-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.all-orders.update',
+                'display_name' => 'Update Order',
+                'description' => 'Permission to update order',
+                'module' => 'all-orders',
+                'action' => 'update',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.all-orders.delete',
+                'display_name' => 'Delete Order',
+                'description' => 'Permission to delete order',
+                'module' => 'all-orders',
+                'action' => 'delete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.all-orders.export',
+                'display_name' => 'Export Orders',
+                'description' => 'Permission to export orders',
+                'module' => 'all-orders',
+                'action' => 'export',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Orders > Pending Orders
+            [
+                'name' => 'orders.pending-orders.view',
+                'display_name' => 'View Pending Orders',
+                'description' => 'Permission to view pending orders',
+                'module' => 'pending-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.pending-orders.confirm',
+                'display_name' => 'Confirm Pending Order',
+                'description' => 'Permission to confirm pending order',
+                'module' => 'pending-orders',
+                'action' => 'confirm',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.pending-orders.cancel',
+                'display_name' => 'Cancel Pending Order',
+                'description' => 'Permission to cancel pending order',
+                'module' => 'pending-orders',
+                'action' => 'cancel',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Orders > Processing Orders
+            [
+                'name' => 'orders.processing-orders.view',
+                'display_name' => 'View Processing Orders',
+                'description' => 'Permission to view processing orders',
+                'module' => 'processing-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.processing-orders.ship',
+                'display_name' => 'Ship Processing Order',
+                'description' => 'Permission to ship processing order',
+                'module' => 'processing-orders',
+                'action' => 'ship',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Orders > Shipped Orders
+            [
+                'name' => 'orders.shipped-orders.view',
+                'display_name' => 'View Shipped Orders',
+                'description' => 'Permission to view shipped orders',
+                'module' => 'shipped-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'orders.shipped-orders.complete',
+                'display_name' => 'Complete Shipped Order',
+                'description' => 'Permission to complete shipped order',
+                'module' => 'shipped-orders',
+                'action' => 'complete',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Orders > Completed Orders
+            [
+                'name' => 'orders.completed-orders.view',
+                'display_name' => 'View Completed Orders',
+                'description' => 'Permission to view completed orders',
+                'module' => 'completed-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Orders > Cancelled Orders
+            [
+                'name' => 'orders.cancelled-orders.view',
+                'display_name' => 'View Cancelled Orders',
+                'description' => 'Permission to view cancelled orders',
+                'module' => 'cancelled-orders',
+                'action' => 'view',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('permissions')->insert($permissions);

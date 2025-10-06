@@ -308,6 +308,61 @@ class ModuleSeeder extends Seeder
             ]);
         }
 
+        // Level 1: Orders parent module
+        $ordersParent = [
+            'name' => 'orders',
+            'display_name' => 'Orders',
+            'description' => 'Order management',
+            'icon' => 'lucide--shopping-cart',
+            'route' => null,
+            'sort_order' => 12,
+            'group_name' => 'orders',
+        ];
+
+        $ordersParentId = DB::table('modules')->insertGetId([
+            'name' => $ordersParent['name'],
+            'display_name' => $ordersParent['display_name'],
+            'description' => $ordersParent['description'],
+            'icon' => $ordersParent['icon'],
+            'parent_id' => null,
+            'group_name' => $ordersParent['group_name'],
+            'route' => $ordersParent['route'],
+            'component' => null,
+            'sort_order' => $ordersParent['sort_order'],
+            'is_active' => true,
+            'is_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Level 2: Orders children
+        $ordersChildren = [
+            ['name' => 'all-orders', 'display_name' => 'All Orders', 'route' => 'orders.all-orders.index', 'permission_name' => 'orders.all-orders.view', 'component' => 'AllOrders', 'sort_order' => 1],
+            ['name' => 'pending-orders', 'display_name' => 'Pending Orders', 'route' => 'orders.pending-orders.index', 'permission_name' => 'orders.pending-orders.view', 'component' => 'PendingOrders', 'sort_order' => 2],
+            ['name' => 'processing-orders', 'display_name' => 'Processing Orders', 'route' => 'orders.processing-orders.index', 'permission_name' => 'orders.processing-orders.view', 'component' => 'ProcessingOrders', 'sort_order' => 3],
+            ['name' => 'shipped-orders', 'display_name' => 'Shipped Orders', 'route' => 'orders.shipped-orders.index', 'permission_name' => 'orders.shipped-orders.view', 'component' => 'ShippedOrders', 'sort_order' => 4],
+            ['name' => 'completed-orders', 'display_name' => 'Completed Orders', 'route' => 'orders.completed-orders.index', 'permission_name' => 'orders.completed-orders.view', 'component' => 'CompletedOrders', 'sort_order' => 5],
+            ['name' => 'cancelled-orders', 'display_name' => 'Cancelled Orders', 'route' => 'orders.cancelled-orders.index', 'permission_name' => 'orders.cancelled-orders.view', 'component' => 'CancelledOrders', 'sort_order' => 6],
+        ];
+
+        foreach ($ordersChildren as $child) {
+            DB::table('modules')->insert([
+                'name' => $child['name'],
+                'display_name' => $child['display_name'],
+                'description' => null,
+                'icon' => null,
+                'parent_id' => $ordersParentId,
+                'route' => $child['route'],
+                'permission_name' => $child['permission_name'] ?? null,
+                'component' => $child['component'],
+                'sort_order' => $child['sort_order'],
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $this->command->info('Modules seeded successfully.');
         $this->command->info('- 6 direct modules (dashboard + 5 access control)');
         $this->command->info('- 1 catalog parent module (products)');
@@ -316,6 +371,8 @@ class ModuleSeeder extends Seeder
         $this->command->info('- 13 settings children (5 generals + 3 payments + 3 shippings + 2 more)');
         $this->command->info('- 1 reports parent module');
         $this->command->info('- 4 reports children (sales, revenue, product-performance, inventory)');
-        $this->command->info('Total: 33 modules');
+        $this->command->info('- 1 orders parent module');
+        $this->command->info('- 6 orders children (all, pending, processing, shipped, completed, cancelled)');
+        $this->command->info('Total: 40 modules');
     }
 }

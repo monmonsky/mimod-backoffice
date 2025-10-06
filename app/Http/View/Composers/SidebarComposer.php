@@ -58,13 +58,19 @@ class SidebarComposer
             return $modules;
         }
 
-        // Get role_id from user array
+        // Get role_id and role_name from user array
         $roleId = $userArray['role_id'] ?? null;
+        $roleName = $userArray['role'] ?? null;
 
         // If user doesn't have role, return empty sidebar
         if (!$roleId) {
             \Log::warning('User has no role_id', ['user_id' => $userArray['id'] ?? null]);
             return [];
+        }
+
+        // Super admin has access to all modules
+        if ($roleName === 'super_admin') {
+            return $modules;
         }
 
         // Get user role permissions

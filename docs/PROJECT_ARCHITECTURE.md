@@ -30,7 +30,7 @@
 
 **Key Features:**
 - Product & Catalog Management (Products, Categories, Brands, Variants)
-- Order Management
+- Order Management (Pending, Processing, Shipped, Completed, Cancelled)
 - Role-Based Access Control (RBAC)
 - User Activity Tracking
 - Reports (Sales, Revenue, Product Performance, Inventory)
@@ -236,6 +236,7 @@ CREATE INDEX idx_modules_active ON modules(is_active);
 - `overview` - Dashboard
 - `access_control` - Users, Roles, Permissions, Modules, User Activities
 - `catalog` - Products, Categories, Brands, Variants
+- `orders` - All Orders, Pending, Processing, Shipped, Completed, Cancelled
 - `reports` - Sales, Revenue, Product Performance, Inventory
 - `settings` - Store, Email, SEO, System, Payments, Shipping
 
@@ -421,7 +422,120 @@ CREATE INDEX idx_images_product ON product_images(product_id);
 CREATE INDEX idx_images_primary ON product_images(product_id, is_primary);
 ```
 
-### 3.3 Activity Tracking
+### 3.3 Order Tables
+
+#### **orders**
+Complete order management with status tracking.
+
+```sql
+CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_number VARCHAR(50) UNIQUE NOT NULL,
+    user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Order Status
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'completed', 'cancelled')),
+
+    -- Payment Information
+    payment_method VARCHAR(20) CHECK (payment_method IN ('bank_transfer', 'credit_card', 'e_wallet', 'cod')),
+    payment_status VARCHAR(20) DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),
+    paid_at TIMESTAMP,
+
+    -- Shipping Information
+    shipping_address TEXT,
+    shipping_city VARCHAR(100),
+    shipping_province VARCHAR(100),
+    shipping_postal_code VARCHAR(10),
+    shipping_phone VARCHAR(20),
+    courier VARCHAR(50),
+    tracking_number VARCHAR(100),
+    shipping_cost DECIMAL(12, 2) DEFAULT 0,
+    shipped_at TIMESTAMP,
+
+    -- Order Amounts
+    subtotal DECIMAL(12, 2) DEFAULT 0,
+    tax_amount DECIMAL(12, 2) DEFAULT 0,
+    discount_amount DECIMAL(12, 2) DEFAULT 0,
+    total_amount DECIMAL(12, 2) DEFAULT 0,
+
+    -- Additional Information
+    notes TEXT,
+    shipping_notes TEXT,
+    cancellation_reason TEXT,
+    completed_at TIMESTAMP,
+    cancelled_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_orders_number ON orders(order_number);
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX idx_orders_created ON orders(created_at);
+```
+
+**Order Statuses:**
+- `pending` → Order received, awaiting confirmation
+- `processing` → Order confirmed, being prepared
+- `shipped` → Order shipped to customer
+- `completed` → Order delivered successfully
+- `cancelled` → Order cancelled by customer/admin
+
+**Relationships:**
+- `belongsTo(User)` via `user_id`
+- `hasMany(OrderItem)`
+
+#### **order_items**
+Order line items with product snapshot.
+
+```sql
+CREATE TABLE order_items (
+    id BIGSERIAL PRIMARY KEY,
+    order_id BIGINT REFERENCES orders(id) ON DELETE CASCADE,
+    variant_id BIGINT REFERENCES product_variants(id) ON DELETE RESTRICT,
+
+    -- Product Snapshot (at time of order)
+    product_name VARCHAR(255) NOT NULL,
+    sku VARCHAR(100) NOT NULL,
+    size VARCHAR(50),
+    color VARCHAR(50),
+
+    -- Pricing
+    quantity INTEGER DEFAULT 1,
+    price DECIMAL(12, 2) NOT NULL,         -- Price per unit
+    subtotal DECIMAL(12, 2) NOT NULL,      -- quantity * price
+    discount_amount DECIMAL(12, 2) DEFAULT 0,
+    total DECIMAL(12, 2) NOT NULL,         -- subtotal - discount
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_order_items_variant ON order_items(variant_id);
+```
+
+**Why Product Snapshot?**
+- Product prices/names may change over time
+- Order should show exact items as purchased
+- Prevents data inconsistency
+
+**Example Order:**
+```
+Order #ORD-20251006-0001
+Customer: John Doe
+Items:
+  - Carter's Bodysuit 0-3M Blue × 2 = Rp 250,000
+  - Nike Kids T-Shirt Size 2 Red × 1 = Rp 150,000
+Subtotal: Rp 400,000
+Shipping: Rp 25,000
+Total: Rp 425,000
+Status: Processing
+```
+
+### 3.4 Activity Tracking
 
 #### **user_activities**
 Track all user actions for audit trail.
@@ -506,11 +620,15 @@ users (1) ──→ (M) user_activities
 users (N) ──→ (1) roles
 roles (N) ──→ (M) permissions [via role_permissions]
 users (1) ──→ (M) products (created_by)
+users (1) ──→ (M) orders
 
 products (1) ──→ (M) product_variants
 products (1) ──→ (M) product_images
 products (N) ──→ (M) categories [via product_categories]
 products (N) ──→ (1) brands
+
+orders (1) ──→ (M) order_items
+order_items (N) ──→ (1) product_variants
 
 categories (1) ──→ (M) categories (parent_id)
 modules (1) ──→ (M) modules (parent_id)
@@ -555,6 +673,13 @@ app/
 │   │   │   ├── CategoriesController.php
 │   │   │   ├── BrandsController.php
 │   │   │   └── VariantsController.php
+│   │   ├── Orders/
+│   │   │   ├── AllOrdersController.php
+│   │   │   ├── PendingOrdersController.php
+│   │   │   ├── ProcessingOrdersController.php
+│   │   │   ├── ShippedOrdersController.php
+│   │   │   ├── CompletedOrdersController.php
+│   │   │   └── CancelledOrdersController.php
 │   │   ├── Reports/
 │   │   │   ├── SalesReportController.php
 │   │   │   ├── RevenueReportController.php
@@ -592,6 +717,8 @@ app/
 │   │   │   ├── ProductRepositoryInterface.php
 │   │   │   ├── CategoryRepositoryInterface.php
 │   │   │   └── BrandRepositoryInterface.php
+│   │   ├── Orders/
+│   │   │   └── OrderRepositoryInterface.php
 │   │   └── Settings/
 │   │       └── SettingRepositoryInterface.php
 │   │
@@ -605,6 +732,8 @@ app/
 │   │   ├── ProductRepository.php
 │   │   ├── CategoryRepository.php
 │   │   └── BrandRepository.php
+│   ├── Orders/
+│   │   └── OrderRepository.php
 │   └── Settings/
 │       └── SettingRepository.php
 │
@@ -1249,6 +1378,15 @@ const { can } = usePermission()
   - Brands (list, create, edit, delete)
   - Variants (view all variants across products)
 
+#### **Orders**
+- Order Management
+  - All Orders (list, view details, update, delete, export)
+  - Pending Orders (view, confirm, cancel)
+  - Processing Orders (view, ship with tracking)
+  - Shipped Orders (view, complete)
+  - Completed Orders (view only)
+  - Cancelled Orders (view only)
+
 #### **Reports**
 - Sales Report
 - Revenue Report
@@ -1285,6 +1423,12 @@ const { can } = usePermission()
 | Categories | categories | ✓ | ✓ | ✓ | ✓ | - | update-order |
 | Brands | brands | ✓ | ✓ | ✓ | ✓ | - | toggle-active |
 | Variants | variants | ✓ | ✓ | ✓ | ✓ | - | - |
+| All Orders | all-orders | ✓ | - | ✓ | ✓ | ✓ | update-status |
+| Pending Orders | pending-orders | ✓ | - | - | - | - | confirm, cancel |
+| Processing Orders | processing-orders | ✓ | - | - | - | - | ship |
+| Shipped Orders | shipped-orders | ✓ | - | - | - | - | complete |
+| Completed Orders | completed-orders | ✓ | - | - | - | - | - |
+| Cancelled Orders | cancelled-orders | ✓ | - | - | - | - | - |
 | Sales Report | sales | ✓ | - | - | - | ✓ | - |
 | Revenue Report | revenue | ✓ | - | - | - | ✓ | - |
 | Product Performance | product-performance | ✓ | - | - | - | ✓ | - |
@@ -1293,7 +1437,7 @@ const { can } = usePermission()
 | Payment | payments | ✓ | - | ✓ | - | - | test-midtrans |
 | Shipping | shippings | ✓ | - | ✓ | - | - | test-rajaongkir |
 
-**Total Permissions:** 68
+**Total Permissions:** 84 (16 new orders permissions added)
 
 ---
 
