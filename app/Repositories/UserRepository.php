@@ -31,13 +31,9 @@ class UserRepository implements UserRepositoryInterface
 
     public function findById(string $id)
     {
-        // Get user with role in single query
+        // Get user with role in single query (using direct role_id from users table)
         $user = DB::table('users')
-            ->leftJoin('user_roles', function($join) {
-                $join->on('users.id', '=', 'user_roles.user_id')
-                     ->where('user_roles.is_active', '=', true);
-            })
-            ->leftJoin('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
             ->where('users.id', $id)
             ->select(
                 'users.*',
@@ -51,15 +47,15 @@ class UserRepository implements UserRepositoryInterface
             return null;
         }
 
-        // Get permissions in single query using GROUP_CONCAT for better performance
-        // This avoids N+1 query problem
-        $permissionsResult = DB::table('role_permissions')
-            ->join('user_roles', 'role_permissions.role_id', '=', 'user_roles.role_id')
-            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
-            ->where('user_roles.user_id', $id)
-            ->where('user_roles.is_active', true)
-            ->pluck('permissions.name')
-            ->toArray();
+        // Get permissions from role_permissions using user's role_id
+        $permissionsResult = [];
+        if ($user->role_id) {
+            $permissionsResult = DB::table('role_permissions')
+                ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+                ->where('role_permissions.role_id', $user->role_id)
+                ->pluck('permissions.name')
+                ->toArray();
+        }
 
         $user->permissions = $permissionsResult;
 
