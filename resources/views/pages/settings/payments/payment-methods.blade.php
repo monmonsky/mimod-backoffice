@@ -73,7 +73,7 @@
 
                     <!-- Configuration Status -->
                     <div class="flex items-center gap-2">
-                        <span class="iconify lucide--check-circle size-4 text-success"></span>
+                        <span class="iconify lucide--check-circle-2 size-4 text-success"></span>
                         <span class="text-sm">Configured and ready to use</span>
                     </div>
 

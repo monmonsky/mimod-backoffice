@@ -40,7 +40,7 @@
                     <p class="text-2xl font-semibold mt-1 text-success">142</p>
                 </div>
                 <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
+                    <span class="iconify lucide--check-circle-2 size-5 text-success"></span>
                 </div>
             </div>
         </div>

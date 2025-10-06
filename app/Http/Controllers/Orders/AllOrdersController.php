@@ -15,9 +15,13 @@ class AllOrdersController extends Controller
         $this->orderRepo = $orderRepo;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = $this->orderRepo->getAllWithRelations();
+        // Get filters
+        $filters = $request->only(['order_number', 'customer', 'status', 'date_from']);
+
+        // Get paginated orders with filters
+        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
         $statistics = $this->orderRepo->getStatistics();
 
         return view('pages.orders.all-orders.index', compact('orders', 'statistics'));

@@ -5,16 +5,14 @@
 @section('page_subtitle', 'Product Management')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">{{ isset($product) ? 'Edit Product' : 'Add New Product' }}</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li><a href="{{ route('catalog.products.all-products') }}">Products</a></li>
-            <li class="opacity-80">{{ isset($product) ? 'Edit' : 'Add New' }}</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    :title="isset($product) ? 'Edit Product' : 'Add New Product'"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Products', 'url' => route('catalog.products.all-products')],
+        ['label' => isset($product) ? 'Edit' : 'Add New']
+    ]"
+/>
 
 <!-- Hidden product ID for JavaScript -->
 @if(isset($product))
@@ -80,136 +78,121 @@
 </div>
 
 <!-- Variant Modal -->
-<dialog id="variantModal" class="modal">
-    <div class="modal-box max-w-3xl">
-        <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
-
-        <div class="mb-6 px-2">
+<x-modal id="variantModal" size="max-w-3xl">
+    <x-slot name="title">
+        <div>
             <h3 class="font-bold text-lg" id="variantModalTitle">Add Variant</h3>
             <p class="text-sm text-base-content/70 mt-1">Define variant details for this product</p>
         </div>
+    </x-slot>
 
-        <form id="variantForm" class="space-y-6">
-            @csrf
-            <input type="hidden" id="variantId" name="variant_id">
-            <input type="hidden" id="variantMethod" value="POST">
+    <form id="variantForm" class="space-y-6">
+        @csrf
+        <input type="hidden" id="variantId" name="variant_id">
+        <input type="hidden" id="variantMethod" value="POST">
 
-            <!-- Basic Info -->
-            <div class="space-y-4">
-                <h4 class="font-semibold text-sm">Basic Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">SKU <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="sku" id="variantSku" class="input input-bordered w-full"
-                               placeholder="e.g., CTR-BL-6M" required>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Unique stock keeping unit</span>
-                        </label>
-                    </div>
+        <!-- Basic Info -->
+        <div class="space-y-4">
+            <h4 class="font-semibold text-sm">Basic Information</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form.input
+                    name="sku"
+                    id="variantSku"
+                    label="SKU"
+                    placeholder="e.g., CTR-BL-6M"
+                    required
+                    helper="Unique stock keeping unit"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Size <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="size" id="variantSize" class="input input-bordered w-full"
-                               placeholder="e.g., 6M, 12M, 2Y" required>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Product size</span>
-                        </label>
-                    </div>
+                <x-form.input
+                    name="size"
+                    id="variantSize"
+                    label="Size"
+                    placeholder="e.g., 6M, 12M, 2Y"
+                    required
+                    helper="Product size"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Color</span>
-                        </label>
-                        <input type="text" name="color" id="variantColor" class="input input-bordered w-full"
-                               placeholder="e.g., Blue">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Optional color variant</span>
-                        </label>
-                    </div>
+                <x-form.input
+                    name="color"
+                    id="variantColor"
+                    label="Color"
+                    placeholder="e.g., Blue"
+                    helper="Optional color variant"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Weight (gram) <span class="text-error">*</span></span>
-                        </label>
-                        <input type="number" name="weight_gram" id="variantWeight" class="input input-bordered w-full"
-                               placeholder="e.g., 150" required min="1">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">For shipping calculation</span>
-                        </label>
-                    </div>
-                </div>
+                <x-form.input
+                    type="number"
+                    name="weight_gram"
+                    id="variantWeight"
+                    label="Weight (gram)"
+                    placeholder="e.g., 150"
+                    required
+                    min="1"
+                    helper="For shipping calculation"
+                />
             </div>
+        </div>
 
-            <!-- Pricing & Stock -->
-            <div class="space-y-4">
-                <h4 class="font-semibold text-sm">Pricing & Inventory</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Price <span class="text-error">*</span></span>
-                        </label>
-                        <input type="number" name="price" id="variantPrice" class="input input-bordered w-full"
-                               placeholder="e.g., 125000" required min="0" step="1000">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Selling price</span>
-                        </label>
-                    </div>
+        <!-- Pricing & Stock -->
+        <div class="space-y-4">
+            <h4 class="font-semibold text-sm">Pricing & Inventory</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form.input
+                    type="number"
+                    name="price"
+                    id="variantPrice"
+                    label="Price"
+                    placeholder="e.g., 125000"
+                    required
+                    min="0"
+                    step="1000"
+                    helper="Selling price"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Compare At Price</span>
-                        </label>
-                        <input type="number" name="compare_at_price" id="variantComparePrice" class="input input-bordered w-full"
-                               placeholder="e.g., 150000" min="0" step="1000">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Original price (for discounts)</span>
-                        </label>
-                    </div>
+                <x-form.input
+                    type="number"
+                    name="compare_at_price"
+                    id="variantComparePrice"
+                    label="Compare At Price"
+                    placeholder="e.g., 150000"
+                    min="0"
+                    step="1000"
+                    helper="Original price (for discounts)"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Stock Quantity <span class="text-error">*</span></span>
-                        </label>
-                        <input type="number" name="stock_quantity" id="variantStock" class="input input-bordered w-full"
-                               placeholder="e.g., 50" required min="0">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Available stock</span>
-                        </label>
-                    </div>
+                <x-form.input
+                    type="number"
+                    name="stock_quantity"
+                    id="variantStock"
+                    label="Stock Quantity"
+                    placeholder="e.g., 50"
+                    required
+                    min="0"
+                    helper="Available stock"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Barcode</span>
-                        </label>
-                        <input type="text" name="barcode" id="variantBarcode" class="input input-bordered w-full"
-                               placeholder="e.g., 1234567890123">
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Product barcode (optional)</span>
-                        </label>
-                    </div>
-                </div>
+                <x-form.input
+                    name="barcode"
+                    id="variantBarcode"
+                    label="Barcode"
+                    placeholder="e.g., 1234567890123"
+                    helper="Product barcode (optional)"
+                />
             </div>
-
-            <!-- Actions -->
-            <div class="flex justify-end gap-2">
-                <button type="button" class="btn btn-ghost" onclick="variantModal.close()">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="variantSubmitBtn">
-                    <span class="iconify lucide--save size-4"></span>
-                    Save Variant
-                </button>
-            </div>
-        </form>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        </div>
     </form>
-</dialog>
+
+    <x-slot name="footer">
+        <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-ghost" onclick="variantModal.close()">Cancel</button>
+            <button type="submit" form="variantForm" class="btn btn-primary" id="variantSubmitBtn">
+                <span class="iconify lucide--save size-4"></span>
+                Save Variant
+            </button>
+        </div>
+    </x-slot>
+</x-modal>
 @endsection
 
 @section('customjs')

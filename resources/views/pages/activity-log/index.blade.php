@@ -5,16 +5,14 @@
 @section('page_subtitle', 'System Activity Monitoring')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Activity Logs</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Access Control</li>
-            <li class="opacity-80">Activity Logs</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Activity Logs"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Access Control'],
+        ['label' => 'Activity Logs']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">

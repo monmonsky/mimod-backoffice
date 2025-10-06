@@ -42,7 +42,7 @@
                     <p class="text-xs text-success mt-2">Currently active</p>
                 </div>
                 <div class="bg-success/10 rounded-full p-3">
-                    <span class="iconify lucide--check-circle size-6 text-success"></span>
+                    <span class="iconify lucide--check-circle-2 size-6 text-success"></span>
                 </div>
             </div>
         </div>

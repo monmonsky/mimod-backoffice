@@ -350,7 +350,7 @@
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
-                            <span class="iconify lucide--check-circle size-5 text-base-content/60 mt-0.5"></span>
+                            <span class="iconify lucide--check-circle-2 size-5 text-base-content/60 mt-0.5"></span>
                             <div class="flex-1">
                                 <p class="text-xs text-base-content/60">Account Status</p>
                                 <p class="font-medium">Active</p>

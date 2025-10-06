@@ -15,9 +15,14 @@ class ShippedOrdersController extends Controller
         $this->orderRepo = $orderRepo;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = $this->orderRepo->getByStatus('shipped');
+        // Get filters
+        $filters = $request->only(['order_number', 'customer', 'tracking', 'date_from']);
+        $filters['status'] = 'shipped';
+
+        // Get paginated orders with filters
+        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
         $statistics = $this->orderRepo->getStatistics();
 
         return view('pages.orders.shipped-orders.index', compact('orders', 'statistics'));

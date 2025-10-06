@@ -5,47 +5,83 @@
 @section('page_subtitle', 'Shipped Orders')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Shipped Orders</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Orders</li>
-            <li class="opacity-80">Shipped Orders</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Shipped Orders"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Orders'],
+        ['label' => 'Shipped Orders']
+    ]"
+/>
 
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Shipped Orders</p>
-                    <p class="text-2xl font-semibold mt-1 text-primary">{{ $statistics->shipped_count ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">On delivery</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--truck size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Shipped Orders"
+        :value="$statistics->shipped_count ?? 0"
+        subtitle="On delivery"
+        icon="truck"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Value</p>
-                    <p class="text-2xl font-semibold mt-1">Rp {{ number_format($orders->sum('total_amount') ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Shipped orders value</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--dollar-sign size-5 text-success"></span>
-                </div>
+    <x-stat-card
+        title="Total Value"
+        :value="'Rp ' . number_format($orders->sum('total_amount') ?? 0, 0, ',', '.')"
+        subtitle="Shipped orders value"
+        icon="badge-dollar-sign"
+        icon-color="success"
+    />
+</div>
+
+<!-- Filter Section -->
+<div class="mt-6">
+    <x-filter-section
+        title="Filter Shipped Orders"
+        :action="route('orders.shipped-orders.index')"
+        method="GET"
+    >
+        <x-slot name="filters">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <x-form.input
+                    name="order_number"
+                    label="Order Number"
+                    placeholder="Search by order number"
+                    :value="request('order_number')"
+                />
+
+                <x-form.input
+                    name="customer"
+                    label="Customer"
+                    placeholder="Search by customer name/email"
+                    :value="request('customer')"
+                />
+
+                <x-form.input
+                    name="tracking"
+                    label="Tracking Number"
+                    placeholder="Search by tracking"
+                    :value="request('tracking')"
+                />
+
+                <x-form.input
+                    name="date_from"
+                    label="Shipped From"
+                    type="date"
+                    :value="request('date_from')"
+                />
             </div>
-        </div>
-    </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <span class="iconify lucide--filter size-4"></span>
+                Apply Filter
+            </button>
+            <a href="{{ route('orders.shipped-orders.index') }}" class="btn btn-ghost btn-sm">
+                <span class="iconify lucide--x size-4"></span>
+                Reset
+            </a>
+        </x-slot>
+    </x-filter-section>
 </div>
 
 <div class="mt-6">
@@ -54,7 +90,7 @@
             <div class="flex flex-col gap-4 px-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <label class="input input-sm">
                     <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
-                    <input class="w-24 sm:w-36" placeholder="Search orders" type="search" id="searchInput" />
+                    <input class="w-24 sm:w-36" placeholder="Quick search..." type="search" id="searchInput" />
                 </label>
             </div>
 
@@ -95,8 +131,8 @@
                             </td>
                             <td class="text-right">
                                 @if(hasPermission('orders.shipped-orders.complete'))
-                                <button onclick="completeOrder({{ $order->id }})" class="btn btn-xs btn-success">
-                                    <span class="iconify lucide--check-circle size-3"></span>
+                                <button class="btn btn-xs btn-success complete-order-btn" data-id="{{ $order->id }}">
+                                    <span class="iconify lucide--check-circle-2 size-3"></span>
                                     Complete
                                 </button>
                                 @endif
@@ -115,62 +151,14 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <x-pagination-info :paginator="$orders" />
         </div>
     </div>
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    // Toast Helper
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-md shadow-lg`;
-        toast.innerHTML = `
-            <span class="iconify ${type === 'success' ? 'lucide--check-circle' : 'lucide--x-circle'} size-5"></span>
-            <span>${message}</span>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.3s';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Search
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        document.querySelectorAll('#ordersTable tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
-        });
-    });
-
-    // Complete Order
-    async function completeOrder(id) {
-        if (!confirm('Mark this order as completed?')) return;
-
-        try {
-            const response = await fetch(`/orders/shipped-orders/${id}/complete`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Failed to complete order', 'error');
-        }
-    }
-</script>
-@endpush
+@section('customjs')
+@vite(['resources/js/modules/orders/shipped-orders/index.js'])
+@endsection

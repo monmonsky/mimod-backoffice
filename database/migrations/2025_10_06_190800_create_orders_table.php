@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 50)->unique();
-            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('user_id')->nullable()->comment('Admin user who processed the order');
 
             // Order Status
             $table->enum('status', ['pending', 'processing', 'shipped', 'completed', 'cancelled'])->default('pending');
@@ -51,10 +52,12 @@ return new class extends Migration
             $table->timestamps();
 
             // Foreign Keys
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
 
             // Indexes
             $table->index('order_number');
+            $table->index('customer_id');
             $table->index('user_id');
             $table->index('status');
             $table->index('payment_status');

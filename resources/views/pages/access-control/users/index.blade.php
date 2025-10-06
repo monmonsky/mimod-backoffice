@@ -5,78 +5,48 @@
 @section('page_subtitle', 'User Management')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">User Management</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Access Control</li>
-            <li class="opacity-80">Users</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="User Management"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Access Control'],
+        ['label' => 'Users']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Users</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All registered users</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--users size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Users"
+        :value="$statistics['total']"
+        subtitle="All registered users"
+        icon="users"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Active Users</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics['active'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Currently active</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--user-check size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Active Users"
+        :value="$statistics['active']"
+        subtitle="Currently active"
+        icon="user-round-check"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Inactive Users</p>
-                    <p class="text-2xl font-semibold mt-1 text-error">{{ $statistics['inactive'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Not active</p>
-                </div>
-                <div class="bg-error/10 p-3 rounded-lg">
-                    <span class="iconify lucide--user-x size-5 text-error"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Inactive Users"
+        :value="$statistics['inactive']"
+        subtitle="Not active"
+        icon="user-round-x"
+        icon-color="error"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">With Roles</p>
-                    <p class="text-2xl font-semibold mt-1 text-info">{{ $statistics['with_roles'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Assigned roles</p>
-                </div>
-                <div class="bg-info/10 p-3 rounded-lg">
-                    <span class="iconify lucide--shield-check size-5 text-info"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="With Roles"
+        :value="$statistics['with_roles']"
+        subtitle="Assigned roles"
+        icon="shield-check"
+        icon-color="info"
+    />
 </div>
 
 <div class="mt-6">

@@ -169,6 +169,60 @@ Route::middleware('auth.token')->group(function () {
             ->middleware('permission:reports.inventory.export');
     });
 
+    // Customers Management
+    Route::group(['prefix' => 'customers'], function () {
+        // All Customers
+        Route::get('/all-customers', 'App\Http\Controllers\Customers\AllCustomersController@index')
+            ->name('customers.all-customers.index')
+            ->middleware('permission:customers.all-customers.view');
+        Route::get('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@show')
+            ->name('customers.all-customers.show')
+            ->middleware('permission:customers.all-customers.view');
+        Route::get('/all-customers/{id}/detail', 'App\Http\Controllers\Customers\AllCustomersController@detail')
+            ->name('customers.all-customers.detail')
+            ->middleware('permission:customers.all-customers.view');
+        Route::post('/all-customers', 'App\Http\Controllers\Customers\AllCustomersController@store')
+            ->name('customers.all-customers.store')
+            ->middleware('permission:customers.all-customers.create');
+        Route::put('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@update')
+            ->name('customers.all-customers.update')
+            ->middleware('permission:customers.all-customers.update');
+        Route::delete('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@destroy')
+            ->name('customers.all-customers.destroy')
+            ->middleware('permission:customers.all-customers.delete');
+        Route::post('/all-customers/{id}/toggle-status', 'App\Http\Controllers\Customers\AllCustomersController@toggleStatus')
+            ->name('customers.all-customers.toggle-status')
+            ->middleware('permission:customers.all-customers.update');
+
+        // Customer Segments
+        Route::get('/customer-segments', 'App\Http\Controllers\Customers\CustomerSegmentsController@index')
+            ->name('customers.customer-segments.index')
+            ->middleware('permission:customers.customer-segments.view');
+        Route::get('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@show')
+            ->name('customers.customer-segments.show')
+            ->middleware('permission:customers.customer-segments.view');
+        Route::post('/customer-segments', 'App\Http\Controllers\Customers\CustomerSegmentsController@store')
+            ->name('customers.customer-segments.store')
+            ->middleware('permission:customers.customer-segments.create');
+        Route::put('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@update')
+            ->name('customers.customer-segments.update')
+            ->middleware('permission:customers.customer-segments.update');
+        Route::delete('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@destroy')
+            ->name('customers.customer-segments.destroy')
+            ->middleware('permission:customers.customer-segments.delete');
+        Route::post('/customer-segments/{id}/recalculate', 'App\Http\Controllers\Customers\CustomerSegmentsController@recalculateCustomers')
+            ->name('customers.customer-segments.recalculate')
+            ->middleware('permission:customers.customer-segments.update');
+
+        // VIP Customers
+        Route::get('/vip-customers', 'App\Http\Controllers\Customers\VipCustomersController@index')
+            ->name('customers.vip-customers.index')
+            ->middleware('permission:customers.vip-customers.view');
+        Route::post('/vip-customers/{id}/toggle-vip', 'App\Http\Controllers\Customers\VipCustomersController@toggleVip')
+            ->name('customers.vip-customers.toggle-vip')
+            ->middleware('permission:customers.vip-customers.manage');
+    });
+
     // Orders Management
     Route::group(['prefix' => 'orders'], function () {
         // All Orders

@@ -15,9 +15,14 @@ class PendingOrdersController extends Controller
         $this->orderRepo = $orderRepo;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = $this->orderRepo->getByStatus('pending');
+        // Get filters
+        $filters = $request->only(['order_number', 'customer', 'date_from']);
+        $filters['status'] = 'pending';
+
+        // Get paginated orders with filters
+        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
         $statistics = $this->orderRepo->getStatistics();
 
         return view('pages.orders.pending-orders.index', compact('orders', 'statistics'));

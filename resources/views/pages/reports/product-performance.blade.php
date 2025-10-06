@@ -106,7 +106,7 @@
                     <p class="text-xs text-info mt-2">86.7% of total</p>
                 </div>
                 <div class="bg-info/10 rounded-full p-3">
-                    <span class="iconify lucide--check-circle size-6 text-info"></span>
+                    <span class="iconify lucide--check-circle-2 size-6 text-info"></span>
                 </div>
             </div>
         </div>

@@ -5,78 +5,107 @@
 @section('page_subtitle', 'All Orders')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">All Orders</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Orders</li>
-            <li class="opacity-80">All Orders</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="All Orders"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Orders'],
+        ['label' => 'All Orders']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Orders</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics->total_orders ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All time</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--shopping-cart size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Orders"
+        :value="$statistics->total_orders ?? 0"
+        subtitle="All time"
+        icon="shopping-cart"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Pending</p>
-                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics->pending_count ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Awaiting confirmation</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--clock size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Pending"
+        :value="$statistics->pending_count ?? 0"
+        subtitle="Awaiting confirmation"
+        icon="clock"
+        icon-color="warning"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Processing</p>
-                    <p class="text-2xl font-semibold mt-1 text-info">{{ $statistics->processing_count ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Being prepared</p>
-                </div>
-                <div class="bg-info/10 p-3 rounded-lg">
-                    <span class="iconify lucide--package size-5 text-info"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Processing"
+        :value="$statistics->processing_count ?? 0"
+        subtitle="Being prepared"
+        icon="package"
+        icon-color="info"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Completed</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics->completed_count ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Successfully delivered</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
+    <x-stat-card
+        title="Completed"
+        :value="$statistics->completed_count ?? 0"
+        subtitle="Successfully delivered"
+        icon="check-circle-2"
+        icon-color="success"
+    />
+</div>
+
+<!-- Filter Section -->
+<div class="mt-6">
+    <x-filter-section
+        title="Filter Orders"
+        :action="route('orders.all-orders.index')"
+        method="GET"
+    >
+        <x-slot name="filters">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <x-form.input
+                    name="order_number"
+                    label="Order Number"
+                    placeholder="Search by order number"
+                    :value="request('order_number')"
+                />
+
+                <x-form.input
+                    name="customer"
+                    label="Customer"
+                    placeholder="Search by customer name/email"
+                    :value="request('customer')"
+                />
+
+                <x-form.select
+                    name="status"
+                    label="Status"
+                    :options="[
+                        '' => 'All Status',
+                        'pending' => 'Pending',
+                        'processing' => 'Processing',
+                        'shipped' => 'Shipped',
+                        'completed' => 'Completed',
+                        'cancelled' => 'Cancelled'
+                    ]"
+                    :value="request('status')"
+                />
+
+                <x-form.input
+                    name="date_from"
+                    label="Date From"
+                    type="date"
+                    :value="request('date_from')"
+                />
             </div>
-        </div>
-    </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <span class="iconify lucide--filter size-4"></span>
+                Apply Filter
+            </button>
+            <a href="{{ route('orders.all-orders.index') }}" class="btn btn-ghost btn-sm">
+                <span class="iconify lucide--x size-4"></span>
+                Reset
+            </a>
+        </x-slot>
+    </x-filter-section>
 </div>
 
 <!-- Orders Table -->
@@ -89,26 +118,13 @@
                         <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
                         <input
                             class="w-24 sm:w-36"
-                            placeholder="Search orders"
+                            placeholder="Quick search..."
                             type="search"
                             id="searchInput" />
                     </label>
-
-                    <select class="select select-sm select-bordered" id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
                 </div>
 
                 <div class="inline-flex items-center gap-2">
-                    <button class="btn btn-sm btn-ghost">
-                        <span class="iconify lucide--filter size-4"></span>
-                        Filter
-                    </button>
                     @if(hasPermission('orders.all-orders.export'))
                     <button class="btn btn-sm btn-ghost">
                         <span class="iconify lucide--download size-4"></span>
@@ -157,16 +173,16 @@
                             </td>
                             <td>
                                 @php
-                                    $statusColors = [
-                                        'pending' => 'badge-warning',
-                                        'processing' => 'badge-info',
-                                        'shipped' => 'badge-primary',
-                                        'completed' => 'badge-success',
-                                        'cancelled' => 'badge-error'
+                                    $statusMap = [
+                                        'pending' => 'warning',
+                                        'processing' => 'info',
+                                        'shipped' => 'primary',
+                                        'completed' => 'success',
+                                        'cancelled' => 'error'
                                     ];
-                                    $colorClass = $statusColors[$order->status] ?? 'badge-ghost';
+                                    $badgeType = $statusMap[$order->status] ?? 'ghost';
                                 @endphp
-                                <span class="badge badge-sm {{ $colorClass }}">{{ ucfirst($order->status) }}</span>
+                                <x-badge :type="$badgeType" :label="ucfirst($order->status)" />
                             </td>
                             <td>
                                 <div class="flex flex-col">
@@ -181,7 +197,7 @@
                                     </button>
                                     <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 z-10 border border-base-300">
                                         <li>
-                                            <a onclick="viewOrder({{ $order->id }})">
+                                            <a class="view-order-btn" data-id="{{ $order->id }}">
                                                 <span class="iconify lucide--eye size-4"></span>
                                                 View Details
                                             </a>
@@ -189,7 +205,7 @@
                                         @if(hasPermission('orders.all-orders.update'))
                                             @if($order->status === 'pending')
                                             <li>
-                                                <a onclick="updateStatus({{ $order->id }}, 'processing')">
+                                                <a class="update-status-btn" data-id="{{ $order->id }}" data-status="processing">
                                                     <span class="iconify lucide--check size-4"></span>
                                                     Confirm Order
                                                 </a>
@@ -199,10 +215,14 @@
                                         @if(hasPermission('orders.all-orders.delete'))
                                             @if(in_array($order->status, ['pending', 'cancelled']))
                                             <li>
-                                                <a onclick="deleteOrder({{ $order->id }})" class="text-error">
-                                                    <span class="iconify lucide--trash-2 size-4"></span>
-                                                    Delete
-                                                </a>
+                                                <form action="{{ route('orders.all-orders.destroy', $order->id) }}" method="POST" class="delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-error w-full text-left">
+                                                        <span class="iconify lucide--trash-2 size-4"></span>
+                                                        Delete
+                                                    </button>
+                                                </form>
                                             </li>
                                             @endif
                                         @endif
@@ -223,227 +243,30 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <x-pagination-info :paginator="$orders" />
         </div>
     </div>
 </div>
 
 <!-- Order Detail Modal -->
-<dialog id="orderDetailModal" class="modal">
-    <div class="modal-box max-w-4xl">
-        <h3 class="font-bold text-lg mb-4">Order Details</h3>
-        <div id="orderDetailContent">
-            <!-- Order details will be loaded here -->
-        </div>
-        <div class="modal-action">
-            <form method="dialog">
-                <button class="btn">Close</button>
-            </form>
-        </div>
+<x-modal id="orderDetailModal" size="max-w-4xl">
+    <x-slot name="title">
+        <h3 class="font-bold text-lg">Order Details</h3>
+    </x-slot>
+
+    <div id="orderDetailContent">
+        <!-- Order details will be loaded here -->
     </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
+
+    <x-slot name="footer">
+        <button type="button" class="btn btn-ghost" onclick="orderDetailModal.close()">Close</button>
+    </x-slot>
+</x-modal>
 
 @endsection
 
-@push('scripts')
-<script>
-    // Toast Notification Helper
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-md shadow-lg`;
-        toast.innerHTML = `
-            <span class="iconify ${type === 'success' ? 'lucide--check-circle' : type === 'error' ? 'lucide--x-circle' : 'lucide--info'} size-5"></span>
-            <span>${message}</span>
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.3s';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Loading Helper
-    function showLoading(button) {
-        button.disabled = true;
-        button.dataset.originalHtml = button.innerHTML;
-        button.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Loading...';
-    }
-
-    function hideLoading(button) {
-        button.disabled = false;
-        button.innerHTML = button.dataset.originalHtml;
-    }
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#ordersTable tr');
-
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-    });
-
-    // Status filter
-    document.getElementById('statusFilter').addEventListener('change', function() {
-        const status = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#ordersTable tr');
-
-        rows.forEach(row => {
-            if (!status) {
-                row.style.display = '';
-                return;
-            }
-            const statusBadge = row.querySelector('.badge');
-            const rowStatus = statusBadge ? statusBadge.textContent.toLowerCase() : '';
-            row.style.display = rowStatus.includes(status) ? '' : 'none';
-        });
-    });
-
-    // View order details
-    async function viewOrder(id) {
-        const modal = document.getElementById('orderDetailModal');
-        const content = document.getElementById('orderDetailContent');
-
-        content.innerHTML = '<div class="flex justify-center py-8"><span class="loading loading-spinner loading-lg"></span></div>';
-        modal.showModal();
-
-        try {
-            const response = await fetch(`/orders/all-orders/${id}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                const order = data.data;
-                content.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm opacity-60">Order Number</p>
-                                <p class="font-semibold">${order.order_number}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm opacity-60">Status</p>
-                                <p><span class="badge badge-${order.status === 'completed' ? 'success' : order.status === 'cancelled' ? 'error' : 'warning'}">${order.status}</span></p>
-                            </div>
-                            <div>
-                                <p class="text-sm opacity-60">Customer</p>
-                                <p class="font-semibold">${order.customer_name}</p>
-                                <p class="text-xs opacity-60">${order.customer_email}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm opacity-60">Total Amount</p>
-                                <p class="font-semibold text-lg">Rp ${Number(order.total_amount).toLocaleString('id-ID')}</p>
-                            </div>
-                        </div>
-
-                        <div class="divider">Order Items</div>
-
-                        <div class="overflow-x-auto">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>SKU</th>
-                                        <th>Qty</th>
-                                        <th>Price</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${order.items.map(item => `
-                                        <tr>
-                                            <td>
-                                                <div>${item.product_name}</div>
-                                                <div class="text-xs opacity-60">${item.size || ''} ${item.color || ''}</div>
-                                            </td>
-                                            <td>${item.sku}</td>
-                                            <td>${item.quantity}</td>
-                                            <td>Rp ${Number(item.price).toLocaleString('id-ID')}</td>
-                                            <td>Rp ${Number(item.total).toLocaleString('id-ID')}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `<div class="alert alert-error">${data.message}</div>`;
-            }
-        } catch (error) {
-            content.innerHTML = `<div class="alert alert-error">Failed to load order details</div>`;
-        }
-    }
-
-    // Update order status
-    async function updateStatus(id, status) {
-        if (!confirm(`Are you sure you want to update this order status to ${status}?`)) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/orders/all-orders/${id}/status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ status })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Failed to update order status', 'error');
-        }
-    }
-
-    // Delete order
-    async function deleteOrder(id) {
-        if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/orders/all-orders/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.message, 'error');
-            }
-        } catch (error) {
-            showToast('Failed to delete order', 'error');
-        }
-    }
-</script>
-@endpush
+@section('customjs')
+@vite(['resources/js/modules/orders/all-orders/index.js'])
+@endsection

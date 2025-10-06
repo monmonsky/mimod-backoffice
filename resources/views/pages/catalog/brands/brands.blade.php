@@ -5,78 +5,48 @@
 @section('page_subtitle', 'Product Brands')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Product Brands</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Catalog</li>
-            <li class="opacity-80">Brands</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Product Brands"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Catalog'],
+        ['label' => 'Brands']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Brands</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All brands</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--tag size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Brands"
+        :value="$statistics['total']"
+        subtitle="All brands"
+        icon="badge-info"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Active</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics['active'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Published brands</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Active"
+        :value="$statistics['active']"
+        subtitle="Published brands"
+        icon="check-circle-2"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Inactive</p>
-                    <p class="text-2xl font-semibold mt-1 text-error">{{ $statistics['inactive'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Unpublished brands</p>
-                </div>
-                <div class="bg-error/10 p-3 rounded-lg">
-                    <span class="iconify lucide--x-circle size-5 text-error"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Inactive"
+        :value="$statistics['inactive']"
+        subtitle="Unpublished brands"
+        icon="x-circle"
+        icon-color="error"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Products</p>
-                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics['total_products'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Branded products</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--box size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Products"
+        :value="$statistics['total_products']"
+        subtitle="Branded products"
+        icon="box"
+        icon-color="warning"
+    />
 </div>
 
 <!-- Brands Table -->
@@ -142,11 +112,7 @@
                                 <span class="badge badge-sm badge-ghost">{{ $brand->product_count ?? 0 }} products</span>
                             </td>
                             <td>
-                                @if($brand->is_active)
-                                <span class="badge badge-success badge-sm">Active</span>
-                                @else
-                                <span class="badge badge-error badge-sm">Inactive</span>
-                                @endif
+                                <x-badge :type="$brand->is_active ? 'success' : 'error'" :label="$brand->is_active ? 'Active' : 'Inactive'" />
                             </td>
                             <td>
                                 <div class="inline-flex gap-2">
@@ -198,103 +164,93 @@
 </div>
 
 <!-- Add/Edit Brand Modal -->
-<dialog id="brandModal" class="modal">
-    <div class="modal-box max-w-3xl">
-        <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
-
-        <div class="mb-6">
+<x-modal id="brandModal" size="max-w-3xl">
+    <x-slot name="title">
+        <div>
             <h3 class="font-bold text-lg" id="modalTitle">Add Brand</h3>
             <p class="text-sm text-base-content/70 mt-1">Define brand details</p>
         </div>
+    </x-slot>
 
-        <form id="brandForm" class="space-y-6" enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" id="brandId" name="brand_id">
-            <input type="hidden" id="formMethod" value="POST">
+    <form id="brandForm" class="space-y-6" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" id="brandId" name="brand_id">
+        <input type="hidden" id="formMethod" value="POST">
 
-            <!-- Basic Information -->
-            <div class="space-y-4">
-                <h4 class="font-semibold text-sm">Basic Information</h4>
+        <!-- Basic Information -->
+        <div class="space-y-4">
+            <h4 class="font-semibold text-sm">Basic Information</h4>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Brand Name <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="name" id="brandName" class="input input-bordered w-full"
-                               placeholder="e.g., Carter's" required>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Full brand name</span>
-                        </label>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form.input
+                    name="name"
+                    id="brandName"
+                    label="Brand Name"
+                    placeholder="e.g., Carter's"
+                    required
+                    helper="Full brand name"
+                />
 
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Slug <span class="text-error">*</span></span>
-                        </label>
-                        <input type="text" name="slug" id="brandSlug" class="input input-bordered w-full"
-                               placeholder="e.g., carters" required>
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">Auto-generated from name</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Description</span>
-                    </label>
-                    <textarea name="description" id="brandDescription" class="textarea textarea-bordered h-20 w-full"
-                              placeholder="Brand description..."></textarea>
-                </div>
+                <x-form.input
+                    name="slug"
+                    id="brandSlug"
+                    label="Slug"
+                    placeholder="e.g., carters"
+                    required
+                    helper="Auto-generated from name"
+                />
             </div>
 
-            <!-- Brand Logo -->
-            <div class="space-y-4">
-                <h4 class="font-semibold text-sm">Brand Logo</h4>
+            <x-form.textarea
+                name="description"
+                id="brandDescription"
+                label="Description"
+                placeholder="Brand description..."
+                rows="3"
+            />
+        </div>
 
-                <div class="form-control">
-                    <input type="file" name="logo" id="brandLogo" class="file-input file-input-bordered w-full" accept="image/*">
-                    <label class="label">
-                        <span class="label-text-alt text-base-content/60">Max 2MB, recommended 200x200px</span>
-                    </label>
+        <!-- Brand Logo -->
+        <div class="space-y-4">
+            <h4 class="font-semibold text-sm">Brand Logo</h4>
 
-                    <!-- Logo Preview -->
-                    <div id="logoPreview" class="mt-3 hidden">
-                        <div class="border border-base-300 rounded-lg p-2 inline-block">
-                            <img src="" alt="Preview" class="w-32 h-32 object-cover rounded">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status -->
             <div class="form-control">
-                <label class="label cursor-pointer justify-start gap-3">
-                    <input type="checkbox" name="is_active" id="brandActive" class="checkbox" checked>
-                    <div>
-                        <span class="label-text font-medium">Active</span>
-                        <p class="text-xs text-base-content/60">Brand is visible and active</p>
-                    </div>
+                <input type="file" name="logo" id="brandLogo" class="file-input file-input-bordered w-full" accept="image/*">
+                <label class="label">
+                    <span class="label-text-alt text-base-content/60">Max 2MB, recommended 200x200px</span>
                 </label>
-            </div>
 
-            <!-- Actions -->
-            <div class="flex justify-end gap-2">
-                <button type="button" class="btn btn-ghost" onclick="brandModal.close()">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <span class="iconify lucide--save size-4"></span>
-                    Save Brand
-                </button>
+                <!-- Logo Preview -->
+                <div id="logoPreview" class="mt-3 hidden">
+                    <div class="border border-base-300 rounded-lg p-2 inline-block">
+                        <img src="" alt="Preview" class="w-32 h-32 object-cover rounded">
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        </div>
+
+        <!-- Status -->
+        <div class="form-control">
+            <label class="label cursor-pointer justify-start gap-3">
+                <input type="checkbox" name="is_active" id="brandActive" class="checkbox" checked>
+                <div>
+                    <span class="label-text font-medium">Active</span>
+                    <p class="text-xs text-base-content/60">Brand is visible and active</p>
+                </div>
+            </label>
+        </div>
     </form>
-</dialog>
+
+    <x-slot name="footer">
+        <div class="flex justify-end gap-2">
+            <button type="button" class="btn btn-ghost" onclick="brandModal.close()">Cancel</button>
+            <button type="submit" form="brandForm" class="btn btn-primary" id="submitBtn">
+                <span class="iconify lucide--save size-4"></span>
+                Save Brand
+            </button>
+        </div>
+    </x-slot>
+</x-modal>
 @endsection
 
 @section('customjs')

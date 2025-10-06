@@ -5,111 +5,189 @@
 @section('page_subtitle', 'All Products')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">All Products</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Catalog</li>
-            <li class="opacity-80">All Products</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="All Products"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Catalog'],
+        ['label' => 'All Products']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Products</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All products</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--package size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Products"
+        :value="$statistics['total']"
+        subtitle="All products"
+        icon="package"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Active</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics['active'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Published products</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Active"
+        :value="$statistics['active']"
+        subtitle="Published products"
+        icon="check-circle-2"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Low Stock</p>
-                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics['low_stock'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Items below 10</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--alert-triangle size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Low Stock"
+        :value="$statistics['low_stock']"
+        subtitle="Items below 10"
+        icon="triangle-alert"
+        icon-color="warning"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Stock</p>
-                    <p class="text-2xl font-semibold mt-1 text-info">{{ number_format($statistics['total_stock']) }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All variants</p>
-                </div>
-                <div class="bg-info/10 p-3 rounded-lg">
-                    <span class="iconify lucide--boxes size-5 text-info"></span>
-                </div>
+    <x-stat-card
+        title="Total Stock"
+        :value="number_format($statistics['total_stock'])"
+        subtitle="All variants"
+        icon="package"
+        icon-color="info"
+    />
+</div>
+
+<!-- Filter Section -->
+<div class="mt-6">
+    <div class="bg-base-100 card shadow">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium">Filter Products</h3>
+                @if(hasPermission('catalog.products.add-products.create'))
+                <a href="{{ route('catalog.products.add-products') }}" class="btn btn-primary btn-sm">
+                    <span class="iconify lucide--plus"></span>
+                    Add Product
+                </a>
+                @endif
             </div>
+
+            <form action="{{ route('catalog.products.all-products') }}" method="GET">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Product Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Name</span>
+                        </label>
+                        <input type="text" name="name" placeholder="Search by name"
+                               class="input input-bordered input-sm w-full"
+                               value="{{ request('name') }}">
+                    </div>
+
+                    <!-- Brand -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Brand</span>
+                        </label>
+                        <select name="brand" class="select select-bordered select-sm w-full">
+                            <option value="">All Brands</option>
+                            @if(isset($brands) && $brands)
+                                @foreach($brands as $brand)
+                                <option value="{{ $brand->id }}" {{ request('brand') == $brand->id ? 'selected' : '' }}>
+                                    {{ $brand->name }}
+                                </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Category</span>
+                        </label>
+                        <select name="category" class="select select-bordered select-sm w-full">
+                            <option value="">All Categories</option>
+                            @if(isset($categories) && $categories)
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+
+                    <!-- Variants -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Variants</span>
+                        </label>
+                        <select name="has_variants" class="select select-bordered select-sm w-full">
+                            <option value="">All Products</option>
+                            <option value="yes" {{ request('has_variants') == 'yes' ? 'selected' : '' }}>With Variants</option>
+                            <option value="no" {{ request('has_variants') == 'no' ? 'selected' : '' }}>Without Variants</option>
+                        </select>
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Stock</span>
+                        </label>
+                        <select name="stock" class="select select-bordered select-sm w-full">
+                            <option value="">All Stock</option>
+                            <option value="in_stock" {{ request('stock') == 'in_stock' ? 'selected' : '' }}>In Stock</option>
+                            <option value="low_stock" {{ request('stock') == 'low_stock' ? 'selected' : '' }}>Low Stock (&lt; 10)</option>
+                            <option value="out_of_stock" {{ request('stock') == 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
+                        </select>
+                    </div>
+
+                    <!-- Min Price -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Min Price</span>
+                        </label>
+                        <input type="number" name="min_price" placeholder="0"
+                               class="input input-bordered input-sm w-full"
+                               value="{{ request('min_price') }}" min="0">
+                    </div>
+
+                    <!-- Max Price -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Max Price</span>
+                        </label>
+                        <input type="number" name="max_price" placeholder="999999999"
+                               class="input input-bordered input-sm w-full"
+                               value="{{ request('max_price') }}" min="0">
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Status</span>
+                        </label>
+                        <select name="status" class="select select-bordered select-sm w-full">
+                            <option value="">All Status</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <span class="iconify lucide--search size-4"></span>
+                        Apply Filter
+                    </button>
+                    <a href="{{ route('catalog.products.all-products') }}" class="btn btn-ghost btn-sm">
+                        <span class="iconify lucide--x size-4"></span>
+                        Reset
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <!-- Products Table -->
-<div class="mt-6">
+<div class="mt-4">
     <div class="bg-base-100 card shadow">
         <div class="card-body p-0">
-            <div class="flex flex-col gap-4 px-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <div class="inline-flex items-center gap-3 flex-wrap">
-                    <label class="input input-sm">
-                        <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
-                        <input
-                            class="w-24 sm:w-36"
-                            placeholder="Search products"
-                            type="search"
-                            id="searchInput" />
-                    </label>
-
-                    <select class="select select-sm select-bordered" id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="draft">Draft</option>
-                    </select>
-                </div>
-                <div class="inline-flex items-center gap-3">
-                    @if(hasPermission('catalog.products.add-products.create'))
-                    <a href="{{ route('catalog.products.add-products') }}" class="btn btn-primary btn-sm">
-                        <span class="iconify lucide--plus"></span>
-                        Add Product
-                    </a>
-                    @endif
-                </div>
-            </div>
 
             <div class="mt-4 overflow-auto">
                 <table class="table" id="productsTable">
@@ -158,7 +236,7 @@
                             <td>
                                 @if($product->categories && count($product->categories) > 0)
                                 <div class="flex flex-wrap gap-1">
-                                    @foreach(array_slice($product->categories, 0, 2) as $category)
+                                    @foreach($product->categories->take(2) as $category)
                                     <span class="badge badge-sm badge-ghost">{{ $category->name }}</span>
                                     @endforeach
                                     @if(count($product->categories) > 2)
@@ -195,11 +273,11 @@
                             </td>
                             <td>
                                 @if($product->status == 'active')
-                                <span class="badge badge-success badge-sm">Active</span>
+                                <x-badge type="success" label="Active" />
                                 @elseif($product->status == 'inactive')
-                                <span class="badge badge-error badge-sm">Inactive</span>
+                                <x-badge type="error" label="Inactive" />
                                 @else
-                                <span class="badge badge-ghost badge-sm">Draft</span>
+                                <x-badge type="ghost" label="Draft" />
                                 @endif
                             </td>
                             <td>
@@ -220,7 +298,7 @@
                                         </button>
                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                             <li><a class="change-status-btn" data-id="{{ $product->id }}" data-status="active">
-                                                <span class="iconify lucide--check-circle"></span> Set Active
+                                                <span class="iconify lucide--check-circle-2"></span> Set Active
                                             </a></li>
                                             <li><a class="change-status-btn" data-id="{{ $product->id }}" data-status="inactive">
                                                 <span class="iconify lucide--x-circle"></span> Set Inactive
@@ -258,6 +336,9 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Info & Links -->
+            <x-pagination-info :paginator="$products" />
         </div>
     </div>
 </div>

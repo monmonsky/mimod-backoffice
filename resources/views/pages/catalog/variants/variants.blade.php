@@ -5,78 +5,48 @@
 @section('page_subtitle', 'Product Variants')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Product Variants</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Catalog</li>
-            <li class="opacity-80">Variants</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Product Variants"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Catalog'],
+        ['label' => 'Variants']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Variants</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All variants</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--layers size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Variants"
+        :value="$statistics['total']"
+        subtitle="All variants"
+        icon="layers"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Stock</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ number_format($statistics['total_stock']) }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All variants</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--package size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Stock"
+        :value="number_format($statistics['total_stock'])"
+        subtitle="All variants"
+        icon="package"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Low Stock</p>
-                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics['low_stock'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Below 10 items</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--alert-triangle size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Low Stock"
+        :value="$statistics['low_stock']"
+        subtitle="Below 10 items"
+        icon="triangle-alert"
+        icon-color="warning"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Out of Stock</p>
-                    <p class="text-2xl font-semibold mt-1 text-error">{{ $statistics['out_of_stock'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Zero stock</p>
-                </div>
-                <div class="bg-error/10 p-3 rounded-lg">
-                    <span class="iconify lucide--x-circle size-5 text-error"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Out of Stock"
+        :value="$statistics['out_of_stock']"
+        subtitle="Zero stock"
+        icon="x-circle"
+        icon-color="error"
+    />
 </div>
 
 <!-- Info Alert -->
@@ -168,11 +138,11 @@
                             </td>
                             <td>
                                 @if($variant->stock_quantity == 0)
-                                <span class="badge badge-error badge-sm">Out of Stock</span>
+                                <x-badge type="error" label="Out of Stock" />
                                 @elseif($variant->stock_quantity <= 10)
-                                <span class="badge badge-warning badge-sm">{{ $variant->stock_quantity }} items</span>
+                                <x-badge type="warning" :label="$variant->stock_quantity . ' items'" />
                                 @else
-                                <span class="badge badge-success badge-sm">{{ $variant->stock_quantity }} items</span>
+                                <x-badge type="success" :label="$variant->stock_quantity . ' items'" />
                                 @endif
                             </td>
                             <td>

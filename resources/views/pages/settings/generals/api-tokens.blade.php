@@ -251,7 +251,7 @@
 <dialog id="tokenSuccessModal" class="modal">
     <div class="modal-box max-w-3xl">
         <h3 class="font-bold text-lg mb-4 text-success flex items-center gap-2">
-            <span class="iconify lucide--check-circle size-6"></span>
+            <span class="iconify lucide--check-circle-2 size-6"></span>
             Token Generated Successfully!
         </h3>
 

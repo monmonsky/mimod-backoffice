@@ -5,81 +5,47 @@
 @section('page_subtitle', 'Module Management')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Module Management</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li class="opacity-80">Modules</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Module Management"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Modules']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <!-- Total Modules -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Modules</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All menu modules</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--layout-grid size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Modules"
+        :value="$statistics['total']"
+        subtitle="All menu modules"
+        icon="layout-grid"
+        icon-color="primary"
+    />
 
-    <!-- Active Modules -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Active Modules</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['active'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Currently active</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Active Modules"
+        :value="$statistics['active']"
+        subtitle="Currently active"
+        icon="check-circle-2"
+        icon-color="success"
+    />
 
-    <!-- Visible Modules -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Visible in Menu</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['visible'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Shown in sidebar</p>
-                </div>
-                <div class="bg-info/10 p-3 rounded-lg">
-                    <span class="iconify lucide--eye size-5 text-info"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Visible in Menu"
+        :value="$statistics['visible']"
+        subtitle="Shown in sidebar"
+        icon="eye"
+        icon-color="info"
+    />
 
-    <!-- Parent Modules -->
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Parent Modules</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['parents'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Root level items</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--folder-tree size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Parent Modules"
+        :value="$statistics['parents']"
+        subtitle="Root level items"
+        icon="folders"
+        icon-color="warning"
+    />
 </div>
 
 <!-- Save Button (Hidden by default) -->

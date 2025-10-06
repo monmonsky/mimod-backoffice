@@ -15,6 +15,7 @@ interface OrderRepositoryInterface
     public function delete($id);
     public function updateStatus($id, $status);
     public function getByStatus($status);
+    public function getAllWithRelationsPaginated(array $filters = [], $perPage = 15);
     public function getStatistics();
     public function getOrderItems($orderId);
     public function createOrderItem(array $data);

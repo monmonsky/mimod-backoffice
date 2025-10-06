@@ -20,8 +20,8 @@ class OrderRepository implements OrderRepositoryInterface
     public function getAll()
     {
         return $this->table()
-            ->select('orders.*', 'users.name as customer_name', 'users.email as customer_email')
-            ->leftJoin('users', 'orders.user_id', '=', 'users.id')
+            ->select('orders.*', 'customers.name as customer_name', 'customers.email as customer_email')
+            ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
             ->orderBy('orders.created_at', 'desc')
             ->get();
     }
@@ -85,8 +85,8 @@ class OrderRepository implements OrderRepositoryInterface
     public function findByIdWithRelations($id)
     {
         $order = $this->table()
-            ->select('orders.*', 'users.name as customer_name', 'users.email as customer_email', 'users.phone as customer_phone')
-            ->leftJoin('users', 'orders.user_id', '=', 'users.id')
+            ->select('orders.*', 'customers.name as customer_name', 'customers.email as customer_email', 'customers.phone as customer_phone')
+            ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
             ->where('orders.id', $id)
             ->first();
 
@@ -147,11 +147,74 @@ class OrderRepository implements OrderRepositoryInterface
     public function getByStatus($status)
     {
         return $this->table()
-            ->select('orders.*', 'users.name as customer_name', 'users.email as customer_email')
-            ->leftJoin('users', 'orders.user_id', '=', 'users.id')
+            ->select('orders.*', 'customers.name as customer_name', 'customers.email as customer_email')
+            ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
             ->where('orders.status', $status)
             ->orderBy('orders.created_at', 'desc')
             ->get();
+    }
+
+    public function getAllWithRelationsPaginated(array $filters = [], $perPage = 15)
+    {
+        $query = $this->table()
+            ->select('orders.*', 'customers.name as customer_name', 'customers.email as customer_email')
+            ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id');
+
+        // Apply filters
+        if (!empty($filters['order_number'])) {
+            $query->where('orders.order_number', 'like', '%' . $filters['order_number'] . '%');
+        }
+
+        if (!empty($filters['customer'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('customers.name', 'like', '%' . $filters['customer'] . '%')
+                  ->orWhere('customers.email', 'like', '%' . $filters['customer'] . '%');
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('orders.status', $filters['status']);
+        }
+
+        if (!empty($filters['tracking'])) {
+            $query->where('orders.tracking_number', 'like', '%' . $filters['tracking'] . '%');
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('orders.created_at', '>=', $filters['date_from']);
+        }
+
+        // Paginate
+        $orders = $query->orderBy('orders.created_at', 'desc')
+                       ->paginate($perPage)
+                       ->appends(request()->query());
+
+        if ($orders->isEmpty()) {
+            return $orders;
+        }
+
+        $orderIds = $orders->pluck('id')->toArray();
+
+        // Batch load items count
+        $orderStats = DB::table('order_items')
+            ->whereIn('order_id', $orderIds)
+            ->select(
+                'order_id',
+                DB::raw('COUNT(*) as items_count'),
+                DB::raw('SUM(quantity) as total_items')
+            )
+            ->groupBy('order_id')
+            ->get()
+            ->keyBy('order_id');
+
+        // Assign data to orders
+        foreach ($orders as $order) {
+            $stats = $orderStats[$order->id] ?? null;
+            $order->items_count = $stats->items_count ?? 0;
+            $order->total_items = $stats->total_items ?? 0;
+        }
+
+        return $orders;
     }
 
     public function getStatistics()

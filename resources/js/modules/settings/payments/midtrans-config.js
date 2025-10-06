@@ -268,7 +268,7 @@ function showSyncResultModal(data) {
 
                 <div class="space-y-4">
                     <div class="alert alert-success">
-                        <span class="iconify lucide--check-circle size-5"></span>
+                        <span class="iconify lucide--check-circle-2 size-5"></span>
                         <span>${data.message}</span>
                     </div>
 

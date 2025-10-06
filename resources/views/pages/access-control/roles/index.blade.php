@@ -5,78 +5,48 @@
 @section('page_subtitle', 'Role Management')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Role Management</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Access Control</li>
-            <li class="opacity-80">Roles</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Role Management"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Access Control'],
+        ['label' => 'Roles']
+    ]"
+/>
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Roles</p>
-                    <p class="text-2xl font-semibold mt-1">{{ $statistics['total'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">All defined roles</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--shield size-5 text-primary"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Total Roles"
+        :value="$statistics['total']"
+        subtitle="All defined roles"
+        icon="shield"
+        icon-color="primary"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Active Roles</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics['active'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Currently in use</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Active Roles"
+        :value="$statistics['active']"
+        subtitle="Currently in use"
+        icon="check-circle-2"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">System Roles</p>
-                    <p class="text-2xl font-semibold mt-1 text-warning">{{ $statistics['system'] }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Protected roles</p>
-                </div>
-                <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--lock size-5 text-warning"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="System Roles"
+        :value="$statistics['system']"
+        subtitle="Protected roles"
+        icon="lock"
+        icon-color="warning"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Users Assigned</p>
-                    <p class="text-2xl font-semibold mt-1 text-info">{{ number_format($statistics['users_assigned']) }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Total assignments</p>
-                </div>
-                <div class="bg-info/10 p-3 rounded-lg">
-                    <span class="iconify lucide--users size-5 text-info"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Users Assigned"
+        :value="number_format($statistics['users_assigned'])"
+        subtitle="Total assignments"
+        icon="users"
+        icon-color="info"
+    />
 </div>
 
 <div class="mt-6">
@@ -202,60 +172,55 @@
 </div>
 
 <!-- Role Detail Modal -->
-<dialog id="roleDetailModal" class="modal">
-    <div class="modal-box w-11/12 max-w-3xl">
-        <form method="dialog">
-            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-        </form>
+<x-modal id="roleDetailModal" title="Role Details" size="max-w-3xl">
+    <!-- Loading State -->
+    <div id="modalLoading" class="flex justify-center items-center py-12">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
 
-        <h3 class="font-bold text-lg mb-4">Role Details</h3>
-
-        <!-- Loading State -->
-        <div id="modalLoading" class="flex justify-center items-center py-12">
-            <span class="loading loading-spinner loading-lg text-primary"></span>
+    <!-- Content -->
+    <div id="modalContent" class="hidden">
+        <!-- Role Info -->
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="text-sm font-medium text-base-content/60">Role Name</label>
+                <p id="roleName" class="text-base font-medium"></p>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-base-content/60">Display Name</label>
+                <p id="roleDisplayName" class="text-base font-medium"></p>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-base-content/60">Priority</label>
+                <p id="rolePriority" class="text-base font-medium"></p>
+            </div>
+            <div>
+                <label class="text-sm font-medium text-base-content/60">Status</label>
+                <p id="roleStatus"></p>
+            </div>
+            <div class="col-span-2">
+                <label class="text-sm font-medium text-base-content/60">Description</label>
+                <p id="roleDescription" class="text-base"></p>
+            </div>
         </div>
 
-        <!-- Content -->
-        <div id="modalContent" class="hidden">
-            <!-- Role Info -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <label class="text-sm font-medium text-base-content/60">Role Name</label>
-                    <p id="roleName" class="text-base font-medium"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-base-content/60">Display Name</label>
-                    <p id="roleDisplayName" class="text-base font-medium"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-base-content/60">Priority</label>
-                    <p id="rolePriority" class="text-base font-medium"></p>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-base-content/60">Status</label>
-                    <p id="roleStatus"></p>
-                </div>
-                <div class="col-span-2">
-                    <label class="text-sm font-medium text-base-content/60">Description</label>
-                    <p id="roleDescription" class="text-base"></p>
-                </div>
-            </div>
+        <div class="divider"></div>
 
-            <div class="divider"></div>
-
-            <!-- Permissions -->
-            <div>
-                <h4 class="font-semibold mb-3">Permissions (<span id="permissionCount">0</span>)</h4>
-                <div id="permissionsList" class="max-h-96 overflow-y-auto">
-                    <!-- Permissions will be loaded here -->
-                </div>
+        <!-- Permissions -->
+        <div>
+            <h4 class="font-semibold mb-3">Permissions (<span id="permissionCount">0</span>)</h4>
+            <div id="permissionsList" class="max-h-96 overflow-y-auto">
+                <!-- Permissions will be loaded here -->
             </div>
         </div>
     </div>
-    <form method="dialog" class="modal-backdrop">
-        <button>close</button>
-    </form>
-</dialog>
+
+    <x-slot name="footer">
+        <form method="dialog">
+            <button class="btn btn-sm">Close</button>
+        </form>
+    </x-slot>
+</x-modal>
 @endsection
 
 @section('customjs')

@@ -325,6 +325,48 @@
             class="btn btn-circle btn-ghost btn-sm drawer-button">
             <span class="iconify lucide--settings-2 size-4.5"></span>
         </label>
+
+        <!-- Order Notifications -->
+        <div class="dropdown dropdown-bottom sm:dropdown-end dropdown-center">
+            <div
+                tabindex="0"
+                role="button"
+                class="btn btn-circle btn-ghost btn-sm relative"
+                aria-label="Order Notifications"
+                id="order-notification-btn">
+                <span class="iconify lucide--shopping-cart size-4.5"></span>
+                <div
+                    id="order-notification-badge"
+                    class="status status-error status-sm absolute end-1 top-1 hidden"></div>
+            </div>
+            <div
+                tabindex="0"
+                class="dropdown-content bg-base-100 rounded-box mt-1 w-84 shadow-md duration-1000 hover:shadow-lg">
+                <div class="bg-base-200/30 rounded-t-box border-base-200 border-b ps-4 pe-2 pt-3">
+                    <div class="flex items-center justify-between">
+                        <p class="font-medium">Pending Orders</p>
+                        <button
+                            class="btn btn-xs btn-circle btn-ghost"
+                            aria-label="Close"
+                            onclick="document.activeElement.blur()">
+                            <span class="iconify lucide--x size-4"></span>
+                        </button>
+                    </div>
+                </div>
+                <div id="order-notification-content" class="max-h-96 overflow-y-auto">
+                    <div class="flex items-center justify-center p-8">
+                        <div class="loading loading-spinner loading-sm"></div>
+                    </div>
+                </div>
+                <hr class="border-base-200" />
+                <div class="flex items-center justify-center px-2 py-2">
+                    <a href="{{ route('orders.pending-orders.index') }}" class="btn btn-sm btn-soft btn-primary">
+                        View All Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="dropdown dropdown-bottom sm:dropdown-end dropdown-center">
             <div
                 tabindex="0"

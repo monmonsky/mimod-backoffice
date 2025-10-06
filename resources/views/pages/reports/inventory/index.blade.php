@@ -69,7 +69,7 @@
                     <p class="text-xs text-base-content/60 mt-1">Available items</p>
                 </div>
                 <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
+                    <span class="iconify lucide--check-circle-2 size-5 text-success"></span>
                 </div>
             </div>
         </div>

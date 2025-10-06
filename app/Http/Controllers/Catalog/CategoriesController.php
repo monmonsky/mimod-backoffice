@@ -20,9 +20,48 @@ class CategoriesController extends Controller
     /**
      * Display categories page
      */
-    public function categories()
+    public function categories(Request $request)
     {
-        $categories = $this->categoryRepo->getAllWithChildren();
+        // Get filter parameters
+        $search = $request->input('search');
+        $status = $request->input('status');
+        $parent = $request->input('parent');
+
+        // Build query
+        $query = DB::table('categories');
+
+        // Apply search filter
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Apply status filter
+        if ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+        // Apply parent filter
+        if ($parent === '0') {
+            $query->whereNull('parent_id');
+        } elseif ($parent) {
+            $query->where('parent_id', $parent);
+        }
+
+        // Order by sort_order and get with pagination
+        $categories = $query->orderBy('sort_order', 'asc')
+                           ->orderBy('name', 'asc')
+                           ->paginate(15)
+                           ->appends($request->query());
+
+        // Add product count for each category
+        foreach ($categories as $category) {
+            $category->product_count = DB::table('product_categories')
+                ->where('category_id', $category->id)
+                ->count();
+        }
+
         $statistics = $this->categoryRepo->getStatistics();
         $parents = $this->categoryRepo->getParents();
 

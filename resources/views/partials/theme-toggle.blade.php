@@ -1,4 +1,4 @@
-<button aria-label="Toggle Theme" class="{=$class}" data-theme-control="toggle">
+<button aria-label="Toggle Theme" class="{{ $class }}" data-theme-control="toggle">
     <span
         class="iconify lucide--sun absolute size-4.5 -translate-y-4 opacity-0 transition-all duration-300 group-data-[theme=light]/html:translate-y-0 group-data-[theme=light]/html:opacity-100"></span>
     <span

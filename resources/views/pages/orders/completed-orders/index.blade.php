@@ -5,47 +5,76 @@
 @section('page_subtitle', 'Completed Orders')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <p class="text-lg font-medium">Completed Orders</p>
-    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
-        <ul>
-            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
-            <li>Orders</li>
-            <li class="opacity-80">Completed Orders</li>
-        </ul>
-    </div>
-</div>
+<x-page-header
+    title="Completed Orders"
+    :breadcrumbs="[
+        ['label' => 'Nexus', 'url' => route('dashboard')],
+        ['label' => 'Orders'],
+        ['label' => 'Completed Orders']
+    ]"
+/>
 
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2">
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Completed Orders</p>
-                    <p class="text-2xl font-semibold mt-1 text-success">{{ $statistics->completed_count ?? 0 }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Successfully delivered</p>
-                </div>
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle size-5 text-success"></span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-stat-card
+        title="Completed Orders"
+        :value="$statistics->completed_count ?? 0"
+        subtitle="Successfully delivered"
+        icon="check-circle-2"
+        icon-color="success"
+    />
 
-    <div class="card bg-base-100 shadow">
-        <div class="card-body p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-base-content/70">Total Revenue</p>
-                    <p class="text-2xl font-semibold mt-1">Rp {{ number_format($orders->sum('total_amount') ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-xs text-base-content/60 mt-1">Completed orders value</p>
-                </div>
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--dollar-sign size-5 text-primary"></span>
-                </div>
+    <x-stat-card
+        title="Total Revenue"
+        :value="'Rp ' . number_format($orders->sum('total_amount') ?? 0, 0, ',', '.')"
+        subtitle="Completed orders value"
+        icon="badge-dollar-sign"
+        icon-color="primary"
+    />
+</div>
+
+<!-- Filter Section -->
+<div class="mt-6">
+    <x-filter-section
+        title="Filter Completed Orders"
+        :action="route('orders.completed-orders.index')"
+        method="GET"
+    >
+        <x-slot name="filters">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <x-form.input
+                    name="order_number"
+                    label="Order Number"
+                    placeholder="Search by order number"
+                    :value="request('order_number')"
+                />
+
+                <x-form.input
+                    name="customer"
+                    label="Customer"
+                    placeholder="Search by customer name/email"
+                    :value="request('customer')"
+                />
+
+                <x-form.input
+                    name="date_from"
+                    label="Completed From"
+                    type="date"
+                    :value="request('date_from')"
+                />
             </div>
-        </div>
-    </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <span class="iconify lucide--filter size-4"></span>
+                Apply Filter
+            </button>
+            <a href="{{ route('orders.completed-orders.index') }}" class="btn btn-ghost btn-sm">
+                <span class="iconify lucide--x size-4"></span>
+                Reset
+            </a>
+        </x-slot>
+    </x-filter-section>
 </div>
 
 <div class="mt-6">
@@ -54,7 +83,7 @@
             <div class="flex flex-col gap-4 px-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <label class="input input-sm">
                     <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
-                    <input class="w-24 sm:w-36" placeholder="Search orders" type="search" id="searchInput" />
+                    <input class="w-24 sm:w-36" placeholder="Quick search..." type="search" id="searchInput" />
                 </label>
             </div>
 
@@ -101,18 +130,14 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <x-pagination-info :paginator="$orders" />
         </div>
     </div>
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    document.getElementById('searchInput').addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        document.querySelectorAll('#ordersTable tr').forEach(row => {
-            row.style.display = row.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
-        });
-    });
-</script>
-@endpush
+@section('customjs')
+@vite(['resources/js/modules/orders/completed-orders/index.js'])
+@endsection

@@ -6,5 +6,5 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
-<script src="{{ asset('assets/js/app.js') }}"></script>
-<script src="{{ asset('js/toast.js') }}"></script>
+
+@vite(['resources/js/app.js', 'resources/js/partials/order-notifications.js'])

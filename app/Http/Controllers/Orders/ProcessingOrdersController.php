@@ -15,9 +15,14 @@ class ProcessingOrdersController extends Controller
         $this->orderRepo = $orderRepo;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = $this->orderRepo->getByStatus('processing');
+        // Get filters
+        $filters = $request->only(['order_number', 'customer', 'date_from']);
+        $filters['status'] = 'processing';
+
+        // Get paginated orders with filters
+        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
         $statistics = $this->orderRepo->getStatistics();
 
         return view('pages.orders.processing-orders.index', compact('orders', 'statistics'));
