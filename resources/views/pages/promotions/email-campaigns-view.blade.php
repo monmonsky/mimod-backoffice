@@ -47,7 +47,7 @@
                         <span class="iconify lucide--more-vertical size-4"></span>
                     </button>
                     <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-48 p-2 shadow">
-                        <li><a><span class="iconify lucide--edit size-4"></span> Edit Campaign</a></li>
+                        <li><a><span class="iconify lucide--pencil size-4"></span> Edit Campaign</a></li>
                         <li><a><span class="iconify lucide--send size-4"></span> Send Test Email</a></li>
                         <li><a><span class="iconify lucide--download size-4"></span> Export Report</a></li>
                         <li><a class="text-error"><span class="iconify lucide--trash-2 size-4"></span> Delete</a></li>

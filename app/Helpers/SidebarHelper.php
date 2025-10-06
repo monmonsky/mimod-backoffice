@@ -1,5 +1,32 @@
 <?php
 
+if (!function_exists('isMenuItemActive')) {
+    /**
+     * Check if a menu item should be marked as active
+     * Handles special cases for product routes
+     */
+    function isMenuItemActive($menuItem)
+    {
+        if (!$menuItem->route) {
+            return false;
+        }
+
+        // Special handling for All Products menu
+        if ($menuItem->route === 'catalog.products.all-products') {
+            // Active for: all-products, edit, store, update
+            return request()->routeIs('catalog.products.all-products')
+                || request()->routeIs('catalog.products.edit')
+                || request()->routeIs('catalog.products.store')
+                || request()->routeIs('catalog.products.update')
+                || request()->routeIs('catalog.products.destroy')
+                || request()->routeIs('catalog.products.toggle-*');
+        }
+
+        // Default: use wildcard matching
+        return request()->routeIs($menuItem->route . '*');
+    }
+}
+
 if (!function_exists('renderSidebarMenu')) {
     /**
      * Render sidebar menu from modules data
@@ -46,7 +73,7 @@ if (!function_exists('renderSidebarMenu')) {
                         continue;
                     }
 
-                    $isActive = $child->route && request()->routeIs($child->route);
+                    $isActive = isMenuItemActive($child);
                     $html .= '<a class="menu-item ' . ($isActive ? 'active' : '') . '" href="' . ($child->route ? route($child->route) : '#') . '">';
                     $html .= '<span class="grow">' . $child->display_name . '</span>';
                     $html .= '</a>';
@@ -85,7 +112,7 @@ if (!function_exists('checkIfMenuExpanded')) {
         }
 
         foreach ($module->children as $child) {
-            if ($child->route && request()->routeIs($child->route)) {
+            if (isMenuItemActive($child)) {
                 return true;
             }
         }

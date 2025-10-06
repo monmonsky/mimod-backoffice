@@ -170,7 +170,7 @@
                                 </button>
                                 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
                                     <li><a><span class="iconify lucide--eye size-4"></span> View</a></li>
-                                    <li><a><span class="iconify lucide--edit size-4"></span> Edit</a></li>
+                                    <li><a><span class="iconify lucide--pencil size-4"></span> Edit</a></li>
                                     <li><a><span class="iconify lucide--copy size-4"></span> Duplicate</a></li>
                                     <li><a class="text-error"><span class="iconify lucide--trash-2 size-4"></span> Delete</a></li>
                                 </ul>
@@ -212,7 +212,7 @@
                                 </button>
                                 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
                                     <li><a><span class="iconify lucide--eye size-4"></span> View</a></li>
-                                    <li><a><span class="iconify lucide--edit size-4"></span> Edit</a></li>
+                                    <li><a><span class="iconify lucide--pencil size-4"></span> Edit</a></li>
                                     <li><a><span class="iconify lucide--copy size-4"></span> Duplicate</a></li>
                                     <li><a class="text-error"><span class="iconify lucide--trash-2 size-4"></span> Delete</a></li>
                                 </ul>
@@ -254,7 +254,7 @@
                                 </button>
                                 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
                                     <li><a><span class="iconify lucide--eye size-4"></span> View</a></li>
-                                    <li><a><span class="iconify lucide--edit size-4"></span> Edit</a></li>
+                                    <li><a><span class="iconify lucide--pencil size-4"></span> Edit</a></li>
                                     <li><a><span class="iconify lucide--copy size-4"></span> Duplicate</a></li>
                                     <li><a class="text-error"><span class="iconify lucide--trash-2 size-4"></span> Delete</a></li>
                                 </ul>
@@ -296,7 +296,7 @@
                                 </button>
                                 <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-40 p-2 shadow">
                                     <li><a><span class="iconify lucide--eye size-4"></span> View</a></li>
-                                    <li><a><span class="iconify lucide--edit size-4"></span> Edit</a></li>
+                                    <li><a><span class="iconify lucide--pencil size-4"></span> Edit</a></li>
                                     <li><a><span class="iconify lucide--copy size-4"></span> Duplicate</a></li>
                                     <li><a class="text-error"><span class="iconify lucide--trash-2 size-4"></span> Delete</a></li>
                                 </ul>

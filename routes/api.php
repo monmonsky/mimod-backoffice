@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Catalog\ProductApiController;
+use App\Http\Controllers\Api\Catalog\CategoryApiController;
+use App\Http\Controllers\Api\Catalog\BrandApiController;
 use App\Http\Controllers\Api\Settings\GeneralSettingsApiController;
 use App\Http\Controllers\Api\Settings\PaymentSettingsApiController;
 use App\Http\Controllers\Api\Settings\ShippingSettingsApiController;
@@ -61,6 +64,35 @@ Route::middleware('auth.sanctum')->group(function () {
             Route::get('/origin/address', [ShippingSettingsApiController::class, 'getOriginAddress']);
             Route::get('/rajaongkir/config', [ShippingSettingsApiController::class, 'getRajaOngkirConfig']);
             Route::get('/methods/list', [ShippingSettingsApiController::class, 'getShippingMethods']);
+        });
+    });
+
+    // Catalog routes
+    Route::prefix('catalog')->group(function () {
+        // Products
+        Route::prefix('products')->group(function () {
+            Route::get('/', [ProductApiController::class, 'index']);
+            Route::get('/featured', [ProductApiController::class, 'featured']);
+            Route::get('/{identifier}', [ProductApiController::class, 'show']);
+            Route::get('/{id}/variants', [ProductApiController::class, 'variants']);
+            Route::get('/{id}/images', [ProductApiController::class, 'images']);
+            Route::get('/category/{categoryId}', [ProductApiController::class, 'byCategory']);
+            Route::get('/brand/{brandId}', [ProductApiController::class, 'byBrand']);
+        });
+
+        // Categories
+        Route::prefix('categories')->group(function () {
+            Route::get('/', [CategoryApiController::class, 'index']);
+            Route::get('/tree', [CategoryApiController::class, 'tree']);
+            Route::get('/parents', [CategoryApiController::class, 'parents']);
+            Route::get('/{id}', [CategoryApiController::class, 'show']);
+            Route::get('/{parentId}/children', [CategoryApiController::class, 'children']);
+        });
+
+        // Brands
+        Route::prefix('brands')->group(function () {
+            Route::get('/', [BrandApiController::class, 'index']);
+            Route::get('/{id}', [BrandApiController::class, 'show']);
         });
     });
 });

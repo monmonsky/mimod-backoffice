@@ -169,7 +169,7 @@
                         Preview
                     </button>
                     <a href="{{ route('promotions.email-templates.edit', 1) }}" class="btn btn-sm btn-primary">
-                        <span class="iconify lucide--edit size-4"></span>
+                        <span class="iconify lucide--pencil size-4"></span>
                         Edit
                     </a>
                     <div class="dropdown dropdown-end">
@@ -234,7 +234,7 @@
                         Preview
                     </button>
                     <a href="{{ route('promotions.email-templates.edit', 1) }}" class="btn btn-sm btn-primary">
-                        <span class="iconify lucide--edit size-4"></span>
+                        <span class="iconify lucide--pencil size-4"></span>
                         Edit
                     </a>
                     <div class="dropdown dropdown-end">
@@ -301,7 +301,7 @@
                         Preview
                     </button>
                     <a href="{{ route('promotions.email-templates.edit', 1) }}" class="btn btn-sm btn-primary">
-                        <span class="iconify lucide--edit size-4"></span>
+                        <span class="iconify lucide--pencil size-4"></span>
                         Edit
                     </a>
                     <div class="dropdown dropdown-end">
@@ -366,7 +366,7 @@
                         Preview
                     </button>
                     <a href="{{ route('promotions.email-templates.edit', 1) }}" class="btn btn-sm btn-primary">
-                        <span class="iconify lucide--edit size-4"></span>
+                        <span class="iconify lucide--pencil size-4"></span>
                         Edit
                     </a>
                     <div class="dropdown dropdown-end">
@@ -418,7 +418,7 @@
 
                 <div class="card-actions justify-end mt-3">
                     <a href="{{ route('promotions.email-templates.edit', 1) }}" class="btn btn-sm btn-primary w-full">
-                        <span class="iconify lucide--edit size-4"></span>
+                        <span class="iconify lucide--pencil size-4"></span>
                         Continue Editing
                     </a>
                 </div>
@@ -485,7 +485,7 @@
                                     <span class="iconify lucide--eye size-4"></span>
                                 </button>
                                 <button class="btn btn-ghost btn-sm btn-square">
-                                    <span class="iconify lucide--edit size-4"></span>
+                                    <span class="iconify lucide--pencil size-4"></span>
                                 </button>
                                 <button class="btn btn-ghost btn-sm btn-square">
                                     <span class="iconify lucide--trash-2 size-4"></span>

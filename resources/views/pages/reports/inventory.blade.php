@@ -275,7 +275,7 @@
                         <td><span class="badge badge-success badge-sm">In Stock</span></td>
                         <td>
                             <button class="btn btn-ghost btn-xs">
-                                <span class="iconify lucide--edit size-4"></span>
+                                <span class="iconify lucide--pencil size-4"></span>
                             </button>
                         </td>
                     </tr>
@@ -299,7 +299,7 @@
                         <td><span class="badge badge-success badge-sm">In Stock</span></td>
                         <td>
                             <button class="btn btn-ghost btn-xs">
-                                <span class="iconify lucide--edit size-4"></span>
+                                <span class="iconify lucide--pencil size-4"></span>
                             </button>
                         </td>
                     </tr>
@@ -323,7 +323,7 @@
                         <td><span class="badge badge-warning badge-sm">Low Stock</span></td>
                         <td>
                             <button class="btn btn-ghost btn-xs">
-                                <span class="iconify lucide--edit size-4"></span>
+                                <span class="iconify lucide--pencil size-4"></span>
                             </button>
                         </td>
                     </tr>
@@ -347,7 +347,7 @@
                         <td><span class="badge badge-success badge-sm">In Stock</span></td>
                         <td>
                             <button class="btn btn-ghost btn-xs">
-                                <span class="iconify lucide--edit size-4"></span>
+                                <span class="iconify lucide--pencil size-4"></span>
                             </button>
                         </td>
                     </tr>
@@ -371,7 +371,7 @@
                         <td><span class="badge badge-error badge-sm">Out of Stock</span></td>
                         <td>
                             <button class="btn btn-ghost btn-xs">
-                                <span class="iconify lucide--edit size-4"></span>
+                                <span class="iconify lucide--pencil size-4"></span>
                             </button>
                         </td>
                     </tr>

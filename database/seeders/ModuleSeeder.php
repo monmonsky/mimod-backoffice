@@ -246,10 +246,66 @@ class ModuleSeeder extends Seeder
             ]);
         }
 
+        // Level 1: Reports parent module
+        $reportsParent = [
+            'name' => 'reports',
+            'display_name' => 'Reports',
+            'description' => 'Business reports and analytics',
+            'icon' => 'lucide--chart-line',
+            'route' => null,
+            'sort_order' => 11,
+            'group_name' => 'reports',
+        ];
+
+        $reportsParentId = DB::table('modules')->insertGetId([
+            'name' => $reportsParent['name'],
+            'display_name' => $reportsParent['display_name'],
+            'description' => $reportsParent['description'],
+            'icon' => $reportsParent['icon'],
+            'parent_id' => null,
+            'group_name' => $reportsParent['group_name'],
+            'route' => $reportsParent['route'],
+            'component' => null,
+            'sort_order' => $reportsParent['sort_order'],
+            'is_active' => true,
+            'is_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Level 2: Reports children
+        $reportsChildren = [
+            ['name' => 'sales-report', 'display_name' => 'Sales Report', 'route' => 'reports.sales', 'component' => 'SalesReport', 'sort_order' => 1],
+            ['name' => 'revenue-report', 'display_name' => 'Revenue Report', 'route' => 'reports.revenue', 'component' => 'RevenueReport', 'sort_order' => 2],
+            ['name' => 'product-performance', 'display_name' => 'Product Performance', 'route' => 'reports.product-performance', 'component' => 'ProductPerformance', 'sort_order' => 3],
+            ['name' => 'inventory-report', 'display_name' => 'Inventory Report', 'route' => 'reports.inventory', 'component' => 'InventoryReport', 'sort_order' => 4],
+        ];
+
+        foreach ($reportsChildren as $child) {
+            DB::table('modules')->insert([
+                'name' => $child['name'],
+                'display_name' => $child['display_name'],
+                'description' => null,
+                'icon' => null,
+                'parent_id' => $reportsParentId,
+                'route' => $child['route'],
+                'component' => $child['component'],
+                'sort_order' => $child['sort_order'],
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $this->command->info('Modules seeded successfully.');
         $this->command->info('- 6 direct modules (dashboard + 5 access control)');
+        $this->command->info('- 1 catalog parent module (products)');
+        $this->command->info('- 5 catalog children');
         $this->command->info('- 3 settings parent modules (generals, payments, shippings)');
         $this->command->info('- 13 settings children (5 generals + 3 payments + 3 shippings + 2 more)');
-        $this->command->info('Total: 22 modules');
+        $this->command->info('- 1 reports parent module');
+        $this->command->info('- 4 reports children (sales, revenue, product-performance, inventory)');
+        $this->command->info('Total: 33 modules');
     }
 }

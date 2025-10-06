@@ -95,7 +95,7 @@ const Toast = {
      * @param {number} duration
      */
     showSuccess: (message, duration = 4000) => {
-        showToast(message, 'success', duration);
+        Toast.showToast(message, 'success', duration);
     },
 
     /**
@@ -104,7 +104,7 @@ const Toast = {
      * @param {number} duration
      */
     showError: (message, duration = 4000) => {
-        showToast(message, 'error', duration);
+        Toast.showToast(message, 'error', duration);
     },
 
     /**
@@ -113,7 +113,7 @@ const Toast = {
      * @param {number} duration
      */
     showInfo: (message, duration = 4000) => {
-        showToast(message, 'info', duration);
+        Toast.showToast(message, 'info', duration);
     },
 
     /**
@@ -122,7 +122,7 @@ const Toast = {
      * @param {number} duration
      */
     showWarning: (message, duration = 4000) => {
-        showToast(message, 'warning', duration);
+        Toast.showToast(message, 'warning', duration);
     }
 }
 

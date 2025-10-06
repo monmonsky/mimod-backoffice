@@ -68,6 +68,22 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\UserActivityRepositoryInterface::class,
             \App\Repositories\AccessControl\UserActivityRepository::class
         );
+
+        // Catalog Repositories
+        $this->app->bind(
+            \App\Repositories\Contracts\Catalog\CategoryRepositoryInterface::class,
+            \App\Repositories\Catalog\CategoryRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Catalog\BrandRepositoryInterface::class,
+            \App\Repositories\Catalog\BrandRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Catalog\ProductRepositoryInterface::class,
+            \App\Repositories\Catalog\ProductRepository::class
+        );
     }
 
     /**
@@ -78,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
         // Register View Composers for both sidebar views
         \Illuminate\Support\Facades\View::composer(
             ['partials.sidebar', 'partials.sidebar-dynamic'],
-            \App\Http\ViewComposers\SidebarComposer::class
+            \App\Http\View\Composers\SidebarComposer::class
         );
     }
 }

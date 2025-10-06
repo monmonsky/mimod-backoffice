@@ -72,18 +72,36 @@ class PermissionGroupItemSeeder extends Seeder
         }
 
         // Catalog Management Group
-        $settingsManagement = DB::table('permission_groups')
+        $catalogManagement = DB::table('permission_groups')
             ->where('name', 'catalog_management')
             ->first();
 
-        if ($settingsManagement) {
-            $settingsPermissions = DB::table('permissions')
+        if ($catalogManagement) {
+            $catalogPermissions = DB::table('permissions')
                 ->where('name', 'LIKE', 'catalog.%')
                 ->get();
 
-            foreach ($settingsPermissions as $permission) {
+            foreach ($catalogPermissions as $permission) {
                 $groupItems[] = [
-                    'group_id' => $settingsManagement->id,
+                    'group_id' => $catalogManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Reports Management Group
+        $reportsManagement = DB::table('permission_groups')
+            ->where('name', 'reports_management')
+            ->first();
+
+        if ($reportsManagement) {
+            $reportsPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'reports.%')
+                ->get();
+
+            foreach ($reportsPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $reportsManagement->id,
                     'permission_id' => $permission->id,
                 ];
             }

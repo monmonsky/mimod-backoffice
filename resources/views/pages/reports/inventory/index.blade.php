@@ -1,0 +1,224 @@
+@extends('layouts.app')
+
+@section('title', 'Inventory Report')
+@section('page_title', 'Inventory Report')
+@section('page_subtitle', 'Stock Management & Inventory Analytics')
+
+@section('content')
+<div class="flex items-center justify-between">
+    <p class="text-lg font-medium">Inventory Report</p>
+    <div class="breadcrumbs hidden p-0 text-sm sm:inline">
+        <ul>
+            <li><a href="{{ route('dashboard') }}">Nexus</a></li>
+            <li>Reports</li>
+            <li class="opacity-80">Inventory Report</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Filter & Export -->
+<div class="mt-6 flex flex-wrap gap-3 items-center justify-between">
+    <div class="inline-flex items-center gap-3">
+        <select class="select select-sm" id="categoryFilter">
+            <option value="">All Categories</option>
+        </select>
+        <select class="select select-sm" id="stockFilter">
+            <option value="">All Stock Levels</option>
+            <option value="in-stock">In Stock</option>
+            <option value="low-stock">Low Stock</option>
+            <option value="out-of-stock">Out of Stock</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="filterBtn">
+            <span class="iconify lucide--filter"></span>
+            Filter
+        </button>
+    </div>
+    <div class="inline-flex items-center gap-3">
+        @if(hasPermission('reports.inventory.export'))
+        <button class="btn btn-outline btn-sm" id="exportBtn">
+            <span class="iconify lucide--download"></span>
+            Export
+        </button>
+        @endif
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Total SKUs</p>
+                    <p class="text-2xl font-semibold mt-1" id="totalSkus">-</p>
+                    <p class="text-xs text-base-content/60 mt-1">Product variants</p>
+                </div>
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <span class="iconify lucide--package size-5 text-primary"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">In Stock</p>
+                    <p class="text-2xl font-semibold mt-1 text-success" id="inStock">-</p>
+                    <p class="text-xs text-base-content/60 mt-1">Available items</p>
+                </div>
+                <div class="bg-success/10 p-3 rounded-lg">
+                    <span class="iconify lucide--check-circle size-5 text-success"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Low Stock</p>
+                    <p class="text-2xl font-semibold mt-1 text-warning" id="lowStock">-</p>
+                    <p class="text-xs text-base-content/60 mt-1">Need restock</p>
+                </div>
+                <div class="bg-warning/10 p-3 rounded-lg">
+                    <span class="iconify lucide--alert-triangle size-5 text-warning"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/70">Out of Stock</p>
+                    <p class="text-2xl font-semibold mt-1 text-error" id="outOfStock">-</p>
+                    <p class="text-xs text-base-content/60 mt-1">Unavailable</p>
+                </div>
+                <div class="bg-error/10 p-3 rounded-lg">
+                    <span class="iconify lucide--x-circle size-5 text-error"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Section -->
+<div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-base-100 card shadow">
+        <div class="card-body">
+            <h3 class="text-lg font-semibold mb-4">Stock by Category</h3>
+            <div class="h-64 flex items-center justify-center text-base-content/50">
+                <div class="text-center">
+                    <span class="iconify lucide--pie-chart size-12 mb-2"></span>
+                    <p>Pie Chart</p>
+                    <p class="text-xs mt-1">Category distribution</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-base-100 card shadow">
+        <div class="card-body">
+            <h3 class="text-lg font-semibold mb-4">Stock Level Distribution</h3>
+            <div class="h-64 flex items-center justify-center text-base-content/50">
+                <div class="text-center">
+                    <span class="iconify lucide--bar-chart size-12 mb-2"></span>
+                    <p>Bar Chart</p>
+                    <p class="text-xs mt-1">Stock levels</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Low Stock Alert -->
+<div class="mt-6">
+    <div class="bg-base-100 card shadow">
+        <div class="card-body p-0">
+            <div class="flex items-center justify-between px-5 pt-5">
+                <h3 class="text-lg font-semibold text-warning">
+                    <span class="iconify lucide--alert-triangle"></span>
+                    Low Stock Alerts
+                </h3>
+            </div>
+
+            <div class="mt-4 overflow-auto">
+                <table class="table" id="lowStockTable">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Current Stock</th>
+                            <th>Reserved</th>
+                            <th>Available</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="text-center py-8 text-base-content/50">
+                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <p>No low stock items</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Inventory Table -->
+<div class="mt-6">
+    <div class="bg-base-100 card shadow">
+        <div class="card-body p-0">
+            <div class="flex items-center justify-between px-5 pt-5">
+                <h3 class="text-lg font-semibold">All Inventory</h3>
+                <label class="input input-sm">
+                    <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
+                    <input
+                        class="w-24 sm:w-36"
+                        placeholder="Search"
+                        type="search"
+                        id="searchInput" />
+                </label>
+            </div>
+
+            <div class="mt-4 overflow-auto">
+                <table class="table" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Category</th>
+                            <th>Stock</th>
+                            <th>Reserved</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="text-center py-8 text-base-content/50">
+                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <p>No data available</p>
+                                <p class="text-xs mt-1">Data will be populated from API</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('customjs')
+@vite(['resources/js/modules/reports/inventory/index.js'])
+@endsection

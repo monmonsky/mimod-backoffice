@@ -138,10 +138,12 @@ class ModuleController extends Controller
                 'parent_id' => 'nullable|exists:modules,id',
                 'route' => 'nullable|string|max:255',
                 'component' => 'nullable|string|max:255',
-                'sort_order' => 'nullable|integer',
                 'is_active' => 'nullable|boolean',
                 'is_visible' => 'nullable|boolean',
             ]);
+
+            // Remove sort_order from validated data - sort_order should only be changed via drag & drop
+            unset($validated['sort_order']);
 
             $module = $this->moduleRepo->update($id, $validated);
 

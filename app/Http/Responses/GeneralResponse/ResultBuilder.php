@@ -44,8 +44,18 @@ class ResultBuilder
         return $this->data;
     }
 
-    public function setData(array $data) : ResultBuilder {
+    public function setData($data) : ResultBuilder {
         $this->data = $data;
         return $this;
+    }
+
+    public function build()
+    {
+        return [
+            'status' => $this->status,
+            'statusCode' => $this->statusCode,
+            'message' => $this->message,
+            'data' => $this->data
+        ];
     }
 }

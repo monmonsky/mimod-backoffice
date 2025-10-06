@@ -88,6 +88,11 @@ class AuthenticateToken
         // Convert user object to array properly (including dynamic properties)
         $userData = (array) $user;
 
+        // Ensure role_id is included (important for permission checks)
+        if (isset($user->role_id)) {
+            $userData['role_id'] = $user->role_id;
+        }
+
         // Ensure role and permissions are included
         if (isset($user->role)) {
             $userData['role'] = $user->role;

@@ -134,26 +134,39 @@ Route::middleware('auth.token')->group(function () {
     });
 
 
+    // Reports
     Route::group(['prefix' => 'reports'], function () {
-        Route::get('/sales', function () {
-            return view('pages.reports.sales');
-        })->name('reports.sales');
+        // Sales Report
+        Route::get('/sales', 'App\Http\Controllers\Reports\SalesReportController@index')
+            ->name('reports.sales')
+            ->middleware('permission:reports.sales.view');
+        Route::post('/sales/export', 'App\Http\Controllers\Reports\SalesReportController@export')
+            ->name('reports.sales.export')
+            ->middleware('permission:reports.sales.export');
 
-        Route::get('/product-performance', function () {
-            return view('pages.reports.product-performance');
-        })->name('reports.product-performance');
+        // Revenue Report
+        Route::get('/revenue', 'App\Http\Controllers\Reports\RevenueReportController@index')
+            ->name('reports.revenue')
+            ->middleware('permission:reports.revenue.view');
+        Route::post('/revenue/export', 'App\Http\Controllers\Reports\RevenueReportController@export')
+            ->name('reports.revenue.export')
+            ->middleware('permission:reports.revenue.export');
 
-        Route::get('/customer', function () {
-            return view('pages.reports.customer');
-        })->name('reports.customer');
+        // Product Performance
+        Route::get('/product-performance', 'App\Http\Controllers\Reports\ProductPerformanceController@index')
+            ->name('reports.product-performance')
+            ->middleware('permission:reports.product-performance.view');
+        Route::post('/product-performance/export', 'App\Http\Controllers\Reports\ProductPerformanceController@export')
+            ->name('reports.product-performance.export')
+            ->middleware('permission:reports.product-performance.export');
 
-        Route::get('/payment', function () {
-            return view('pages.reports.payment');
-        })->name('reports.payment');
-
-        Route::get('/inventory', function () {
-            return view('pages.reports.inventory');
-        })->name('reports.inventory');
+        // Inventory Report
+        Route::get('/inventory', 'App\Http\Controllers\Reports\InventoryReportController@index')
+            ->name('reports.inventory')
+            ->middleware('permission:reports.inventory.view');
+        Route::post('/inventory/export', 'App\Http\Controllers\Reports\InventoryReportController@export')
+            ->name('reports.inventory.export')
+            ->middleware('permission:reports.inventory.export');
     });
 
     Route::group(['prefix' => 'promotions'], function () {
@@ -274,18 +287,47 @@ Route::middleware('auth.token')->group(function () {
         Route::prefix('products')->group(function () {
             Route::controller(AllProductsController::class)->group(function () {
                 Route::get('/all-products', 'allProducts')->name('catalog.products.all-products')->middleware('permission:catalog.products.all-products.view');
+                Route::delete('/{id}', 'destroy')->name('catalog.products.destroy')->middleware('permission:catalog.products.all-products.delete');
+                Route::post('/{id}/toggle-status', 'toggleStatus')->name('catalog.products.toggle-status')->middleware('permission:catalog.products.all-products.update');
+                Route::post('/{id}/toggle-featured', 'toggleFeatured')->name('catalog.products.toggle-featured')->middleware('permission:catalog.products.all-products.update');
             });
 
             Route::controller(AddProductsController::class)->group(function () {
                 Route::get('/add-products', 'addProducts')->name('catalog.products.add-products')->middleware('permission:catalog.products.add-products.view');
+                Route::get('/{id}/edit', 'edit')->name('catalog.products.edit')->middleware('permission:catalog.products.all-products.update');
+                Route::post('/store', 'store')->name('catalog.products.store')->middleware('permission:catalog.products.add-products.create');
+                Route::put('/{id}', 'update')->name('catalog.products.update')->middleware('permission:catalog.products.all-products.update');
+
+                // Product Images
+                Route::post('/{id}/images/upload', 'uploadImages')->name('catalog.products.images.upload')->middleware('permission:catalog.products.all-products.update');
+                Route::delete('/{productId}/images/{imageId}', 'deleteImage')->name('catalog.products.images.delete')->middleware('permission:catalog.products.all-products.update');
+                Route::post('/{productId}/images/{imageId}/set-primary', 'setPrimaryImage')->name('catalog.products.images.set-primary')->middleware('permission:catalog.products.all-products.update');
+                Route::post('/{productId}/images/update-order', 'updateImagesOrder')->name('catalog.products.images.update-order')->middleware('permission:catalog.products.all-products.update');
+
+                // Product Variants
+                Route::post('/{productId}/variants/store', 'storeVariant')->name('catalog.products.variants.store')->middleware('permission:catalog.products.add-products.create');
+                Route::put('/{productId}/variants/{variantId}', 'updateVariant')->name('catalog.products.variants.update')->middleware('permission:catalog.products.all-products.update');
+                Route::delete('/{productId}/variants/{variantId}', 'deleteVariant')->name('catalog.products.variants.delete')->middleware('permission:catalog.products.all-products.delete');
             });
 
             Route::controller(CategoriesController::class)->group(function () {
                 Route::get('/categories', 'categories')->name('catalog.products.categories')->middleware('permission:catalog.products.categories.view');
+                Route::get('/categories/tree', 'getTree')->name('catalog.products.categories.tree')->middleware('permission:catalog.products.categories.view');
+                Route::post('/categories/store', 'store')->name('catalog.products.categories.store')->middleware('permission:catalog.products.categories.create');
+                Route::put('/categories/{id}', 'update')->name('catalog.products.categories.update')->middleware('permission:catalog.products.categories.update');
+                Route::delete('/categories/{id}', 'destroy')->name('catalog.products.categories.destroy')->middleware('permission:catalog.products.categories.delete');
+                Route::post('/categories/{id}/toggle-active', 'toggleActive')->name('catalog.products.categories.toggle-active')->middleware('permission:catalog.products.categories.update');
+                Route::post('/categories/update-order', 'updateOrder')->name('catalog.products.categories.update-order')->middleware('permission:catalog.products.categories.update');
+                Route::delete('/categories/{id}/delete-image', 'deleteImage')->name('catalog.products.categories.delete-image')->middleware('permission:catalog.products.categories.update');
             });
 
             Route::controller(BrandsController::class)->group(function () {
                 Route::get('/brands', 'brands')->name('catalog.products.brands')->middleware('permission:catalog.products.brands.view');
+                Route::post('/brands/store', 'store')->name('catalog.products.brands.store')->middleware('permission:catalog.products.brands.create');
+                Route::put('/brands/{id}', 'update')->name('catalog.products.brands.update')->middleware('permission:catalog.products.brands.update');
+                Route::delete('/brands/{id}', 'destroy')->name('catalog.products.brands.destroy')->middleware('permission:catalog.products.brands.delete');
+                Route::post('/brands/{id}/toggle-active', 'toggleActive')->name('catalog.products.brands.toggle-active')->middleware('permission:catalog.products.brands.update');
+                Route::delete('/brands/{id}/delete-logo', 'deleteLogo')->name('catalog.products.brands.delete-logo')->middleware('permission:catalog.products.brands.update');
             });
 
             Route::controller(VariantsController::class)->group(function () {

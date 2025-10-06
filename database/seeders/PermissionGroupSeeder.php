@@ -48,6 +48,14 @@ class PermissionGroupSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'reports_management',
+                'display_name' => 'Reports Management',
+                'description' => 'Permissions for reports and analytics management',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('permission_groups')->insert($groups);
