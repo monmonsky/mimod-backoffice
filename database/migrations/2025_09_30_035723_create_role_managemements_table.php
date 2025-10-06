@@ -48,16 +48,18 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('icon', 100)->nullable();
             $table->integer('parent_id')->nullable();
+            $table->string('group_name', 50)->nullable()->comment('Group name for sidebar grouping');
             $table->string('route', 255)->nullable();
+            $table->string('permission_name')->nullable();
             $table->string('component', 255)->nullable();
             $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_visible')->default(true);
             $table->timestamps();
-            
+
             // Foreign key
             $table->foreign('parent_id')->references('id')->on('modules')->onDelete('cascade');
-            
+
             // Indexes
             $table->index('parent_id');
             $table->index('is_active');

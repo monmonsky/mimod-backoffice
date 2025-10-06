@@ -23,6 +23,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Dashboard overview',
                 'icon' => 'lucide--monitor-dot',
                 'route' => 'dashboard',
+                'permission_name' => 'dashboard.view',
                 'component' => 'Dashboard',
                 'sort_order' => 1,
                 'group_name' => 'overview',
@@ -33,6 +34,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'User management',
                 'icon' => 'lucide--users',
                 'route' => 'user.index',
+                'permission_name' => 'access-control.users.view',
                 'component' => 'Users',
                 'sort_order' => 2,
                 'group_name' => 'access_control',
@@ -43,6 +45,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Role management',
                 'icon' => 'lucide--shield',
                 'route' => 'role.index',
+                'permission_name' => 'access-control.roles.view',
                 'component' => 'Roles',
                 'sort_order' => 3,
                 'group_name' => 'access_control',
@@ -53,6 +56,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Permission management',
                 'icon' => 'lucide--key-round',
                 'route' => 'permission.index',
+                'permission_name' => 'access-control.permissions.view',
                 'component' => 'Permissions',
                 'sort_order' => 4,
                 'group_name' => 'access_control',
@@ -63,6 +67,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Module management',
                 'icon' => 'lucide--layers',
                 'route' => 'modules.index',
+                'permission_name' => 'access-control.modules.view',
                 'component' => 'Modules',
                 'sort_order' => 5,
                 'group_name' => 'access_control',
@@ -73,6 +78,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'User activity logs',
                 'icon' => 'lucide--file-text',
                 'route' => 'access-control.user-activities.index',
+                'permission_name' => 'access-control.user-activities.view',
                 'component' => 'UserActivities',
                 'sort_order' => 6,
                 'group_name' => 'access_control',
@@ -89,6 +95,7 @@ class ModuleSeeder extends Seeder
                 'parent_id' => null,
                 'group_name' => $module['group_name'],
                 'route' => $module['route'],
+                'permission_name' => $module['permission_name'] ?? null,
                 'component' => $module['component'],
                 'sort_order' => $module['sort_order'],
                 'is_active' => true,
@@ -132,12 +139,12 @@ class ModuleSeeder extends Seeder
         }
 
         $catalogsChildren = [
-            // Generals children
-            ['parent' => 'products', 'name' => 'all-products', 'display_name' => 'All Products', 'route' => 'catalog.products.all-products', 'component' => 'AllProducts', 'sort_order' => 1],
-            ['parent' => 'products', 'name' => 'add-products', 'display_name' => 'Add Products', 'route' => 'catalog.products.add-products', 'component' => 'AddProducts', 'sort_order' => 2],
-            ['parent' => 'products', 'name' => 'categories', 'display_name' => 'Categories', 'route' => 'catalog.products.categories', 'component' => 'Categories', 'sort_order' => 3],
-            ['parent' => 'products', 'name' => 'brands', 'display_name' => 'Brands', 'route' => 'catalog.products.brands', 'component' => 'Brands', 'sort_order' => 4],
-            ['parent' => 'products', 'name' => 'variants', 'display_name' => 'Variants', 'route' => 'catalog.products.variants', 'component' => 'Variants', 'sort_order' => 5],
+            // Products children
+            ['parent' => 'products', 'name' => 'all-products', 'display_name' => 'All Products', 'route' => 'catalog.products.all-products', 'permission_name' => 'catalog.products.all-products.view', 'component' => 'AllProducts', 'sort_order' => 1],
+            ['parent' => 'products', 'name' => 'add-products', 'display_name' => 'Add Products', 'route' => 'catalog.products.add-products', 'permission_name' => 'catalog.products.add-products.view', 'component' => 'AddProducts', 'sort_order' => 2],
+            ['parent' => 'products', 'name' => 'categories', 'display_name' => 'Categories', 'route' => 'catalog.products.categories', 'permission_name' => 'catalog.products.categories.view', 'component' => 'Categories', 'sort_order' => 3],
+            ['parent' => 'products', 'name' => 'brands', 'display_name' => 'Brands', 'route' => 'catalog.products.brands', 'permission_name' => 'catalog.products.brands.view', 'component' => 'Brands', 'sort_order' => 4],
+            ['parent' => 'products', 'name' => 'variants', 'display_name' => 'Variants', 'route' => 'catalog.products.variants', 'permission_name' => 'catalog.products.variants.view', 'component' => 'Variants', 'sort_order' => 5],
         ];
 
         foreach ($catalogsChildren as $child) {
@@ -148,6 +155,7 @@ class ModuleSeeder extends Seeder
                 'icon' => null,
                 'parent_id' => $catalogParentIds[$child['parent']],
                 'route' => $child['route'],
+                'permission_name' => $child['permission_name'] ?? null,
                 'component' => $child['component'],
                 'sort_order' => $child['sort_order'],
                 'is_active' => true,
@@ -212,21 +220,21 @@ class ModuleSeeder extends Seeder
         // Level 2: Settings children
         $settingsChildren = [
             // Generals children
-            ['parent' => 'generals', 'name' => 'store', 'display_name' => 'Store Info', 'route' => 'settings.generals.store', 'component' => 'StoreInfo', 'sort_order' => 1],
-            ['parent' => 'generals', 'name' => 'email', 'display_name' => 'Email Settings', 'route' => 'settings.generals.email', 'component' => 'EmailSettings', 'sort_order' => 2],
-            ['parent' => 'generals', 'name' => 'seo', 'display_name' => 'SEO & Meta', 'route' => 'settings.generals.seo', 'component' => 'SeoMeta', 'sort_order' => 3],
-            ['parent' => 'generals', 'name' => 'system', 'display_name' => 'System Config', 'route' => 'settings.generals.system', 'component' => 'SystemConfig', 'sort_order' => 4],
-            ['parent' => 'generals', 'name' => 'api-tokens', 'display_name' => 'API Tokens', 'route' => 'settings.generals.api-tokens', 'component' => 'ApiTokens', 'sort_order' => 5],
+            ['parent' => 'generals', 'name' => 'store', 'display_name' => 'Store Info', 'route' => 'settings.generals.store', 'permission_name' => 'settings.generals.store.view', 'component' => 'StoreInfo', 'sort_order' => 1],
+            ['parent' => 'generals', 'name' => 'email', 'display_name' => 'Email Settings', 'route' => 'settings.generals.email', 'permission_name' => 'settings.generals.email.view', 'component' => 'EmailSettings', 'sort_order' => 2],
+            ['parent' => 'generals', 'name' => 'seo', 'display_name' => 'SEO & Meta', 'route' => 'settings.generals.seo', 'permission_name' => 'settings.generals.seo.view', 'component' => 'SeoMeta', 'sort_order' => 3],
+            ['parent' => 'generals', 'name' => 'system', 'display_name' => 'System Config', 'route' => 'settings.generals.system', 'permission_name' => 'settings.generals.system.view', 'component' => 'SystemConfig', 'sort_order' => 4],
+            ['parent' => 'generals', 'name' => 'api-tokens', 'display_name' => 'API Tokens', 'route' => 'settings.generals.api-tokens', 'permission_name' => 'settings.generals.api-tokens.view', 'component' => 'ApiTokens', 'sort_order' => 5],
 
             // Payments children
-            ['parent' => 'payments', 'name' => 'payment-methods', 'display_name' => 'Payment Methods', 'route' => 'settings.payments.methods', 'component' => 'PaymentMethods', 'sort_order' => 1],
-            ['parent' => 'payments', 'name' => 'midtrans-config', 'display_name' => 'Midtrans Config', 'route' => 'settings.payments.midtrans-config', 'component' => 'MidtransConfig', 'sort_order' => 2],
-            ['parent' => 'payments', 'name' => 'tax-settings', 'display_name' => 'Tax Settings', 'route' => 'settings.payments.tax-settings', 'component' => 'TaxSettings', 'sort_order' => 3],
+            ['parent' => 'payments', 'name' => 'payment-methods', 'display_name' => 'Payment Methods', 'route' => 'settings.payments.methods', 'permission_name' => 'settings.payments.methods.view', 'component' => 'PaymentMethods', 'sort_order' => 1],
+            ['parent' => 'payments', 'name' => 'midtrans-config', 'display_name' => 'Midtrans Config', 'route' => 'settings.payments.midtrans-config', 'permission_name' => 'settings.payments.midtrans.view', 'component' => 'MidtransConfig', 'sort_order' => 2],
+            ['parent' => 'payments', 'name' => 'tax-settings', 'display_name' => 'Tax Settings', 'route' => 'settings.payments.tax-settings', 'permission_name' => 'settings.payments.tax.view', 'component' => 'TaxSettings', 'sort_order' => 3],
 
             // Shippings children
-            ['parent' => 'shippings', 'name' => 'shipping-methods', 'display_name' => 'Shipping Methods', 'route' => 'settings.shippings.methods', 'component' => 'ShippingMethods', 'sort_order' => 1],
-            ['parent' => 'shippings', 'name' => 'rajaongkir-config', 'display_name' => 'RajaOngkir Config', 'route' => 'settings.shippings.rajaongkir-config', 'component' => 'RajaOngkirConfig', 'sort_order' => 2],
-            ['parent' => 'shippings', 'name' => 'origin-address', 'display_name' => 'Origin Address', 'route' => 'settings.shippings.origin-address', 'component' => 'OriginAddress', 'sort_order' => 3],
+            ['parent' => 'shippings', 'name' => 'shipping-methods', 'display_name' => 'Shipping Methods', 'route' => 'settings.shippings.methods', 'permission_name' => 'settings.shippings.methods.view', 'component' => 'ShippingMethods', 'sort_order' => 1],
+            ['parent' => 'shippings', 'name' => 'rajaongkir-config', 'display_name' => 'RajaOngkir Config', 'route' => 'settings.shippings.rajaongkir-config', 'permission_name' => 'settings.shippings.rajaongkir.view', 'component' => 'RajaOngkirConfig', 'sort_order' => 2],
+            ['parent' => 'shippings', 'name' => 'origin-address', 'display_name' => 'Origin Address', 'route' => 'settings.shippings.origin-address', 'permission_name' => 'settings.shippings.origin.view', 'component' => 'OriginAddress', 'sort_order' => 3],
         ];
 
         foreach ($settingsChildren as $child) {
@@ -237,6 +245,7 @@ class ModuleSeeder extends Seeder
                 'icon' => null,
                 'parent_id' => $parentIds[$child['parent']],
                 'route' => $child['route'],
+                'permission_name' => $child['permission_name'] ?? null,
                 'component' => $child['component'],
                 'sort_order' => $child['sort_order'],
                 'is_active' => true,
@@ -275,10 +284,10 @@ class ModuleSeeder extends Seeder
 
         // Level 2: Reports children
         $reportsChildren = [
-            ['name' => 'sales-report', 'display_name' => 'Sales Report', 'route' => 'reports.sales', 'component' => 'SalesReport', 'sort_order' => 1],
-            ['name' => 'revenue-report', 'display_name' => 'Revenue Report', 'route' => 'reports.revenue', 'component' => 'RevenueReport', 'sort_order' => 2],
-            ['name' => 'product-performance', 'display_name' => 'Product Performance', 'route' => 'reports.product-performance', 'component' => 'ProductPerformance', 'sort_order' => 3],
-            ['name' => 'inventory-report', 'display_name' => 'Inventory Report', 'route' => 'reports.inventory', 'component' => 'InventoryReport', 'sort_order' => 4],
+            ['name' => 'sales-report', 'display_name' => 'Sales Report', 'route' => 'reports.sales', 'permission_name' => 'reports.sales.view', 'component' => 'SalesReport', 'sort_order' => 1],
+            ['name' => 'revenue-report', 'display_name' => 'Revenue Report', 'route' => 'reports.revenue', 'permission_name' => 'reports.revenue.view', 'component' => 'RevenueReport', 'sort_order' => 2],
+            ['name' => 'product-performance', 'display_name' => 'Product Performance', 'route' => 'reports.product-performance', 'permission_name' => 'reports.product-performance.view', 'component' => 'ProductPerformance', 'sort_order' => 3],
+            ['name' => 'inventory-report', 'display_name' => 'Inventory Report', 'route' => 'reports.inventory', 'permission_name' => 'reports.inventory.view', 'component' => 'InventoryReport', 'sort_order' => 4],
         ];
 
         foreach ($reportsChildren as $child) {
@@ -289,6 +298,7 @@ class ModuleSeeder extends Seeder
                 'icon' => null,
                 'parent_id' => $reportsParentId,
                 'route' => $child['route'],
+                'permission_name' => $child['permission_name'] ?? null,
                 'component' => $child['component'],
                 'sort_order' => $child['sort_order'],
                 'is_active' => true,

@@ -14,12 +14,19 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get role IDs
+        $superAdminRole = DB::table('roles')->where('name', 'super_admin')->first();
+        $adminRole = DB::table('roles')->where('name', 'admin')->first();
+        $staffRole = DB::table('roles')->where('name', 'staff')->first();
+        $customerRole = DB::table('roles')->where('name', 'customer')->first();
+
         $users = [
             [
                 'name' => 'Super Admin',
                 'email' => 'superadmin@mimod.com',
                 'phone' => '081234567890',
                 'password' => Hash::make('password'),
+                'role_id' => $superAdminRole->id,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'status' => 'active',
@@ -32,6 +39,7 @@ class UserSeeder extends Seeder
                 'email' => 'admin@mimod.com',
                 'phone' => '081234567891',
                 'password' => Hash::make('password'),
+                'role_id' => $adminRole->id,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'status' => 'active',
@@ -44,6 +52,7 @@ class UserSeeder extends Seeder
                 'email' => 'staff@mimod.com',
                 'phone' => '081234567892',
                 'password' => Hash::make('password'),
+                'role_id' => $staffRole->id,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'status' => 'active',
@@ -56,6 +65,7 @@ class UserSeeder extends Seeder
                 'email' => 'customer@mimod.com',
                 'phone' => '081234567893',
                 'password' => Hash::make('password'),
+                'role_id' => $customerRole->id,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'status' => 'active',
@@ -68,6 +78,7 @@ class UserSeeder extends Seeder
                 'email' => 'api@mimod.com',
                 'phone' => '081234567894',
                 'password' => Hash::make('api-secure-password-2024'),
+                'role_id' => $adminRole->id,
                 'email_verified_at' => now(),
                 'phone_verified_at' => now(),
                 'status' => 'active',
