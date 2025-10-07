@@ -9,15 +9,63 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <x-stat-card title="Total Coupons" :value="$statistics->total_coupons" icon="package" icon-color="primary" />
-        <x-stat-card title="Active Coupons" :value="$statistics->active_coupons" icon="check-circle-2" icon-color="success" value-color="text-success" />
-        <x-stat-card title="Total Usage" :value="$statistics->total_usage" icon="package" icon-color="info" value-color="text-info" />
-        <x-stat-card title="Total Discount" :value="'Rp ' . number_format($statistics->total_discount, 0, ',', '.')" icon="package" icon-color="warning" value-color="text-warning" />
+        <div class="stat-card">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-base-content/60">Total Coupons</p>
+                            <p class="text-2xl font-bold" id="statTotalCoupons">...</p>
+                        </div>
+                        <span class="iconify lucide--package size-8 text-primary"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-base-content/60">Active Coupons</p>
+                            <p class="text-2xl font-bold text-success" id="statActiveCoupons">...</p>
+                        </div>
+                        <span class="iconify lucide--check-circle-2 size-8 text-success"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-base-content/60">Total Usage</p>
+                            <p class="text-2xl font-bold text-info" id="statTotalUsage">...</p>
+                        </div>
+                        <span class="iconify lucide--package size-8 text-info"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-base-content/60">Total Discount</p>
+                            <p class="text-2xl font-bold text-warning" id="statTotalDiscount">...</p>
+                        </div>
+                        <span class="iconify lucide--package size-8 text-warning"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Filter Section -->
     <div class="mt-6">
-        <x-filter-section title="Filter Coupons" :action="route('marketing.coupons.index')">
+        <x-filter-section title="Filter Coupons" action="#" id="filterForm">
             <x-slot name="headerAction">
                 @if(hasPermission('marketing.coupons.create'))
                 <button type="button" class="btn btn-sm btn-primary" onclick="openCreateModal()">
@@ -81,12 +129,10 @@
                     <span class="iconify lucide--search size-4"></span>
                     Apply Filter
                 </button>
-                @if(request()->hasAny(['search', 'type', 'status', 'sort_by']))
-                <a href="{{ route('marketing.coupons.index') }}" class="btn btn-sm btn-ghost">
+                <button type="button" id="clearFilters" class="btn btn-sm btn-ghost">
                     <span class="iconify lucide--x size-4"></span>
                     Clear
-                </a>
-                @endif
+                </button>
             </x-slot>
         </x-filter-section>
     </div>
@@ -109,92 +155,18 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse($coupons as $coupon)
-                        <tr class="hover">
-                            <td>
-                                <code class="font-bold text-primary">{{ $coupon->code }}</code>
-                            </td>
-                            <td>{{ $coupon->name }}</td>
-                            <td>
-                                @if($coupon->type === 'percentage')
-                                <x-badge type="info" label="Percentage" />
-                                @elseif($coupon->type === 'fixed')
-                                <x-badge type="success" label="Fixed Amount" />
-                                @else
-                                <x-badge type="warning" label="Free Shipping" />
-                                @endif
-                            </td>
-                            <td>
-                                @if($coupon->type === 'percentage')
-                                {{ $coupon->value }}%
-                                @elseif($coupon->type === 'fixed')
-                                Rp {{ number_format($coupon->value, 0, ',', '.') }}
-                                @else
-                                Free
-                                @endif
-                            </td>
-                            <td>
-                                <span class="text-sm">{{ $coupon->usage_count }} / {{ $coupon->usage_limit ?? '∞' }}</span>
-                            </td>
-                            <td>
-                                <div class="text-sm">
-                                    <div>{{ \Carbon\Carbon::parse($coupon->start_date)->format('d M Y') }}</div>
-                                    <div class="text-base-content/60">{{ \Carbon\Carbon::parse($coupon->end_date)->format('d M Y') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                @php
-                                    $now = now();
-                                    $isActive = $coupon->is_active &&
-                                               $now >= $coupon->start_date &&
-                                               $now <= $coupon->end_date;
-                                    $isUpcoming = $coupon->is_active && $now < $coupon->start_date;
-                                    $isExpired = $now > $coupon->end_date;
-                                @endphp
-
-                                @if($isActive)
-                                <x-badge type="success" label="Active" />
-                                @elseif($isUpcoming)
-                                <x-badge type="info" label="Upcoming" />
-                                @elseif($isExpired)
-                                <x-badge type="error" label="Expired" />
-                                @else
-                                <x-badge type="ghost" label="Inactive" />
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    @if(hasPermission('marketing.coupons.view'))
-                                    <button class="btn btn-sm btn-ghost" onclick="viewCoupon({{ $coupon->id }})" title="View">
-                                        <span class="iconify lucide--eye size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.coupons.update'))
-                                    <button class="btn btn-sm btn-ghost" onclick="editCoupon({{ $coupon->id }})" title="Edit">
-                                        <span class="iconify lucide--pencil size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.coupons.delete'))
-                                    <button class="btn btn-sm btn-ghost text-error" onclick="deleteCoupon({{ $coupon->id }})" title="Delete">
-                                        <span class="iconify lucide--trash-2 size-4"></span>
-                                    </button>
-                                    @endif
-                                </div>
+                    <tbody id="couponsTableBody">
+                        <tr id="loadingRow">
+                            <td colspan="8" class="text-center py-8">
+                                <span class="loading loading-spinner loading-md"></span>
+                                <p class="mt-2 text-base-content/60">Loading coupons...</p>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-8 text-base-content/60">
-                                No coupons found
-                            </td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <x-pagination-info :paginator="$coupons" />
+            <div id="paginationContainer" class="p-4"></div>
             </div>
         </div>
     </div>

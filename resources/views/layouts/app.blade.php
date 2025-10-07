@@ -19,6 +19,16 @@
                 document.documentElement.setAttribute("data-theme", 'light');
             }
         </script>
+
+        {{-- Global User Permissions --}}
+        <script>
+            window.userPermissions = @json(auth()->check() ? auth()->user()->permissions->pluck('name')->toArray() : []);
+
+            window.hasPermission = function(permission) {
+                return window.userPermissions && window.userPermissions.includes(permission);
+            };
+        </script>
+
         <title>@yield('title', 'Dashboard') - Minimoda</title>
         @include('partials.head')
 

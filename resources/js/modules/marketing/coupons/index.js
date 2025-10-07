@@ -1,7 +1,263 @@
 import Ajax from '../../../utils/ajax.js';
 import Toast from '../../../components/toast.js';
+import $ from 'jquery';
 
 let currentCouponId = null;
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+$(document).ready(function() {
+    loadData();
+    initEventListeners();
+});
+
+// ============================================
+// LOAD DATA FROM API
+// ============================================
+
+async function loadData(page = 1) {
+    try {
+        // Show loading state
+        $('#couponsTableBody').html(`
+            <tr id="loadingRow">
+                <td colspan="8" class="text-center py-8">
+                    <span class="loading loading-spinner loading-md"></span>
+                    <p class="mt-2 text-base-content/60">Loading coupons...</p>
+                </td>
+            </tr>
+        `);
+
+        // Get filter values from form
+        const filters = {
+            search: $('[name="search"]').val() || '',
+            type: $('[name="type"]').val() || '',
+            status: $('[name="status"]').val() || '',
+            sort_by: $('[name="sort_by"]').val() || 'created_at',
+            page: page,
+            per_page: 20
+        };
+
+        // Remove empty values
+        Object.keys(filters).forEach(key => {
+            if (!filters[key] || filters[key] === '') delete filters[key];
+        });
+
+        // Build query string
+        const queryString = new URLSearchParams(filters).toString();
+
+        const response = await Ajax.get(`/api/marketing/coupons?${queryString}`, {
+            showLoading: false,
+            showToast: false
+        });
+
+        if (response.status && response.data) {
+            renderTable(response.data.coupons);
+            renderPagination(response.data.coupons);
+            if (response.data.statistics) {
+                updateStatistics(response.data.statistics);
+            }
+        } else {
+            throw new Error('Invalid response structure');
+        }
+    } catch (error) {
+        console.error('Error loading coupons:', error);
+        $('#couponsTableBody').html(`
+            <tr>
+                <td colspan="8" class="text-center py-8 text-error">
+                    <span class="iconify lucide--alert-circle size-8 mb-2"></span>
+                    <p>Failed to load coupons. Please refresh the page.</p>
+                    <p class="text-xs mt-2">${error.message || 'Unknown error'}</p>
+                </td>
+            </tr>
+        `);
+    }
+}
+
+// ============================================
+// RENDER FUNCTIONS
+// ============================================
+
+function renderTable(data) {
+    const $tbody = $('#couponsTableBody');
+    const items = data.data || data;
+
+    if (!items || items.length === 0) {
+        $tbody.html(`
+            <tr>
+                <td colspan="8" class="text-center py-8">
+                    <span class="iconify lucide--inbox size-8 mb-2 text-base-content/40"></span>
+                    <p class="text-base-content/60">No coupons found</p>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+
+    let html = '';
+    items.forEach(coupon => {
+        // Type badge
+        const typeBadges = {
+            percentage: '<span class="badge badge-info badge-sm">Percentage</span>',
+            fixed: '<span class="badge badge-success badge-sm">Fixed Amount</span>',
+            free_shipping: '<span class="badge badge-warning badge-sm">Free Shipping</span>'
+        };
+
+        // Value display
+        const valueDisplay = coupon.type === 'percentage'
+            ? `${coupon.value}%`
+            : coupon.type === 'fixed'
+            ? `Rp ${parseFloat(coupon.value).toLocaleString('id-ID')}`
+            : 'Free';
+
+        // Status badge
+        const now = new Date();
+        const startDate = new Date(coupon.start_date);
+        const endDate = new Date(coupon.end_date);
+        const isActive = coupon.is_active && now >= startDate && now <= endDate;
+        const isUpcoming = coupon.is_active && now < startDate;
+        const isExpired = now > endDate;
+
+        let statusBadge = '';
+        if (isActive) {
+            statusBadge = '<span class="badge badge-success badge-sm">Active</span>';
+        } else if (isUpcoming) {
+            statusBadge = '<span class="badge badge-info badge-sm">Upcoming</span>';
+        } else if (isExpired) {
+            statusBadge = '<span class="badge badge-error badge-sm">Expired</span>';
+        } else {
+            statusBadge = '<span class="badge badge-ghost badge-sm">Inactive</span>';
+        }
+
+        html += `
+            <tr class="hover">
+                <td><code class="font-bold text-primary">${coupon.code}</code></td>
+                <td>${coupon.name}</td>
+                <td>${typeBadges[coupon.type] || ''}</td>
+                <td>${valueDisplay}</td>
+                <td><span class="text-sm">${coupon.usage_count} / ${coupon.usage_limit || '∞'}</span></td>
+                <td>
+                    <div class="text-sm">
+                        <div>${new Date(coupon.start_date).toLocaleDateString('id-ID')}</div>
+                        <div class="text-base-content/60">${new Date(coupon.end_date).toLocaleDateString('id-ID')}</div>
+                    </div>
+                </td>
+                <td>${statusBadge}</td>
+                <td>
+                    <div class="flex gap-2">
+                        ${window.hasPermission && window.hasPermission('marketing.coupons.view') ? `
+                        <button class="btn btn-sm btn-ghost" onclick="viewCoupon(${coupon.id})" title="View">
+                            <span class="iconify lucide--eye size-4"></span>
+                        </button>
+                        ` : ''}
+                        ${window.hasPermission && window.hasPermission('marketing.coupons.update') ? `
+                        <button class="btn btn-sm btn-ghost" onclick="editCoupon(${coupon.id})" title="Edit">
+                            <span class="iconify lucide--pencil size-4"></span>
+                        </button>
+                        ` : ''}
+                        ${window.hasPermission && window.hasPermission('marketing.coupons.delete') ? `
+                        <button class="btn btn-sm btn-ghost text-error" onclick="deleteCoupon(${coupon.id})" title="Delete">
+                            <span class="iconify lucide--trash-2 size-4"></span>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    $tbody.html(html);
+}
+
+function renderPagination(data) {
+    const $container = $('#paginationContainer');
+
+    if (!data.last_page || data.last_page <= 1) {
+        $container.html('');
+        return;
+    }
+
+    let html = '<div class="flex justify-between items-center">';
+
+    // Pagination info
+    html += `<p class="text-sm text-base-content/60">Showing ${data.from} to ${data.to} of ${data.total} results</p>`;
+
+    // Pagination buttons
+    html += '<div class="join">';
+
+    // Previous button
+    html += `
+        <button class="join-item btn btn-sm" ${data.current_page === 1 ? 'disabled' : ''} onclick="loadDataPage(${data.current_page - 1})">
+            «
+        </button>
+    `;
+
+    // Page numbers (show max 5 pages)
+    const startPage = Math.max(1, data.current_page - 2);
+    const endPage = Math.min(data.last_page, data.current_page + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <button class="join-item btn btn-sm ${i === data.current_page ? 'btn-active' : ''}" onclick="loadDataPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+
+    // Next button
+    html += `
+        <button class="join-item btn btn-sm" ${data.current_page === data.last_page ? 'disabled' : ''} onclick="loadDataPage(${data.current_page + 1})">
+            »
+        </button>
+    `;
+
+    html += '</div></div>';
+
+    $container.html(html);
+}
+
+function updateStatistics(stats) {
+    if (!stats) return;
+
+    $('#statTotalCoupons').text(stats.total_coupons || 0);
+    $('#statActiveCoupons').text(stats.active_coupons || 0);
+    $('#statTotalUsage').text(stats.total_usage || 0);
+
+    // Format total discount as currency
+    const totalDiscount = stats.total_discount || 0;
+    $('#statTotalDiscount').text('Rp ' + parseFloat(totalDiscount).toLocaleString('id-ID'));
+}
+
+// Make loadData accessible for pagination
+window.loadDataPage = function(page) {
+    loadData(page);
+};
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function initEventListeners() {
+    // Filter form submit
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        loadData(1);
+    });
+
+    // Clear filters
+    $('#clearFilters').on('click', function() {
+        $('[name="search"]').val('');
+        $('[name="type"]').val('');
+        $('[name="status"]').val('');
+        $('[name="sort_by"]').val('created_at');
+        loadData(1);
+    });
+}
+
+// ============================================
+// CRUD OPERATIONS
+// ============================================
 
 window.openCreateModal = function() {
     currentCouponId = null;
@@ -14,7 +270,7 @@ window.viewCoupon = async function(id) {
     try {
         const response = await Ajax.get(`/api/marketing/coupons/${id}`);
 
-        if (response.success) {
+        if (response.status) {
             const { coupon, usage } = response.data;
 
             const typeLabels = {
@@ -128,7 +384,7 @@ window.editCoupon = async function(id) {
     try {
         const response = await Ajax.get(`/api/marketing/coupons/${id}`);
 
-        if (response.success) {
+        if (response.status) {
             currentCouponId = id;
             const coupon = response.data.coupon;
             const form = document.getElementById('couponForm');
@@ -160,14 +416,14 @@ window.deleteCoupon = async function(id) {
     if (!confirm('Are you sure you want to delete this coupon?')) return;
 
     try {
-        const response = await Ajax.delete(`/api/marketing/coupons/${id}`);
+        await Ajax.destroy(`/api/marketing/coupons/${id}`, {
+            successMessage: 'Coupon deleted successfully',
+            showToast: true
+        });
 
-        if (response.success) {
-            Toast.showToast(response.message, 'success');
-            setTimeout(() => window.location.reload(), 1000);
-        }
+        await loadData();
     } catch (error) {
-        Toast.showToast('An error occurred', 'error')(error);
+        // Error already handled by Ajax
     }
 };
 
@@ -191,16 +447,23 @@ document.getElementById('couponForm').addEventListener('submit', async function(
     };
 
     try {
-        const response = currentCouponId
-            ? await Ajax.put(`/api/marketing/coupons/${currentCouponId}`, data)
-            : await Ajax.post('/api/marketing/coupons', data);
-
-        if (response.success) {
-            Toast.showToast(response.message, 'success');
-            couponModal.close();
-            setTimeout(() => window.location.reload(), 1000);
+        if (currentCouponId) {
+            await Ajax.update(`/api/marketing/coupons/${currentCouponId}`, data, {
+                successMessage: 'Coupon updated successfully',
+                showToast: true
+            });
+        } else {
+            await Ajax.create('/api/marketing/coupons', data, {
+                successMessage: 'Coupon created successfully',
+                showToast: true
+            });
         }
+
+        couponModal.close();
+        this.reset();
+        currentCouponId = null;
+        await loadData();
     } catch (error) {
-        Toast.showToast('An error occurred', 'error')(error);
+        // Error already handled by Ajax
     }
 });
