@@ -1,11 +1,40 @@
 <?php
 
+use App\Http\Controllers\AccessControl\ModuleController;
+use App\Http\Controllers\AccessControl\PermissionController;
+use App\Http\Controllers\AccessControl\PermissionGroupController;
+use App\Http\Controllers\AccessControl\RoleController;
+use App\Http\Controllers\AccessControl\UserActivityController;
+use App\Http\Controllers\AccessControl\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Catalog\AddProductsController;
 use App\Http\Controllers\Catalog\AllProductsController;
 use App\Http\Controllers\Catalog\BrandsController;
 use App\Http\Controllers\Catalog\CategoriesController;
 use App\Http\Controllers\Catalog\VariantsController;
+use App\Http\Controllers\Customers\AllCustomersController;
+use App\Http\Controllers\Customers\CustomerSegmentsController;
+use App\Http\Controllers\Customers\CustomerGroupsController;
+use App\Http\Controllers\Customers\CustomerLoyaltyController;
+use App\Http\Controllers\Customers\CustomerReviewsController;
+use App\Http\Controllers\Customers\VipCustomersController;
+use App\Http\Controllers\Marketing\BundleDealsController;
+use App\Http\Controllers\Marketing\CouponsController;
+use App\Http\Controllers\Marketing\FlashSalesController;
+use App\Http\Controllers\Orders\AllOrdersController;
+use App\Http\Controllers\Orders\CancelledOrdersController;
+use App\Http\Controllers\Orders\CompletedOrdersController;
+use App\Http\Controllers\Orders\PendingOrdersController;
+use App\Http\Controllers\Orders\ProcessingOrdersController;
+use App\Http\Controllers\Orders\ShippedOrdersController;
+use App\Http\Controllers\Reports\InventoryReportController;
+use App\Http\Controllers\Reports\ProductPerformanceController;
+use App\Http\Controllers\Reports\RevenueReportController;
+use App\Http\Controllers\Reports\SalesReportController;
+use App\Http\Controllers\Settings\ApiTokenController;
+use App\Http\Controllers\Settings\GeneralController;
+use App\Http\Controllers\Settings\PaymentController;
+use App\Http\Controllers\Settings\ShippingController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -38,91 +67,83 @@ Route::middleware('auth.token')->group(function () {
 
 
     // Users
-    Route::group(['prefix' => 'user'], function () {
-        Route::get('/', 'App\Http\Controllers\AccessControl\UserController@index')
-            ->name('user.index')
-            ->middleware('permission:access-control.users.view');
-
-        Route::get('/create', 'App\Http\Controllers\AccessControl\UserController@create')
-            ->name('user.create')
-            ->middleware('permission:access-control.users.create');
-
-        Route::post('/store', 'App\Http\Controllers\AccessControl\UserController@store')
-            ->name('user.store')
-            ->middleware('permission:access-control.users.create');
-
-        Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\UserController@edit')
-            ->name('user.edit')
-            ->middleware('permission:access-control.users.update');
-
-        Route::put('/{id}', 'App\Http\Controllers\AccessControl\UserController@update')
-            ->name('user.update')
-            ->middleware('permission:access-control.users.update');
-
-        Route::delete('/{id}', 'App\Http\Controllers\AccessControl\UserController@destroy')
-            ->name('user.destroy')
-            ->middleware('permission:access-control.users.delete');
-
-        Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\UserController@toggleActive')
-            ->name('user.toggle-active')
-            ->middleware('permission:access-control.users.update');
+    Route::prefix('user')->group(function () {
+        Route::controller(UserController::class)->group(function () {
+            Route::get('/', 'index')->name('user.index')->middleware('permission:access-control.users.view');
+            Route::get('/create', 'create')->name('user.create')->middleware('permission:access-control.users.create');
+            Route::post('/store', 'store')->name('user.store')->middleware('permission:access-control.users.create');
+            Route::get('/{id}/edit', 'edit')->name('user.edit')->middleware('permission:access-control.users.update');
+            Route::put('/{id}', 'update')->name('user.update')->middleware('permission:access-control.users.update');
+            Route::delete('/{id}', 'destroy')->name('user.destroy')->middleware('permission:access-control.users.delete');
+            Route::post('/{id}/toggle-active', 'toggleActive')->name('user.toggle-active')->middleware('permission:access-control.users.update');
+        });
     });
 
     // Access Control
     Route::group(['prefix' => 'access-control'], function () {
         // Modules
-        Route::group(['prefix' => 'modules'], function () {
-            Route::get('/', 'App\Http\Controllers\AccessControl\ModuleController@index')->name('modules.index')->middleware('permission:access-control.modules.view');
-            Route::get('/create', 'App\Http\Controllers\AccessControl\ModuleController@create')->name('modules.create')->middleware('permission:access-control.modules.create');
-            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\ModuleController@edit')->name('modules.edit')->middleware('permission:access-control.modules.update');
-            Route::get('/all', 'App\Http\Controllers\AccessControl\ModuleController@getAll')->name('modules.all')->middleware('permission:access-control.modules.view');
-            Route::post('/store', 'App\Http\Controllers\AccessControl\ModuleController@store')->name('modules.store')->middleware('permission:access-control.modules.create');
-            Route::put('/{id}', 'App\Http\Controllers\AccessControl\ModuleController@update')->name('modules.update')->middleware('permission:access-control.modules.update');
-            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\ModuleController@destroy')->name('modules.destroy')->middleware('permission:access-control.modules.delete');
-            Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\ModuleController@toggleActive')->name('modules.toggle-active')->middleware('permission:access-control.modules.update');
-            Route::post('/{id}/toggle-visible', 'App\Http\Controllers\AccessControl\ModuleController@toggleVisible')->name('modules.toggle-visible')->middleware('permission:access-control.modules.update');
-            Route::post('/update-order', 'App\Http\Controllers\AccessControl\ModuleController@updateOrder')->name('modules.update-order')->middleware('permission:access-control.modules.update');
-            Route::post('/update-group-order', 'App\Http\Controllers\AccessControl\ModuleController@updateGroupOrder')->name('modules.update-group-order')->middleware('permission:access-control.modules.update');
+        Route::prefix('modules')->group(function () {
+            Route::controller(ModuleController::class)->group(function () {
+                Route::get('/', 'index')->name('modules.index')->middleware('permission:access-control.modules.view');
+                Route::get('/create', 'create')->name('modules.create')->middleware('permission:access-control.modules.create');
+                Route::get('/{id}/edit', 'edit')->name('modules.edit')->middleware('permission:access-control.modules.update');
+                Route::get('/all', 'getAll')->name('modules.all')->middleware('permission:access-control.modules.view');
+                Route::post('/store', 'store')->name('modules.store')->middleware('permission:access-control.modules.create');
+                Route::put('/{id}', 'update')->name('modules.update')->middleware('permission:access-control.modules.update');
+                Route::delete('/{id}', 'destroy')->name('modules.destroy')->middleware('permission:access-control.modules.delete');
+                Route::post('/{id}/toggle-active', 'toggleActive')->name('modules.toggle-active')->middleware('permission:access-control.modules.update');
+                Route::post('/{id}/toggle-visible', 'toggleVisible')->name('modules.toggle-visible')->middleware('permission:access-control.modules.update');
+                Route::post('/update-order', 'updateOrder')->name('modules.update-order')->middleware('permission:access-control.modules.update');
+                Route::post('/update-group-order', 'updateGroupOrder')->name('modules.update-group-order')->middleware('permission:access-control.modules.update');
+            });
         });
 
         // Roles
-        Route::group(['prefix' => 'role'], function () {
-            Route::get('/', 'App\Http\Controllers\AccessControl\RoleController@index')->name('role.index')->middleware('permission:access-control.roles.view');
-            Route::get('/create', 'App\Http\Controllers\AccessControl\RoleController@create')->name('role.create')->middleware('permission:access-control.roles.create');
-            Route::post('/store', 'App\Http\Controllers\AccessControl\RoleController@store')->name('role.store')->middleware('permission:access-control.roles.create');
-            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\RoleController@edit')->name('role.edit')->middleware('permission:access-control.roles.update');
-            Route::get('/{id}/detail', 'App\Http\Controllers\AccessControl\RoleController@detail')->name('role.detail')->middleware('permission:access-control.roles.view');
-            Route::put('/{id}', 'App\Http\Controllers\AccessControl\RoleController@update')->name('role.update')->middleware('permission:access-control.roles.update');
-            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\RoleController@destroy')->name('role.destroy')->middleware('permission:access-control.roles.delete');
-            Route::post('/{id}/toggle-active', 'App\Http\Controllers\AccessControl\RoleController@toggleActive')->name('role.toggle-active')->middleware('permission:access-control.roles.update');
+        Route::prefix('role')->group(function () {
+            Route::controller(RoleController::class)->group(function () {
+                Route::get('/', 'index')->name('role.index')->middleware('permission:access-control.roles.view');
+                Route::get('/create', 'create')->name('role.create')->middleware('permission:access-control.roles.create');
+                Route::post('/store', 'store')->name('role.store')->middleware('permission:access-control.roles.create');
+                Route::get('/{id}/edit', 'edit')->name('role.edit')->middleware('permission:access-control.roles.update');
+                Route::get('/{id}/detail', 'detail')->name('role.detail')->middleware('permission:access-control.roles.view');
+                Route::put('/{id}', 'update')->name('role.update')->middleware('permission:access-control.roles.update');
+                Route::delete('/{id}', 'destroy')->name('role.destroy')->middleware('permission:access-control.roles.delete');
+                Route::post('/{id}/toggle-active', 'toggleActive')->name('role.toggle-active')->middleware('permission:access-control.roles.update');
+            });
         });
 
         // Permissions
-        Route::group(['prefix' => 'permission'], function () {
-            Route::get('/', 'App\Http\Controllers\AccessControl\PermissionController@index')->name('permission.index')->middleware('permission:access-control.permissions.view');
-            Route::get('/create', 'App\Http\Controllers\AccessControl\PermissionController@create')->name('permission.create')->middleware('permission:access-control.permissions.create');
-            Route::post('/store', 'App\Http\Controllers\AccessControl\PermissionController@store')->name('permission.store')->middleware('permission:access-control.permissions.create');
-            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\PermissionController@edit')->name('permission.edit')->middleware('permission:access-control.permissions.update');
-            Route::put('/{id}', 'App\Http\Controllers\AccessControl\PermissionController@update')->name('permission.update')->middleware('permission:access-control.permissions.update');
-            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\PermissionController@destroy')->name('permission.destroy')->middleware('permission:access-control.permissions.delete');
+        Route::prefix('permission')->group(function () {
+            Route::controller(PermissionController::class)->group(function () {
+                Route::get('/', 'index')->name('permission.index')->middleware('permission:access-control.permissions.view');
+                Route::get('/create', 'create')->name('permission.create')->middleware('permission:access-control.permissions.create');
+                Route::post('/store', 'store')->name('permission.store')->middleware('permission:access-control.permissions.create');
+                Route::get('/{id}/edit', 'edit')->name('permission.edit')->middleware('permission:access-control.permissions.update');
+                Route::put('/{id}', 'update')->name('permission.update')->middleware('permission:access-control.permissions.update');
+                Route::delete('/{id}', 'destroy')->name('permission.destroy')->middleware('permission:access-control.permissions.delete');
+            });
         });
 
         // Permission Groups
-        Route::group(['prefix' => 'permission-group'], function () {
-            Route::get('/', 'App\Http\Controllers\AccessControl\PermissionGroupController@index')->name('permission-group.index')->middleware('permission:access-control.permissions.view');
-            Route::get('/create', 'App\Http\Controllers\AccessControl\PermissionGroupController@create')->name('permission-group.create')->middleware('permission:access-control.permissions.create');
-            Route::post('/store', 'App\Http\Controllers\AccessControl\PermissionGroupController@store')->name('permission-group.store')->middleware('permission:access-control.permissions.create');
-            Route::get('/{id}/edit', 'App\Http\Controllers\AccessControl\PermissionGroupController@edit')->name('permission-group.edit')->middleware('permission:access-control.permissions.update');
-            Route::put('/{id}', 'App\Http\Controllers\AccessControl\PermissionGroupController@update')->name('permission-group.update')->middleware('permission:access-control.permissions.update');
-            Route::delete('/{id}', 'App\Http\Controllers\AccessControl\PermissionGroupController@destroy')->name('permission-group.destroy')->middleware('permission:access-control.permissions.delete');
+        Route::prefix('permission-group')->group(function () {
+            Route::controller(PermissionGroupController::class)->group(function () {
+                Route::get('/', 'index')->name('permission-group.index')->middleware('permission:access-control.permissions.view');
+                Route::get('/create', 'create')->name('permission-group.create')->middleware('permission:access-control.permissions.create');
+                Route::post('/store', 'store')->name('permission-group.store')->middleware('permission:access-control.permissions.create');
+                Route::get('/{id}/edit', 'edit')->name('permission-group.edit')->middleware('permission:access-control.permissions.update');
+                Route::put('/{id}', 'update')->name('permission-group.update')->middleware('permission:access-control.permissions.update');
+                Route::delete('/{id}', 'destroy')->name('permission-group.destroy')->middleware('permission:access-control.permissions.delete');
+            });
         });
 
         // User Activities
-        Route::group(['prefix' => 'user-activities'], function () {
-            Route::get('/', 'App\Http\Controllers\AccessControl\UserActivityController@index')->name('access-control.user-activities.index')->middleware('permission:access-control.user-activities.view');
-            Route::get('/{id}', 'App\Http\Controllers\AccessControl\UserActivityController@show')->name('access-control.user-activities.show')->middleware('permission:access-control.user-activities.view');
-            Route::delete('/clear', 'App\Http\Controllers\AccessControl\UserActivityController@clear')->name('access-control.user-activities.clear')->middleware('permission:access-control.user-activities.clear');
-            Route::get('/export/csv', 'App\Http\Controllers\AccessControl\UserActivityController@export')->name('access-control.user-activities.export')->middleware('permission:access-control.user-activities.export');
+        Route::prefix('user-activities')->group(function () {
+            Route::controller(UserActivityController::class)->group(function () {
+                Route::get('/', 'index')->name('access-control.user-activities.index')->middleware('permission:access-control.user-activities.view');
+                Route::get('/{id}', 'show')->name('access-control.user-activities.show')->middleware('permission:access-control.user-activities.view');
+                Route::delete('/clear', 'clear')->name('access-control.user-activities.clear')->middleware('permission:access-control.user-activities.clear');
+                Route::get('/export/csv', 'export')->name('access-control.user-activities.export')->middleware('permission:access-control.user-activities.export');
+            });
         });
 
         // Session (optional, might not have permission yet)
@@ -137,150 +158,169 @@ Route::middleware('auth.token')->group(function () {
     // Reports
     Route::group(['prefix' => 'reports'], function () {
         // Sales Report
-        Route::get('/sales', 'App\Http\Controllers\Reports\SalesReportController@index')
-            ->name('reports.sales')
-            ->middleware('permission:reports.sales.view');
-        Route::post('/sales/export', 'App\Http\Controllers\Reports\SalesReportController@export')
-            ->name('reports.sales.export')
-            ->middleware('permission:reports.sales.export');
+        Route::prefix('sales')->group(function () {
+            Route::controller(SalesReportController::class)->group(function () {
+                Route::get('/', 'index')->name('reports.sales')->middleware('permission:reports.sales.view');
+                Route::post('/export', 'export')->name('reports.sales.export')->middleware('permission:reports.sales.export');
+            });
+        });
 
         // Revenue Report
-        Route::get('/revenue', 'App\Http\Controllers\Reports\RevenueReportController@index')
-            ->name('reports.revenue')
-            ->middleware('permission:reports.revenue.view');
-        Route::post('/revenue/export', 'App\Http\Controllers\Reports\RevenueReportController@export')
-            ->name('reports.revenue.export')
-            ->middleware('permission:reports.revenue.export');
+        Route::prefix('revenue')->group(function () {
+            Route::controller(RevenueReportController::class)->group(function () {
+                Route::get('/', 'index')->name('reports.revenue')->middleware('permission:reports.revenue.view');
+                Route::post('/export', 'export')->name('reports.revenue.export')->middleware('permission:reports.revenue.export');
+            });
+        });
 
         // Product Performance
-        Route::get('/product-performance', 'App\Http\Controllers\Reports\ProductPerformanceController@index')
-            ->name('reports.product-performance')
-            ->middleware('permission:reports.product-performance.view');
-        Route::post('/product-performance/export', 'App\Http\Controllers\Reports\ProductPerformanceController@export')
-            ->name('reports.product-performance.export')
-            ->middleware('permission:reports.product-performance.export');
+        Route::prefix('product-performance')->group(function () {
+            Route::controller(ProductPerformanceController::class)->group(function () {
+                Route::get('/', 'index')->name('reports.product-performance')->middleware('permission:reports.product-performance.view');
+                Route::post('/export', 'export')->name('reports.product-performance.export')->middleware('permission:reports.product-performance.export');
+            });
+        });
 
         // Inventory Report
-        Route::get('/inventory', 'App\Http\Controllers\Reports\InventoryReportController@index')
-            ->name('reports.inventory')
-            ->middleware('permission:reports.inventory.view');
-        Route::post('/inventory/export', 'App\Http\Controllers\Reports\InventoryReportController@export')
-            ->name('reports.inventory.export')
-            ->middleware('permission:reports.inventory.export');
+        Route::prefix('inventory')->group(function () {
+            Route::controller(InventoryReportController::class)->group(function () {
+                Route::get('/', 'index')->name('reports.inventory')->middleware('permission:reports.inventory.view');
+                Route::post('/export', 'export')->name('reports.inventory.export')->middleware('permission:reports.inventory.export');
+            });
+        });
+    });
+
+    // Marketing
+    Route::group(['prefix' => 'marketing'], function () {
+        Route::prefix('coupons')->group(function () {
+            Route::controller(CouponsController::class)->group(function () {
+                Route::get('/', 'index')->name('marketing.coupons.index')->middleware('permission:marketing.coupons.view');
+            });
+        });
+
+        Route::prefix('flash-sales')->group(function () {
+            Route::controller(FlashSalesController::class)->group(function () {
+                Route::get('/', 'index')->name('marketing.flash-sales.index')->middleware('permission:marketing.flash-sales.view');
+            });
+        });
+
+        Route::prefix('bundle-deals')->group(function () {
+            Route::controller(BundleDealsController::class)->group(function () {
+                Route::get('/', 'index')->name('marketing.bundle-deals.index')->middleware('permission:marketing.bundle-deals.view');
+            });
+        });
     });
 
     // Customers Management
     Route::group(['prefix' => 'customers'], function () {
         // All Customers
-        Route::get('/all-customers', 'App\Http\Controllers\Customers\AllCustomersController@index')
-            ->name('customers.all-customers.index')
-            ->middleware('permission:customers.all-customers.view');
-        Route::get('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@show')
-            ->name('customers.all-customers.show')
-            ->middleware('permission:customers.all-customers.view');
-        Route::get('/all-customers/{id}/detail', 'App\Http\Controllers\Customers\AllCustomersController@detail')
-            ->name('customers.all-customers.detail')
-            ->middleware('permission:customers.all-customers.view');
-        Route::post('/all-customers', 'App\Http\Controllers\Customers\AllCustomersController@store')
-            ->name('customers.all-customers.store')
-            ->middleware('permission:customers.all-customers.create');
-        Route::put('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@update')
-            ->name('customers.all-customers.update')
-            ->middleware('permission:customers.all-customers.update');
-        Route::delete('/all-customers/{id}', 'App\Http\Controllers\Customers\AllCustomersController@destroy')
-            ->name('customers.all-customers.destroy')
-            ->middleware('permission:customers.all-customers.delete');
-        Route::post('/all-customers/{id}/toggle-status', 'App\Http\Controllers\Customers\AllCustomersController@toggleStatus')
-            ->name('customers.all-customers.toggle-status')
-            ->middleware('permission:customers.all-customers.update');
+        Route::prefix('all-customers')->group(function () {
+            Route::controller(AllCustomersController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.all-customers.index')->middleware('permission:customers.all-customers.view');
+                Route::get('/{id}', 'show')->name('customers.all-customers.show')->middleware('permission:customers.all-customers.view');
+                Route::get('/{id}/detail', 'detail')->name('customers.all-customers.detail')->middleware('permission:customers.all-customers.view');
+                Route::post('/', 'store')->name('customers.all-customers.store')->middleware('permission:customers.all-customers.create');
+                Route::put('/{id}', 'update')->name('customers.all-customers.update')->middleware('permission:customers.all-customers.update');
+                Route::delete('/{id}', 'destroy')->name('customers.all-customers.destroy')->middleware('permission:customers.all-customers.delete');
+                Route::post('/{id}/toggle-status', 'toggleStatus')->name('customers.all-customers.toggle-status')->middleware('permission:customers.all-customers.update');
+            });
+        });
 
         // Customer Segments
-        Route::get('/customer-segments', 'App\Http\Controllers\Customers\CustomerSegmentsController@index')
-            ->name('customers.customer-segments.index')
-            ->middleware('permission:customers.customer-segments.view');
-        Route::get('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@show')
-            ->name('customers.customer-segments.show')
-            ->middleware('permission:customers.customer-segments.view');
-        Route::post('/customer-segments', 'App\Http\Controllers\Customers\CustomerSegmentsController@store')
-            ->name('customers.customer-segments.store')
-            ->middleware('permission:customers.customer-segments.create');
-        Route::put('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@update')
-            ->name('customers.customer-segments.update')
-            ->middleware('permission:customers.customer-segments.update');
-        Route::delete('/customer-segments/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@destroy')
-            ->name('customers.customer-segments.destroy')
-            ->middleware('permission:customers.customer-segments.delete');
-        Route::post('/customer-segments/{id}/recalculate', 'App\Http\Controllers\Customers\CustomerSegmentsController@recalculateCustomers')
-            ->name('customers.customer-segments.recalculate')
-            ->middleware('permission:customers.customer-segments.update');
+        Route::prefix('customer-segments')->group(function () {
+            Route::controller(CustomerSegmentsController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.customer-segments.index')->middleware('permission:customers.customer-segments.view');
+                Route::get('/{id}', 'show')->name('customers.customer-segments.show')->middleware('permission:customers.customer-segments.view');
+                Route::post('/', 'store')->name('customers.customer-segments.store')->middleware('permission:customers.customer-segments.create');
+                Route::put('/{id}', 'update')->name('customers.customer-segments.update')->middleware('permission:customers.customer-segments.update');
+                Route::delete('/{id}', 'destroy')->name('customers.customer-segments.destroy')->middleware('permission:customers.customer-segments.delete');
+                Route::post('/{id}/recalculate', 'recalculateCustomers')->name('customers.customer-segments.recalculate')->middleware('permission:customers.customer-segments.update');
+            });
+        });
+
+        // Customer Groups
+        Route::prefix('customer-groups')->group(function () {
+            Route::controller(CustomerGroupsController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.groups.index')->middleware('permission:customers.customer-groups.view');
+                Route::get('/{id}/members', 'members')->name('customers.groups.members')->middleware('permission:customers.customer-groups.view');
+            });
+        });
+
+        // Customer Loyalty
+        Route::prefix('customer-loyalty')->group(function () {
+            Route::controller(CustomerLoyaltyController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.loyalty.index')->middleware('permission:customers.customer-loyalty.view');
+            });
+        });
+
+        // Customer Reviews
+        Route::prefix('customer-reviews')->group(function () {
+            Route::controller(CustomerReviewsController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.reviews.index')->middleware('permission:customers.customer-reviews.view');
+            });
+        });
 
         // VIP Customers
-        Route::get('/vip-customers', 'App\Http\Controllers\Customers\VipCustomersController@index')
-            ->name('customers.vip-customers.index')
-            ->middleware('permission:customers.vip-customers.view');
-        Route::post('/vip-customers/{id}/toggle-vip', 'App\Http\Controllers\Customers\VipCustomersController@toggleVip')
-            ->name('customers.vip-customers.toggle-vip')
-            ->middleware('permission:customers.vip-customers.manage');
+        Route::prefix('vip-customers')->group(function () {
+            Route::controller(VipCustomersController::class)->group(function () {
+                Route::get('/', 'index')->name('customers.vip-customers.index')->middleware('permission:customers.vip-customers.view');
+                Route::post('/{id}/toggle-vip', 'toggleVip')->name('customers.vip-customers.toggle-vip')->middleware('permission:customers.vip-customers.manage');
+            });
+        });
     });
 
     // Orders Management
     Route::group(['prefix' => 'orders'], function () {
         // All Orders
-        Route::get('/all-orders', 'App\Http\Controllers\Orders\AllOrdersController@index')
-            ->name('orders.all-orders.index')
-            ->middleware('permission:orders.all-orders.view');
-        Route::get('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@show')
-            ->name('orders.all-orders.show')
-            ->middleware('permission:orders.all-orders.view');
-        Route::put('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@update')
-            ->name('orders.all-orders.update')
-            ->middleware('permission:orders.all-orders.update');
-        Route::delete('/all-orders/{id}', 'App\Http\Controllers\Orders\AllOrdersController@destroy')
-            ->name('orders.all-orders.destroy')
-            ->middleware('permission:orders.all-orders.delete');
-        Route::post('/all-orders/{id}/status', 'App\Http\Controllers\Orders\AllOrdersController@updateStatus')
-            ->name('orders.all-orders.update-status')
-            ->middleware('permission:orders.all-orders.update');
-        Route::post('/all-orders/export', 'App\Http\Controllers\Orders\AllOrdersController@export')
-            ->name('orders.all-orders.export')
-            ->middleware('permission:orders.all-orders.export');
+        Route::prefix('all-orders')->group(function () {
+            Route::controller(AllOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.all-orders.index')->middleware('permission:orders.all-orders.view');
+                Route::get('/{id}', 'show')->name('orders.all-orders.show')->middleware('permission:orders.all-orders.view');
+                Route::put('/{id}', 'update')->name('orders.all-orders.update')->middleware('permission:orders.all-orders.update');
+                Route::delete('/{id}', 'destroy')->name('orders.all-orders.destroy')->middleware('permission:orders.all-orders.delete');
+                Route::post('/{id}/status', 'updateStatus')->name('orders.all-orders.update-status')->middleware('permission:orders.all-orders.update');
+                Route::post('/export', 'export')->name('orders.all-orders.export')->middleware('permission:orders.all-orders.export');
+            });
+        });
 
         // Pending Orders
-        Route::get('/pending-orders', 'App\Http\Controllers\Orders\PendingOrdersController@index')
-            ->name('orders.pending-orders.index')
-            ->middleware('permission:orders.pending-orders.view');
-        Route::post('/pending-orders/{id}/confirm', 'App\Http\Controllers\Orders\PendingOrdersController@confirm')
-            ->name('orders.pending-orders.confirm')
-            ->middleware('permission:orders.pending-orders.confirm');
-        Route::post('/pending-orders/{id}/cancel', 'App\Http\Controllers\Orders\PendingOrdersController@cancel')
-            ->name('orders.pending-orders.cancel')
-            ->middleware('permission:orders.pending-orders.cancel');
+        Route::prefix('pending-orders')->group(function () {
+            Route::controller(PendingOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.pending-orders.index')->middleware('permission:orders.pending-orders.view');
+                Route::post('/{id}/confirm', 'confirm')->name('orders.pending-orders.confirm')->middleware('permission:orders.pending-orders.confirm');
+                Route::post('/{id}/cancel', 'cancel')->name('orders.pending-orders.cancel')->middleware('permission:orders.pending-orders.cancel');
+            });
+        });
 
         // Processing Orders
-        Route::get('/processing-orders', 'App\Http\Controllers\Orders\ProcessingOrdersController@index')
-            ->name('orders.processing-orders.index')
-            ->middleware('permission:orders.processing-orders.view');
-        Route::post('/processing-orders/{id}/ship', 'App\Http\Controllers\Orders\ProcessingOrdersController@ship')
-            ->name('orders.processing-orders.ship')
-            ->middleware('permission:orders.processing-orders.ship');
+        Route::prefix('processing-orders')->group(function () {
+            Route::controller(ProcessingOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.processing-orders.index')->middleware('permission:orders.processing-orders.view');
+                Route::post('/{id}/ship', 'ship')->name('orders.processing-orders.ship')->middleware('permission:orders.processing-orders.ship');
+            });
+        });
 
         // Shipped Orders
-        Route::get('/shipped-orders', 'App\Http\Controllers\Orders\ShippedOrdersController@index')
-            ->name('orders.shipped-orders.index')
-            ->middleware('permission:orders.shipped-orders.view');
-        Route::post('/shipped-orders/{id}/complete', 'App\Http\Controllers\Orders\ShippedOrdersController@complete')
-            ->name('orders.shipped-orders.complete')
-            ->middleware('permission:orders.shipped-orders.complete');
+        Route::prefix('shipped-orders')->group(function () {
+            Route::controller(ShippedOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.shipped-orders.index')->middleware('permission:orders.shipped-orders.view');
+                Route::post('/{id}/complete', 'complete')->name('orders.shipped-orders.complete')->middleware('permission:orders.shipped-orders.complete');
+            });
+        });
 
         // Completed Orders
-        Route::get('/completed-orders', 'App\Http\Controllers\Orders\CompletedOrdersController@index')
-            ->name('orders.completed-orders.index')
-            ->middleware('permission:orders.completed-orders.view');
+        Route::prefix('completed-orders')->group(function () {
+            Route::controller(CompletedOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.completed-orders.index')->middleware('permission:orders.completed-orders.view');
+            });
+        });
 
         // Cancelled Orders
-        Route::get('/cancelled-orders', 'App\Http\Controllers\Orders\CancelledOrdersController@index')
-            ->name('orders.cancelled-orders.index')
-            ->middleware('permission:orders.cancelled-orders.view');
+        Route::prefix('cancelled-orders')->group(function () {
+            Route::controller(CancelledOrdersController::class)->group(function () {
+                Route::get('/', 'index')->name('orders.cancelled-orders.index')->middleware('permission:orders.cancelled-orders.view');
+            });
+        });
     });
 
     Route::group(['prefix' => 'promotions'], function () {
@@ -325,74 +365,82 @@ Route::middleware('auth.token')->group(function () {
     Route::group(['prefix' => 'settings'], function () {
         // General Settings Routes
         Route::prefix('generals')->group(function () {
-            Route::get('/store', 'App\Http\Controllers\Settings\GeneralController@storeInfo')->name('settings.generals.store')->middleware('permission:settings.generals.store.view');
-            Route::post('/store', 'App\Http\Controllers\Settings\GeneralController@updateStoreInfo')->name('settings.generals.store.update')->middleware('permission:settings.generals.store.update');
-            Route::post('/store/upload-logo', 'App\Http\Controllers\Settings\GeneralController@uploadStoreLogo')->name('settings.generals.store.upload-logo')->middleware('permission:settings.generals.store.update');
-            Route::delete('/store/delete-logo', 'App\Http\Controllers\Settings\GeneralController@deleteStoreLogo')->name('settings.generals.store.delete-logo')->middleware('permission:settings.generals.store.update');
+            Route::controller(GeneralController::class)->group(function () {
+                Route::get('/store', 'storeInfo')->name('settings.generals.store')->middleware('permission:settings.generals.store.view');
+                Route::post('/store', 'updateStoreInfo')->name('settings.generals.store.update')->middleware('permission:settings.generals.store.update');
+                Route::post('/store/upload-logo', 'uploadStoreLogo')->name('settings.generals.store.upload-logo')->middleware('permission:settings.generals.store.update');
+                Route::delete('/store/delete-logo', 'deleteStoreLogo')->name('settings.generals.store.delete-logo')->middleware('permission:settings.generals.store.update');
 
-            Route::get('/email', 'App\Http\Controllers\Settings\GeneralController@emailSettings')->name('settings.generals.email')->middleware('permission:settings.generals.email.view');
-            Route::post('/email', 'App\Http\Controllers\Settings\GeneralController@updateEmailSettings')->name('settings.generals.email.update')->middleware('permission:settings.generals.email.update');
-            Route::post('/email/test', 'App\Http\Controllers\Settings\GeneralController@testEmailConnection')->name('settings.generals.email.test')->middleware('permission:settings.generals.email.update');
+                Route::get('/email', 'emailSettings')->name('settings.generals.email')->middleware('permission:settings.generals.email.view');
+                Route::post('/email', 'updateEmailSettings')->name('settings.generals.email.update')->middleware('permission:settings.generals.email.update');
+                Route::post('/email/test', 'testEmailConnection')->name('settings.generals.email.test')->middleware('permission:settings.generals.email.update');
 
-            Route::get('/seo', 'App\Http\Controllers\Settings\GeneralController@seoMeta')->name('settings.generals.seo')->middleware('permission:settings.generals.seo.view');
-            Route::post('/seo', 'App\Http\Controllers\Settings\GeneralController@updateSeoMeta')->name('settings.generals.seo.update')->middleware('permission:settings.generals.seo.update');
+                Route::get('/seo', 'seoMeta')->name('settings.generals.seo')->middleware('permission:settings.generals.seo.view');
+                Route::post('/seo', 'updateSeoMeta')->name('settings.generals.seo.update')->middleware('permission:settings.generals.seo.update');
 
-            Route::get('/system', 'App\Http\Controllers\Settings\GeneralController@systemConfig')->name('settings.generals.system')->middleware('permission:settings.generals.system.view');
-            Route::post('/system', 'App\Http\Controllers\Settings\GeneralController@updateSystemConfig')->name('settings.generals.system.update')->middleware('permission:settings.generals.system.update');
+                Route::get('/system', 'systemConfig')->name('settings.generals.system')->middleware('permission:settings.generals.system.view');
+                Route::post('/system', 'updateSystemConfig')->name('settings.generals.system.update')->middleware('permission:settings.generals.system.update');
+            });
 
-            Route::get('/api-tokens', 'App\Http\Controllers\Settings\ApiTokenController@index')->name('settings.generals.api-tokens')->middleware('permission:settings.generals.api-tokens.view');
-            Route::post('/api-tokens/generate', 'App\Http\Controllers\Settings\ApiTokenController@generate')->name('settings.generals.api-tokens.generate')->middleware('permission:settings.generals.api-tokens.generate');
-            Route::delete('/api-tokens/{tokenId}', 'App\Http\Controllers\Settings\ApiTokenController@revoke')->name('settings.generals.api-tokens.revoke')->middleware('permission:settings.generals.api-tokens.revoke');
-            Route::delete('/api-tokens', 'App\Http\Controllers\Settings\ApiTokenController@revokeAll')->name('settings.generals.api-tokens.revoke-all')->middleware('permission:settings.generals.api-tokens.revoke');
-            Route::get('/api-tokens/{tokenId}/show', 'App\Http\Controllers\Settings\ApiTokenController@show')->name('settings.generals.api-tokens.show')->middleware('permission:settings.generals.api-tokens.view');
+            Route::controller(ApiTokenController::class)->group(function () {
+                Route::get('/api-tokens', 'index')->name('settings.generals.api-tokens')->middleware('permission:settings.generals.api-tokens.view');
+                Route::post('/api-tokens/generate', 'generate')->name('settings.generals.api-tokens.generate')->middleware('permission:settings.generals.api-tokens.generate');
+                Route::delete('/api-tokens/{tokenId}', 'revoke')->name('settings.generals.api-tokens.revoke')->middleware('permission:settings.generals.api-tokens.revoke');
+                Route::delete('/api-tokens', 'revokeAll')->name('settings.generals.api-tokens.revoke-all')->middleware('permission:settings.generals.api-tokens.revoke');
+                Route::get('/api-tokens/{tokenId}/show', 'show')->name('settings.generals.api-tokens.show')->middleware('permission:settings.generals.api-tokens.view');
+            });
         });
 
         // Payment Settings Routes
         Route::prefix('payments')->group(function () {
-            Route::get('/methods', 'App\Http\Controllers\Settings\PaymentController@paymentMethods')->name('settings.payments.methods')->middleware('permission:settings.payments.methods.view');
-            Route::post('/methods/{method}/toggle', 'App\Http\Controllers\Settings\PaymentController@togglePaymentMethod')->name('settings.payments.methods.toggle')->middleware('permission:settings.payments.methods.update');
+            Route::controller(PaymentController::class)->group(function () {
+                Route::get('/methods', 'paymentMethods')->name('settings.payments.methods')->middleware('permission:settings.payments.methods.view');
+                Route::post('/methods/{method}/toggle', 'togglePaymentMethod')->name('settings.payments.methods.toggle')->middleware('permission:settings.payments.methods.update');
 
-            // Bank Account Routes
-            Route::post('/methods/banks/store', 'App\Http\Controllers\Settings\PaymentController@storeBankAccount')->name('settings.payments.methods.banks.store')->middleware('permission:settings.payments.methods.update');
-            Route::get('/methods/banks/{bankId}', 'App\Http\Controllers\Settings\PaymentController@getBankAccount')->name('settings.payments.methods.banks.show')->middleware('permission:settings.payments.methods.view');
-            Route::delete('/methods/banks/{bankId}', 'App\Http\Controllers\Settings\PaymentController@deleteBankAccount')->name('settings.payments.methods.banks.delete')->middleware('permission:settings.payments.methods.update');
-            Route::post('/methods/banks/{bankId}/toggle', 'App\Http\Controllers\Settings\PaymentController@toggleBankActive')->name('settings.payments.methods.banks.toggle')->middleware('permission:settings.payments.methods.update');
+                // Bank Account Routes
+                Route::post('/methods/banks/store', 'storeBankAccount')->name('settings.payments.methods.banks.store')->middleware('permission:settings.payments.methods.update');
+                Route::get('/methods/banks/{bankId}', 'getBankAccount')->name('settings.payments.methods.banks.show')->middleware('permission:settings.payments.methods.view');
+                Route::delete('/methods/banks/{bankId}', 'deleteBankAccount')->name('settings.payments.methods.banks.delete')->middleware('permission:settings.payments.methods.update');
+                Route::post('/methods/banks/{bankId}/toggle', 'toggleBankActive')->name('settings.payments.methods.banks.toggle')->middleware('permission:settings.payments.methods.update');
 
-            Route::get('/midtrans-config', 'App\Http\Controllers\Settings\PaymentController@midtransConfig')->name('settings.payments.midtrans-config')->middleware('permission:settings.payments.midtrans.view');
-            Route::post('/midtrans-config/api', 'App\Http\Controllers\Settings\PaymentController@updateMidtransApi')->name('settings.payments.midtrans-config.api.update')->middleware('permission:settings.payments.midtrans.update');
-            Route::post('/midtrans-config/methods', 'App\Http\Controllers\Settings\PaymentController@updateMidtransPaymentMethods')->name('settings.payments.midtrans-config.methods.update')->middleware('permission:settings.payments.midtrans.update');
-            Route::post('/midtrans-config/transaction', 'App\Http\Controllers\Settings\PaymentController@updateMidtransTransaction')->name('settings.payments.midtrans-config.transaction.update')->middleware('permission:settings.payments.midtrans.update');
-            Route::post('/midtrans-config/test', 'App\Http\Controllers\Settings\PaymentController@testMidtransConnection')->name('settings.payments.midtrans-config.test')->middleware('permission:settings.payments.midtrans.update');
-            Route::post('/midtrans-config/sync', 'App\Http\Controllers\Settings\PaymentController@syncMidtransPaymentMethods')->name('settings.payments.midtrans-config.sync')->middleware('permission:settings.payments.midtrans.update');
+                Route::get('/midtrans-config', 'midtransConfig')->name('settings.payments.midtrans-config')->middleware('permission:settings.payments.midtrans.view');
+                Route::post('/midtrans-config/api', 'updateMidtransApi')->name('settings.payments.midtrans-config.api.update')->middleware('permission:settings.payments.midtrans.update');
+                Route::post('/midtrans-config/methods', 'updateMidtransPaymentMethods')->name('settings.payments.midtrans-config.methods.update')->middleware('permission:settings.payments.midtrans.update');
+                Route::post('/midtrans-config/transaction', 'updateMidtransTransaction')->name('settings.payments.midtrans-config.transaction.update')->middleware('permission:settings.payments.midtrans.update');
+                Route::post('/midtrans-config/test', 'testMidtransConnection')->name('settings.payments.midtrans-config.test')->middleware('permission:settings.payments.midtrans.update');
+                Route::post('/midtrans-config/sync', 'syncMidtransPaymentMethods')->name('settings.payments.midtrans-config.sync')->middleware('permission:settings.payments.midtrans.update');
 
-            Route::get('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@taxSettings')->name('settings.payments.tax-settings')->middleware('permission:settings.payments.tax.view');
-            Route::post('/tax-settings', 'App\Http\Controllers\Settings\PaymentController@updateTaxSettings')->name('settings.payments.tax-settings.update')->middleware('permission:settings.payments.tax.update');
+                Route::get('/tax-settings', 'taxSettings')->name('settings.payments.tax-settings')->middleware('permission:settings.payments.tax.view');
+                Route::post('/tax-settings', 'updateTaxSettings')->name('settings.payments.tax-settings.update')->middleware('permission:settings.payments.tax.update');
+            });
         });
 
         // Shipping Settings Routes
         Route::prefix('shippings')->group(function () {
-            Route::get('/methods', 'App\Http\Controllers\Settings\ShippingController@shippingMethods')->name('settings.shippings.methods')->middleware('permission:settings.shippings.methods.view');
+            Route::controller(ShippingController::class)->group(function () {
+                Route::get('/methods', 'shippingMethods')->name('settings.shippings.methods')->middleware('permission:settings.shippings.methods.view');
 
-            Route::get('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@rajaongkirConfig')->name('settings.shippings.rajaongkir-config')->middleware('permission:settings.shippings.rajaongkir.view');
-            Route::post('/rajaongkir-config', 'App\Http\Controllers\Settings\ShippingController@updateRajaongkirConfig')->name('settings.shippings.rajaongkir-config.update')->middleware('permission:settings.shippings.rajaongkir.update');
-            Route::post('/rajaongkir-config/test', 'App\Http\Controllers\Settings\ShippingController@testRajaongkirConnection')->name('settings.shippings.rajaongkir-config.test')->middleware('permission:settings.shippings.rajaongkir.update');
-            Route::post('/rajaongkir-config/sync-locations', 'App\Http\Controllers\Settings\ShippingController@syncLocations')->name('settings.shippings.rajaongkir-config.sync-locations')->middleware('permission:settings.shippings.rajaongkir.update');
+                Route::get('/rajaongkir-config', 'rajaongkirConfig')->name('settings.shippings.rajaongkir-config')->middleware('permission:settings.shippings.rajaongkir.view');
+                Route::post('/rajaongkir-config', 'updateRajaongkirConfig')->name('settings.shippings.rajaongkir-config.update')->middleware('permission:settings.shippings.rajaongkir.update');
+                Route::post('/rajaongkir-config/test', 'testRajaongkirConnection')->name('settings.shippings.rajaongkir-config.test')->middleware('permission:settings.shippings.rajaongkir.update');
+                Route::post('/rajaongkir-config/sync-locations', 'syncLocations')->name('settings.shippings.rajaongkir-config.sync-locations')->middleware('permission:settings.shippings.rajaongkir.update');
 
-            Route::get('/origin-address', 'App\Http\Controllers\Settings\ShippingController@originAddress')->name('settings.shippings.origin-address')->middleware('permission:settings.shippings.origin.view');
-            Route::post('/origin-address', 'App\Http\Controllers\Settings\ShippingController@updateOriginAddress')->name('settings.shippings.origin-address.update')->middleware('permission:settings.shippings.origin.update');
+                Route::get('/origin-address', 'originAddress')->name('settings.shippings.origin-address')->middleware('permission:settings.shippings.origin.view');
+                Route::post('/origin-address', 'updateOriginAddress')->name('settings.shippings.origin-address.update')->middleware('permission:settings.shippings.origin.update');
 
-            // Shipping API Routes (untuk dropdown & calculations) - need view permission
-            Route::get('/api/provinces', 'App\Http\Controllers\Settings\ShippingController@getProvinces')->name('settings.shippings.api.provinces')->middleware('permission:settings.shippings.methods.view');
-            Route::get('/api/cities', 'App\Http\Controllers\Settings\ShippingController@getAllCities')->name('settings.shippings.api.all-cities')->middleware('permission:settings.shippings.methods.view');
-            Route::get('/api/cities/{provinceId}', 'App\Http\Controllers\Settings\ShippingController@getCities')->name('settings.shippings.api.cities')->middleware('permission:settings.shippings.methods.view');
-            Route::get('/api/districts/{cityId}', 'App\Http\Controllers\Settings\ShippingController@getDistricts')->name('settings.shippings.api.districts')->middleware('permission:settings.shippings.methods.view');
-            Route::post('/api/calculate-shipping', 'App\Http\Controllers\Settings\ShippingController@calculateShippingCost')->name('settings.shippings.api.calculate')->middleware('permission:settings.shippings.methods.view');
+                // Shipping API Routes (untuk dropdown & calculations) - need view permission
+                Route::get('/api/provinces', 'getProvinces')->name('settings.shippings.api.provinces')->middleware('permission:settings.shippings.methods.view');
+                Route::get('/api/cities', 'getAllCities')->name('settings.shippings.api.all-cities')->middleware('permission:settings.shippings.methods.view');
+                Route::get('/api/cities/{provinceId}', 'getCities')->name('settings.shippings.api.cities')->middleware('permission:settings.shippings.methods.view');
+                Route::get('/api/districts/{cityId}', 'getDistricts')->name('settings.shippings.api.districts')->middleware('permission:settings.shippings.methods.view');
+                Route::post('/api/calculate-shipping', 'calculateShippingCost')->name('settings.shippings.api.calculate')->middleware('permission:settings.shippings.methods.view');
 
-            // Wilayah.id API Routes (untuk origin address) - need view permission
-            Route::get('/api/wilayah/provinces', 'App\Http\Controllers\Settings\ShippingController@getWilayahProvinces')->name('settings.shippings.api.wilayah.provinces')->middleware('permission:settings.shippings.origin.view');
-            Route::get('/api/wilayah/regencies/{provinceCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahRegencies')->name('settings.shippings.api.wilayah.regencies')->middleware('permission:settings.shippings.origin.view');
-            Route::get('/api/wilayah/districts/{regencyCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahDistricts')->name('settings.shippings.api.wilayah.districts')->middleware('permission:settings.shippings.origin.view');
-            Route::get('/api/wilayah/villages/{districtCode}', 'App\Http\Controllers\Settings\ShippingController@getWilayahVillages')->name('settings.shippings.api.wilayah.villages')->middleware('permission:settings.shippings.origin.view');
+                // Wilayah.id API Routes (untuk origin address) - need view permission
+                Route::get('/api/wilayah/provinces', 'getWilayahProvinces')->name('settings.shippings.api.wilayah.provinces')->middleware('permission:settings.shippings.origin.view');
+                Route::get('/api/wilayah/regencies/{provinceCode}', 'getWilayahRegencies')->name('settings.shippings.api.wilayah.regencies')->middleware('permission:settings.shippings.origin.view');
+                Route::get('/api/wilayah/districts/{regencyCode}', 'getWilayahDistricts')->name('settings.shippings.api.wilayah.districts')->middleware('permission:settings.shippings.origin.view');
+                Route::get('/api/wilayah/villages/{districtCode}', 'getWilayahVillages')->name('settings.shippings.api.wilayah.villages')->middleware('permission:settings.shippings.origin.view');
+            });
         });
     });
 

@@ -101,6 +101,42 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\Customers\CustomerSegmentRepositoryInterface::class,
             \App\Repositories\Customers\CustomerSegmentRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Customers\CustomerGroupRepositoryInterface::class,
+            \App\Repositories\Customers\CustomerGroupRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Customers\LoyaltyProgramRepositoryInterface::class,
+            \App\Repositories\Customers\LoyaltyProgramRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Customers\LoyaltyTransactionRepositoryInterface::class,
+            \App\Repositories\Customers\LoyaltyTransactionRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Customers\ProductReviewRepositoryInterface::class,
+            \App\Repositories\Customers\ProductReviewRepository::class
+        );
+
+        // Marketing Repositories
+        $this->app->bind(
+            \App\Repositories\Contracts\Marketing\CouponRepositoryInterface::class,
+            \App\Repositories\Marketing\CouponRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Marketing\FlashSaleRepositoryInterface::class,
+            \App\Repositories\Marketing\FlashSaleRepository::class
+        );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\Marketing\BundleDealRepositoryInterface::class,
+            \App\Repositories\Marketing\BundleDealRepository::class
+        );
     }
 
     /**

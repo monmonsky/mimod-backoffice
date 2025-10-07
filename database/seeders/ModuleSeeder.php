@@ -339,7 +339,10 @@ class ModuleSeeder extends Seeder
         $customersChildren = [
             ['name' => 'all-customers', 'display_name' => 'All Customers', 'route' => 'customers.all-customers.index', 'permission_name' => 'customers.all-customers.view', 'component' => 'AllCustomers', 'sort_order' => 1],
             ['name' => 'customer-segments', 'display_name' => 'Customer Segments', 'route' => 'customers.customer-segments.index', 'permission_name' => 'customers.customer-segments.view', 'component' => 'CustomerSegments', 'sort_order' => 2],
-            ['name' => 'vip-customers', 'display_name' => 'VIP Customers', 'route' => 'customers.vip-customers.index', 'permission_name' => 'customers.vip-customers.view', 'component' => 'VipCustomers', 'sort_order' => 3],
+            ['name' => 'customer-groups', 'display_name' => 'Customer Groups', 'route' => 'customers.groups.index', 'permission_name' => 'customers.customer-groups.view', 'component' => 'CustomerGroups', 'sort_order' => 3],
+            ['name' => 'vip-customers', 'display_name' => 'VIP Customers', 'route' => 'customers.vip-customers.index', 'permission_name' => 'customers.vip-customers.view', 'component' => 'VipCustomers', 'sort_order' => 4],
+            ['name' => 'customer-loyalty', 'display_name' => 'Loyalty Programs', 'route' => 'customers.loyalty.index', 'permission_name' => 'customers.loyalty.view', 'component' => 'CustomerLoyalty', 'sort_order' => 5],
+            ['name' => 'customer-reviews', 'display_name' => 'Customer Reviews', 'route' => 'customers.reviews.index', 'permission_name' => 'customers.reviews.view', 'component' => 'CustomerReviews', 'sort_order' => 6],
         ];
 
         foreach ($customersChildren as $child) {
@@ -415,6 +418,59 @@ class ModuleSeeder extends Seeder
             ]);
         }
 
+        // Level 1: Marketing parent module
+        $marketingParent = [
+            'name' => 'marketing',
+            'display_name' => 'Marketing',
+            'description' => 'Marketing campaigns and promotions',
+            'icon' => 'lucide--megaphone',
+            'route' => null,
+            'sort_order' => 13,
+            'group_name' => 'marketing',
+        ];
+
+        $marketingParentId = DB::table('modules')->insertGetId([
+            'name' => $marketingParent['name'],
+            'display_name' => $marketingParent['display_name'],
+            'description' => $marketingParent['description'],
+            'icon' => $marketingParent['icon'],
+            'parent_id' => null,
+            'group_name' => $marketingParent['group_name'],
+            'route' => $marketingParent['route'],
+            'component' => null,
+            'sort_order' => $marketingParent['sort_order'],
+            'is_active' => true,
+            'is_visible' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Level 2: Marketing children
+        $marketingChildren = [
+            ['name' => 'coupons', 'display_name' => 'Coupons', 'route' => 'marketing.coupons.index', 'permission_name' => 'marketing.coupons.view', 'component' => 'Coupons', 'sort_order' => 1],
+            ['name' => 'flash-sales', 'display_name' => 'Flash Sales', 'route' => 'marketing.flash-sales.index', 'permission_name' => 'marketing.flash-sales.view', 'component' => 'FlashSales', 'sort_order' => 2],
+            ['name' => 'bundle-deals', 'display_name' => 'Bundle Deals', 'route' => 'marketing.bundle-deals.index', 'permission_name' => 'marketing.bundle-deals.view', 'component' => 'BundleDeals', 'sort_order' => 3],
+        ];
+
+        foreach ($marketingChildren as $child) {
+            DB::table('modules')->insert([
+                'name' => $child['name'],
+                'display_name' => $child['display_name'],
+                'description' => null,
+                'icon' => null,
+                'parent_id' => $marketingParentId,
+                'group_name' => null,
+                'route' => $child['route'],
+                'permission_name' => $child['permission_name'],
+                'component' => $child['component'],
+                'sort_order' => $child['sort_order'],
+                'is_active' => true,
+                'is_visible' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $this->command->info('Modules seeded successfully.');
         $this->command->info('- 6 direct modules (dashboard + 5 access control)');
         $this->command->info('- 1 catalog parent module (products)');
@@ -424,9 +480,11 @@ class ModuleSeeder extends Seeder
         $this->command->info('- 1 reports parent module');
         $this->command->info('- 4 reports children (sales, revenue, product-performance, inventory)');
         $this->command->info('- 1 customers parent module');
-        $this->command->info('- 3 customers children (all-customers, customer-segments, vip-customers)');
+        $this->command->info('- 6 customers children (all-customers, customer-segments, customer-groups, vip-customers, loyalty, reviews)');
         $this->command->info('- 1 orders parent module');
         $this->command->info('- 6 orders children (all, pending, processing, shipped, completed, cancelled)');
-        $this->command->info('Total: 40 modules');
+        $this->command->info('- 1 marketing parent module');
+        $this->command->info('- 3 marketing children (coupons, flash-sales, bundle-deals)');
+        $this->command->info('Total: 47 modules');
     }
 }

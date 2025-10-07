@@ -1,7 +1,24 @@
 <!doctype html>
-<html lang="en" class="group/html">
+<html lang="en" class="group/html" data-theme="light">
     <head>
-
+        <script>
+            try {
+                const localStorageItem = localStorage.getItem("__NEXUS_CONFIG_v3.0__");
+                if (localStorageItem) {
+                    const theme = JSON.parse(localStorageItem).theme;
+                    if (theme === "system") {
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        document.documentElement.setAttribute("data-theme", prefersDark ? 'dark' : 'light');
+                    } else {
+                        document.documentElement.setAttribute("data-theme", theme);
+                    }
+                } else {
+                    document.documentElement.setAttribute("data-theme", 'light');
+                }
+            } catch (err) {
+                document.documentElement.setAttribute("data-theme", 'light');
+            }
+        </script>
         <title>@yield('title', 'Dashboard') - Minimoda</title>
         @include('partials.head')
 

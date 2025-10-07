@@ -12,6 +12,13 @@ use App\Http\Controllers\Api\Settings\GeneralSettingsApiController;
 use App\Http\Controllers\Api\Settings\PaymentSettingsApiController;
 use App\Http\Controllers\Api\Settings\ShippingSettingsApiController;
 use App\Http\Controllers\Api\Orders\OrderApiController;
+use App\Http\Controllers\Api\Customers\CustomerSegmentApiController;
+use App\Http\Controllers\Api\Customers\CustomerGroupApiController;
+use App\Http\Controllers\Api\Customers\CustomerLoyaltyApiController;
+use App\Http\Controllers\Api\Customers\CustomerReviewApiController;
+use App\Http\Controllers\Api\Marketing\CouponApiController;
+use App\Http\Controllers\Api\Marketing\FlashSaleApiController;
+use App\Http\Controllers\Api\Marketing\BundleDealApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -152,13 +159,124 @@ Route::middleware('auth.token')->group(function () {
 
     // Customer Segments API routes
     Route::prefix('customer-segments')->group(function () {
-        Route::get('/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@show')
+        Route::get('/', [CustomerSegmentApiController::class, 'index'])
             ->middleware('permission:customers.customer-segments.view');
-        Route::post('/', 'App\Http\Controllers\Customers\CustomerSegmentsController@store')
+        Route::get('/{id}', [CustomerSegmentApiController::class, 'show'])
+            ->middleware('permission:customers.customer-segments.view');
+        Route::post('/', [CustomerSegmentApiController::class, 'store'])
             ->middleware('permission:customers.customer-segments.create');
-        Route::put('/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@update')
+        Route::put('/{id}', [CustomerSegmentApiController::class, 'update'])
             ->middleware('permission:customers.customer-segments.update');
-        Route::delete('/{id}', 'App\Http\Controllers\Customers\CustomerSegmentsController@destroy')
+        Route::delete('/{id}', [CustomerSegmentApiController::class, 'destroy'])
             ->middleware('permission:customers.customer-segments.delete');
+    });
+
+    // Customer Groups API routes
+    Route::prefix('customer-groups')->group(function () {
+        Route::get('/', [CustomerGroupApiController::class, 'index'])
+            ->middleware('permission:customers.customer-groups.view');
+        Route::get('/{id}', [CustomerGroupApiController::class, 'show'])
+            ->middleware('permission:customers.customer-groups.view');
+        Route::post('/', [CustomerGroupApiController::class, 'store'])
+            ->middleware('permission:customers.customer-groups.create');
+        Route::put('/{id}', [CustomerGroupApiController::class, 'update'])
+            ->middleware('permission:customers.customer-groups.update');
+        Route::delete('/{id}', [CustomerGroupApiController::class, 'destroy'])
+            ->middleware('permission:customers.customer-groups.delete');
+        Route::post('/{id}/members', [CustomerGroupApiController::class, 'addMember'])
+            ->middleware('permission:customers.customer-groups.update');
+        Route::delete('/{groupId}/members/{customerId}', [CustomerGroupApiController::class, 'removeMember'])
+            ->middleware('permission:customers.customer-groups.update');
+    });
+
+    // Loyalty Programs API routes
+    Route::prefix('loyalty-programs')->group(function () {
+        Route::get('/', [CustomerLoyaltyApiController::class, 'index'])
+            ->middleware('permission:customers.loyalty.view');
+        Route::get('/{id}', [CustomerLoyaltyApiController::class, 'showProgram'])
+            ->middleware('permission:customers.loyalty.view');
+        Route::post('/', [CustomerLoyaltyApiController::class, 'storeProgram'])
+            ->middleware('permission:customers.loyalty.create');
+        Route::put('/{id}', [CustomerLoyaltyApiController::class, 'updateProgram'])
+            ->middleware('permission:customers.loyalty.update');
+        Route::delete('/{id}', [CustomerLoyaltyApiController::class, 'destroyProgram'])
+            ->middleware('permission:customers.loyalty.delete');
+    });
+
+    // Loyalty Transactions API routes
+    Route::prefix('loyalty-transactions')->group(function () {
+        Route::post('/', [CustomerLoyaltyApiController::class, 'storeTransaction'])
+            ->middleware('permission:customers.loyalty.create');
+        Route::get('/customer/{customerId}/balance', [CustomerLoyaltyApiController::class, 'getCustomerBalance'])
+            ->middleware('permission:customers.loyalty.view');
+    });
+
+    // Product Reviews API routes
+    Route::prefix('product-reviews')->group(function () {
+        Route::get('/', [CustomerReviewApiController::class, 'index'])
+            ->middleware('permission:customers.reviews.view');
+        Route::get('/{id}', [CustomerReviewApiController::class, 'show'])
+            ->middleware('permission:customers.reviews.view');
+        Route::post('/{id}/approve', [CustomerReviewApiController::class, 'approve'])
+            ->middleware('permission:customers.reviews.approve');
+        Route::post('/{id}/respond', [CustomerReviewApiController::class, 'respond'])
+            ->middleware('permission:customers.reviews.update');
+        Route::delete('/{id}', [CustomerReviewApiController::class, 'destroy'])
+            ->middleware('permission:customers.reviews.delete');
+    });
+
+    // Marketing routes
+    Route::prefix('marketing')->group(function () {
+        // Coupons API routes
+        Route::prefix('coupons')->group(function () {
+            Route::get('/', [CouponApiController::class, 'index'])
+                ->middleware('permission:marketing.coupons.view');
+            Route::get('/{id}', [CouponApiController::class, 'show'])
+                ->middleware('permission:marketing.coupons.view');
+            Route::post('/', [CouponApiController::class, 'store'])
+                ->middleware('permission:marketing.coupons.create');
+            Route::put('/{id}', [CouponApiController::class, 'update'])
+                ->middleware('permission:marketing.coupons.update');
+            Route::delete('/{id}', [CouponApiController::class, 'destroy'])
+                ->middleware('permission:marketing.coupons.delete');
+            Route::post('/validate', [CouponApiController::class, 'validate'])
+                ->middleware('permission:marketing.coupons.view');
+        });
+
+        // Flash Sales API routes
+        Route::prefix('flash-sales')->group(function () {
+            Route::get('/', [FlashSaleApiController::class, 'index'])
+                ->middleware('permission:marketing.flash-sales.view');
+            Route::get('/{id}', [FlashSaleApiController::class, 'show'])
+                ->middleware('permission:marketing.flash-sales.view');
+            Route::post('/', [FlashSaleApiController::class, 'store'])
+                ->middleware('permission:marketing.flash-sales.create');
+            Route::put('/{id}', [FlashSaleApiController::class, 'update'])
+                ->middleware('permission:marketing.flash-sales.update');
+            Route::delete('/{id}', [FlashSaleApiController::class, 'destroy'])
+                ->middleware('permission:marketing.flash-sales.delete');
+            Route::post('/{id}/products', [FlashSaleApiController::class, 'addProduct'])
+                ->middleware('permission:marketing.flash-sales.update');
+            Route::delete('/{id}/products', [FlashSaleApiController::class, 'removeProduct'])
+                ->middleware('permission:marketing.flash-sales.update');
+        });
+
+        // Bundle Deals API routes
+        Route::prefix('bundle-deals')->group(function () {
+            Route::get('/', [BundleDealApiController::class, 'index'])
+                ->middleware('permission:marketing.bundle-deals.view');
+            Route::get('/{id}', [BundleDealApiController::class, 'show'])
+                ->middleware('permission:marketing.bundle-deals.view');
+            Route::post('/', [BundleDealApiController::class, 'store'])
+                ->middleware('permission:marketing.bundle-deals.create');
+            Route::put('/{id}', [BundleDealApiController::class, 'update'])
+                ->middleware('permission:marketing.bundle-deals.update');
+            Route::delete('/{id}', [BundleDealApiController::class, 'destroy'])
+                ->middleware('permission:marketing.bundle-deals.delete');
+            Route::post('/{id}/items', [BundleDealApiController::class, 'addItem'])
+                ->middleware('permission:marketing.bundle-deals.update');
+            Route::delete('/{id}/items', [BundleDealApiController::class, 'removeItem'])
+                ->middleware('permission:marketing.bundle-deals.update');
+        });
     });
 });
