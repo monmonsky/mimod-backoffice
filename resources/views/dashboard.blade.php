@@ -290,7 +290,7 @@
                                         <img
                                             alt="order image"
                                             class="mask mask-squircle bg-base-200 size-7.5"
-                                            src="./images/apps/ecommerce/products/1.jpg" />
+                                            src="{{ asset('assets/images/apps/ecommerce/products/1.jpg') }}" />
                                         <p>Men's tracking shoes</p>
                                     </td>
                                     <td class="font-medium">$99</td>
@@ -331,7 +331,7 @@
                                         <img
                                             alt="order image"
                                             class="mask mask-squircle bg-base-200 size-7.5"
-                                            src="./images/apps/ecommerce/products/2.jpg" />
+                                            src="{{ asset('assets/images/apps/ecommerce/products/2.jpg') }}" />
                                         <p>Cocooil body oil</p>
                                     </td>
                                     <td class="font-medium">$75</td>
@@ -372,7 +372,7 @@
                                         <img
                                             alt="order image"
                                             class="mask mask-squircle bg-base-200 size-7.5"
-                                            src="./images/apps/ecommerce/products/3.jpg" />
+                                            src="{{ asset('assets/images/apps/ecommerce/products/3.jpg') }}" />
                                         <p>Freeze Air</p>
                                     </td>
                                     <td class="font-medium">$47</td>
@@ -413,7 +413,7 @@
                                         <img
                                             alt="order image"
                                             class="mask mask-squircle bg-base-200 size-7.5"
-                                            src="./images/apps/ecommerce/products/4.jpg" />
+                                            src="{{ asset('assets/images/apps/ecommerce/products/4.jpg') }}" />
                                         <p>Ladies's shoes</p>
                                     </td>
                                     <td class="font-medium">$52</td>
@@ -454,7 +454,7 @@
                                         <img
                                             alt="order image"
                                             class="mask mask-squircle bg-base-200 size-7.5"
-                                            src="./images/apps/ecommerce/products/10.jpg" />
+                                            src="{{ asset('assets/images/apps/ecommerce/products/10.jpg') }}" />
                                         <p>Choco's cookie</p>
                                     </td>
                                     <td class="font-medium">$24</td>
@@ -512,7 +512,7 @@
                             <img
                                 alt="chat"
                                 class="bg-base-200 mask mask-squircle size-11"
-                                src="./images/avatars/1.png" />
+                                src="{{ asset('assets/images/avatars/1.png') }}" />
                             <div class="grow">
                                 <div class="flex gap-1">
                                     <p class="grow">Mia Johnson</p>
@@ -532,7 +532,7 @@
                             <img
                                 alt="chat"
                                 class="bg-base-200 mask mask-squircle size-11"
-                                src="./images/avatars/2.png" />
+                                src="{{ asset('assets/images/avatars/2.png') }}" />
                             <div class="grow">
                                 <div class="flex gap-1">
                                     <p class="grow">Ethan Patel</p>
@@ -553,7 +553,7 @@
                             <img
                                 alt="chat"
                                 class="bg-base-200 mask mask-squircle size-11"
-                                src="./images/avatars/3.png" />
+                                src="{{ asset('assets/images/avatars/3.png') }}" />
                             <div class="grow">
                                 <div class="flex gap-1">
                                     <p class="grow">Sophia Nguyen</p>
@@ -573,7 +573,7 @@
                             <img
                                 alt="chat"
                                 class="bg-base-200 mask mask-squircle size-11"
-                                src="./images/avatars/4.png" />
+                                src="{{ asset('assets/images/avatars/4.png') }}" />
                             <div class="grow">
                                 <div class="flex gap-1">
                                     <p class="grow">Emily Chen</p>
@@ -594,7 +594,7 @@
                             <img
                                 alt="chat"
                                 class="bg-base-200 mask mask-squircle size-11"
-                                src="./images/avatars/5.png" />
+                                src="{{ asset('assets/images/avatars/5.png') }}" />
                             <div class="grow">
                                 <div class="flex gap-1">
                                     <p class="grow">Kelvin S.</p>

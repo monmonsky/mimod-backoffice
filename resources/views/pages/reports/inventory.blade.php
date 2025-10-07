@@ -57,7 +57,7 @@
                     <p class="text-xs text-warning mt-2">Need restock soon</p>
                 </div>
                 <div class="bg-warning/10 rounded-full p-3">
-                    <span class="iconify lucide--alert-triangle size-6 text-warning"></span>
+                    <span class="iconify lucide--triangle-alert size-6 text-warning"></span>
                 </div>
             </div>
         </div>
@@ -131,7 +131,7 @@
     <div class="bg-base-100 card shadow border-l-4 border-warning">
         <div class="card-body">
             <h3 class="card-title text-base mb-4 flex items-center gap-2">
-                <span class="iconify lucide--alert-triangle text-warning"></span>
+                <span class="iconify lucide--triangle-alert text-warning"></span>
                 Low Stock Alert
             </h3>
             <div class="space-y-2">

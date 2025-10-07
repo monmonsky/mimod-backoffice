@@ -297,7 +297,7 @@
                 <!-- Total Tax Collected -->
                 <div class="stat bg-base-200 rounded-lg">
                     <div class="stat-figure text-primary">
-                        <span class="iconify lucide--trending-up size-8"></span>
+                        <span class="iconify lucide--arrow-up-from-line size-8"></span>
                     </div>
                     <div class="stat-title">Tax Collected (This Month)</div>
                     <div class="stat-value text-primary text-2xl">Rp 45.6M</div>

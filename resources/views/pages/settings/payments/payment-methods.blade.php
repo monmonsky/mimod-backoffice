@@ -99,7 +99,7 @@
                     <div class="flex items-center gap-3">
                         <div class="avatar placeholder">
                             <div class="bg-info text-info-content rounded-lg w-12">
-                                <span class="iconify lucide--building-2 size-6"></span>
+                                <span class="iconify lucide--layers-3 size-6"></span>
                             </div>
                         </div>
                         <div>
@@ -127,7 +127,7 @@
                             <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center gap-2">
-                                        <span class="iconify lucide--building-2 size-5 text-primary"></span>
+                                        <span class="iconify lucide--layers-3 size-5 text-primary"></span>
                                         <div>
                                             <p class="font-medium text-sm">{{ $bank['bank_name'] }}</p>
                                             <p class="text-xs text-base-content/60">{{ $bank['account_number'] }} - a/n {{ $bank['account_holder'] }}</p>
@@ -254,7 +254,7 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <span class="iconify lucide--building-2 size-4"></span>
+                                    <span class="iconify lucide--layers-3 size-4"></span>
                                     <span>Bank Transfer</span>
                                 </div>
                             </td>
@@ -277,7 +277,7 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <span class="iconify lucide--qr-code size-4"></span>
+                                    <span class="iconify lucide--hash size-4"></span>
                                     <span>QRIS</span>
                                 </div>
                             </td>

@@ -121,7 +121,7 @@
                     <p class="text-xs text-warning mt-2">Need restock</p>
                 </div>
                 <div class="bg-warning/10 rounded-full p-3">
-                    <span class="iconify lucide--alert-triangle size-6 text-warning"></span>
+                    <span class="iconify lucide--triangle-alert size-6 text-warning"></span>
                 </div>
             </div>
         </div>
@@ -149,7 +149,7 @@
     <div class="bg-base-100 card shadow">
         <div class="card-body">
             <h3 class="card-title text-base mb-4 flex items-center gap-2">
-                <span class="iconify lucide--trending-up text-success"></span>
+                <span class="iconify lucide--arrow-up-from-line text-success"></span>
                 Top Performers
             </h3>
             <div class="space-y-3">

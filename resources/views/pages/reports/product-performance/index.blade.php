@@ -178,7 +178,7 @@
                     <tbody>
                         <tr>
                             <td colspan="7" class="text-center py-8 text-base-content/50">
-                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <span class="iconify lucide--badge-x size-8 mb-2"></span>
                                 <p>No data available</p>
                                 <p class="text-xs mt-1">Data will be populated from API</p>
                             </td>

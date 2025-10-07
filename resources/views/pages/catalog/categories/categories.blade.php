@@ -52,7 +52,7 @@
 <!-- Save Order Button (Hidden by default) -->
 <div id="saveOrderContainer" class="hidden mt-6">
     <div class="alert alert-warning">
-        <span class="iconify lucide--alert-triangle size-5"></span>
+        <span class="iconify lucide--triangle-alert size-5"></span>
         <span>You have unsaved changes to category order</span>
         <button id="saveOrderBtn" class="btn btn-sm btn-primary">
             <span class="iconify lucide--save"></span>

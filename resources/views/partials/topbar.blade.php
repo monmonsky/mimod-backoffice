@@ -417,7 +417,7 @@
                     class="hover:bg-base-200/20 relative flex items-start gap-3 p-4 transition-all">
                     <div class="avatar avatar-online size-12">
                         <img
-                            src="./images/avatars/2.png"
+                            src="{{ asset('assets/images/avatars/2.png') }}"
                             class="from-primary/80 to-primary/60 mask mask-squircle bg-linear-to-b px-1 pt-1"
                             alt="" />
                     </div>
@@ -444,7 +444,7 @@
                     class="hover:bg-base-200/20 flex items-start gap-3 p-4 transition-all">
                     <div class="avatar avatar-offline size-12">
                         <img
-                            src="./images/avatars/4.png"
+                            src="{{ asset('assets/images/avatars/4.png') }}"
                             class="from-secondary/80 to-secondary/60 mask mask-squircle bg-linear-to-b px-1 pt-1"
                             alt="" />
                     </div>
@@ -469,7 +469,7 @@
                     class="hover:bg-base-200/20 flex items-start gap-3 p-4 transition-all">
                     <div class="avatar size-12">
                         <img
-                            src="./images/avatars/5.png"
+                            src="{{ asset('assets/images/avatars/5.png') }}"
                             class="mask mask-squircle bg-linear-to-b from-orange-500/80 to-orange-500/60 px-1 pt-1"
                             alt="" />
                     </div>

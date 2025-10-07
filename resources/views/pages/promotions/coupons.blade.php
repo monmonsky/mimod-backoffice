@@ -57,7 +57,7 @@
                     <p class="text-xs text-primary mt-2">+18% vs last month</p>
                 </div>
                 <div class="bg-primary/10 rounded-full p-3">
-                    <span class="iconify lucide--trending-up size-6 text-primary"></span>
+                    <span class="iconify lucide--arrow-up-from-line size-6 text-primary"></span>
                 </div>
             </div>
         </div>

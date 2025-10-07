@@ -178,7 +178,7 @@
                         @endif
                     </div>
                     <button type="button" id="syncPaymentMethodsBtn" class="btn btn-sm">
-                        <span class="iconify lucide--cloud-download size-4"></span>
+                        <span class="iconify lucide--download-cloud size-4"></span>
                         Sync Now
                     </button>
                 </div>

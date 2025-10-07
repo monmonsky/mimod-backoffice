@@ -77,7 +77,7 @@
                     <p class="text-xs text-base-content/60 mt-1">After discounts</p>
                 </div>
                 <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--trending-up size-5 text-success"></span>
+                    <span class="iconify lucide--arrow-up-from-line size-5 text-success"></span>
                 </div>
             </div>
         </div>
@@ -121,7 +121,7 @@
             <h3 class="text-lg font-semibold mb-4">Revenue Trend</h3>
             <div class="h-64 flex items-center justify-center text-base-content/50">
                 <div class="text-center">
-                    <span class="iconify lucide--chart-line size-12 mb-2"></span>
+                    <span class="iconify lucide--line-chart size-12 mb-2"></span>
                     <p>Line Chart</p>
                     <p class="text-xs mt-1">Revenue over time</p>
                 </div>
@@ -173,7 +173,7 @@
                     <tbody>
                         <tr>
                             <td colspan="5" class="text-center py-8 text-base-content/50">
-                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <span class="iconify lucide--badge-x size-8 mb-2"></span>
                                 <p>No data available</p>
                                 <p class="text-xs mt-1">Data will be populated from API</p>
                             </td>
