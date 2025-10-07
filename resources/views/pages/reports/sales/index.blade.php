@@ -37,7 +37,7 @@
                 placeholder="End Date" />
         </label>
         <button class="btn btn-primary btn-sm" id="filterBtn">
-            <span class="iconify lucide--filter"></span>
+            <span class="iconify lucide--search"></span>
             Filter
         </button>
     </div>

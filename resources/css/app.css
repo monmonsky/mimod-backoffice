@@ -15343,3 +15343,36 @@ html:not([data-theme="material"], [data-theme="material-dark"]) #layout-topbar {
         background-position: 0;
     }
 }
+
+/* Custom: Sidebar Theme Override */
+:root[data-sidebar-theme="dark"]:is([data-theme="light"], [data-theme="contrast"]),
+html[data-sidebar-theme="dark"]:is([data-theme="light"], [data-theme="contrast"]) {
+    --layout-sidebar-background: #181c20;
+}
+
+:root[data-sidebar-theme="light"]:is([data-theme="light"], [data-theme="contrast"]),
+html[data-sidebar-theme="light"]:is([data-theme="light"], [data-theme="contrast"]) {
+    /* Keep default light background based on theme */
+}
+
+/* Ensure sidebar text is readable on dark sidebar */
+[data-sidebar-theme="dark"] #layout-sidebar {
+    color: #d4d8dc;
+}
+
+[data-sidebar-theme="dark"] #layout-sidebar .menu-label {
+    color: #8a9299;
+}
+
+[data-sidebar-theme="dark"] #layout-sidebar .menu-item {
+    color: #d4d8dc;
+}
+
+[data-sidebar-theme="dark"] #layout-sidebar .menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-sidebar-theme="dark"] #layout-sidebar .menu-item.active {
+    background-color: rgba(22, 123, 255, 0.15);
+    color: #167bff;
+}

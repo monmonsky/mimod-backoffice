@@ -195,7 +195,7 @@ function renderTable(ordersData) {
                             <span class="iconify lucide--eye size-5"></span>
                         </button>
                         ` : ''}
-                        ${window.hasPermission && window.hasPermission('orders.cancelled-orders.delete') ? `
+                        ${window.hasPermission && window.hasPermission('orders.cancelled-orders.view') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 delete-order-btn" data-id="${order.id}" title="Delete">
                             <span class="iconify lucide--trash-2 size-5"></span>
                         </button>

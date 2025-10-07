@@ -29,7 +29,7 @@
             <option value="out-of-stock">Out of Stock</option>
         </select>
         <button class="btn btn-primary btn-sm" id="filterBtn">
-            <span class="iconify lucide--filter"></span>
+            <span class="iconify lucide--search"></span>
             Filter
         </button>
     </div>

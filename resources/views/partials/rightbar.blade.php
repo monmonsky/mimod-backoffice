@@ -2,7 +2,7 @@
 
 <div class="drawer drawer-end">
     <input id="layout-rightbar-drawer" class="drawer-toggle" type="checkbox" />
-    <div class="drawer-side z-[50]">
+    <div class="drawer-side z-[60]">
         <label
             for="layout-rightbar-drawer"
             aria-label="close sidebar"

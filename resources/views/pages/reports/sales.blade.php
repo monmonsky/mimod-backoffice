@@ -66,7 +66,7 @@
                 </label>
                 <div class="flex gap-2">
                     <button class="btn btn-primary btn-sm flex-1">
-                        <span class="iconify lucide--filter size-4"></span>
+                        <span class="iconify lucide--search size-4"></span>
                         Apply
                     </button>
                     <button class="btn btn-ghost btn-sm">
