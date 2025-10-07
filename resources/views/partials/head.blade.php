@@ -9,8 +9,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<link rel="shortcut icon" href="{{ Vite::asset('resources/assets/images/favicon-dark.png') }}" media="(prefers-color-scheme: dark)" />
-<link rel="shortcut icon" href="{{ Vite::asset('resources/assets/images/favicon-light.png') }}" media="(prefers-color-scheme: light)" />
+<link rel="shortcut icon" href="{{ asset('images/favicon-dark.png') }}" media="(prefers-color-scheme: dark)" />
+<link rel="shortcut icon" href="{{ asset('images/favicon-light.png') }}" media="(prefers-color-scheme: light)" />
 
 @vite(['resources/css/app.css', 'resources/js/partials/theme-init.js'])
 @stack('styles')
