@@ -371,7 +371,7 @@ function init() {
                         const resultDiv = document.getElementById('calculatorResult');
                         container.innerHTML = `
                             <div class="alert alert-warning">
-                                <span class="iconify lucide--alert-triangle size-5"></span>
+                                <span class="iconify lucide--triangle-alert size-5"></span>
                                 <div class="flex-1">
                                     <p class="font-semibold">No shipping options found</p>
                                     <p class="text-sm">The API returned successfully but with no results.</p>
@@ -608,7 +608,7 @@ function displayShippingResults(results) {
 
             container.innerHTML = `
                 <div class="alert alert-warning">
-                    <span class="iconify lucide--alert-triangle size-5"></span>
+                    <span class="iconify lucide--triangle-alert size-5"></span>
                     <div class="flex-1">
                         <p class="font-semibold">Could not parse shipping data</p>
                         <p class="text-sm mt-1">The API returned data in an unexpected format.</p>

@@ -70,7 +70,7 @@
                     <p class="text-xs text-base-content/60 mt-1">Needs attention</p>
                 </div>
                 <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--alert-triangle size-5 text-warning"></span>
+                    <span class="iconify lucide--triangle-alert size-5 text-warning"></span>
                 </div>
             </div>
         </div>
@@ -470,7 +470,7 @@
                 This action cannot be undone.
             </p>
             <div class="alert alert-warning">
-                <span class="iconify lucide--alert-triangle size-5"></span>
+                <span class="iconify lucide--triangle-alert size-5"></span>
                 <span>Approximately 8,234 logs will be deleted.</span>
             </div>
             <div class="modal-action">

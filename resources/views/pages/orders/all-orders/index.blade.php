@@ -234,7 +234,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-8">
                                 <div class="flex flex-col items-center gap-2 text-base-content/60">
-                                    <span class="iconify lucide--inbox size-12"></span>
+                                    <span class="iconify lucide--badge-x size-12"></span>
                                     <p>No orders found</p>
                                 </div>
                             </td>

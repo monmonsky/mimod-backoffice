@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <div class="alert alert-warning mt-4">
-                        <span class="iconify lucide--alert-triangle size-5"></span>
+                        <span class="iconify lucide--triangle-alert size-5"></span>
                         <span class="text-sm">
                             This user cannot login via web interface. It's only used for generating API tokens.
                         </span>
@@ -73,7 +73,7 @@
 
             @if($tokens->count() === 0)
             <div class="text-center py-12">
-                <span class="iconify lucide--key size-16 text-base-content/20 mb-4"></span>
+                <span class="iconify lucide--key-round size-16 text-base-content/20 mb-4"></span>
                 <p class="text-base-content/60">No API tokens yet</p>
                 <p class="text-base-content/40 text-sm">Generate your first token to start using the API</p>
             </div>
@@ -94,7 +94,7 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <span class="iconify lucide--key size-4 text-primary"></span>
+                                    <span class="iconify lucide--key-round size-4 text-primary"></span>
                                     <span class="font-medium">{{ $token->name }}</span>
                                 </div>
                             </td>
@@ -239,7 +239,7 @@
                     Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">
-                    <span class="iconify lucide--key size-5"></span>
+                    <span class="iconify lucide--key-round size-5"></span>
                     Generate Token
                 </button>
             </div>
@@ -256,7 +256,7 @@
         </h3>
 
         <div class="alert alert-warning mb-4">
-            <span class="iconify lucide--alert-triangle size-5"></span>
+            <span class="iconify lucide--triangle-alert size-5"></span>
             <span class="text-sm">
                 <strong>Important:</strong> Copy this token now. You won't be able to see it again!
             </span>

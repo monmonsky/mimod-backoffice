@@ -72,7 +72,7 @@
                     <p class="text-xs text-warning mt-2">This month</p>
                 </div>
                 <div class="bg-warning/10 rounded-full p-3">
-                    <span class="iconify lucide--trending-up size-6 text-warning"></span>
+                    <span class="iconify lucide--arrow-up-from-line size-6 text-warning"></span>
                 </div>
             </div>
         </div>

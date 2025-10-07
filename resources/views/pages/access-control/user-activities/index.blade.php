@@ -224,7 +224,7 @@
                     <tr>
                         <td colspan="8" class="text-center py-8">
                             <div class="text-base-content/60">
-                                <span class="iconify lucide--inbox size-12 mx-auto mb-2"></span>
+                                <span class="iconify lucide--badge-x size-12 mx-auto mb-2"></span>
                                 <p>No activity logs found</p>
                             </div>
                         </td>

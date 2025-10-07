@@ -615,7 +615,7 @@
                 This will terminate all active sessions except yours. All users will be logged out immediately.
             </p>
             <div class="alert alert-warning">
-                <span class="iconify lucide--alert-triangle size-5"></span>
+                <span class="iconify lucide--triangle-alert size-5"></span>
                 <span>46 sessions will be terminated.</span>
             </div>
             <div class="modal-action">

@@ -22,7 +22,7 @@
         <div class="card-body">
             <div class="flex items-center gap-4">
                 <div class="bg-warning/20 p-4 rounded-full">
-                    <span class="iconify lucide--crown size-8 text-warning"></span>
+                    <span class="iconify lucide--receipt size-8 text-warning"></span>
                 </div>
                 <div class="flex-1">
                     <h3 class="text-2xl font-bold">{{ number_format($statistics->vip_customers ?? 0) }}</h3>
@@ -81,7 +81,7 @@
                             </td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <span class="iconify lucide--crown size-4 text-warning"></span>
+                                    <span class="iconify lucide--receipt size-4 text-warning"></span>
                                     <span class="font-medium">{{ $customer->name }}</span>
                                 </div>
                             </td>
@@ -111,7 +111,7 @@
 
                                     @if(hasPermission('customers.vip-customers.manage'))
                                     <button class="btn btn-xs btn-ghost text-warning" onclick="removeVip({{ $customer->id }})" title="Remove VIP">
-                                        <span class="iconify lucide--crown-off size-4"></span>
+                                        <span class="iconify lucide--receipt-off size-4"></span>
                                     </button>
                                     @endif
                                 </div>
@@ -120,7 +120,7 @@
                         @empty
                         <tr>
                             <td colspan="9" class="text-center py-8 text-base-content/60">
-                                <span class="iconify lucide--crown size-12 mx-auto block mb-2 opacity-20"></span>
+                                <span class="iconify lucide--receipt size-12 mx-auto block mb-2 opacity-20"></span>
                                 No VIP customers found
                             </td>
                         </tr>

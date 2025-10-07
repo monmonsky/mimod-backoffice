@@ -158,7 +158,7 @@
                         <tr>
                             <td colspan="9" class="text-center py-8">
                                 <div class="text-base-content/60">
-                                    <span class="iconify lucide--inbox size-12 mx-auto mb-2"></span>
+                                    <span class="iconify lucide--badge-x size-12 mx-auto mb-2"></span>
                                     <p>No roles found</p>
                                 </div>
                             </td>

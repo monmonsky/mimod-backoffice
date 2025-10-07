@@ -112,7 +112,7 @@
         <div class="card-body">
             <div class="flex items-center gap-3">
                 <div class="bg-success/10 rounded-lg p-3">
-                    <span class="iconify lucide--trending-up size-6 text-success"></span>
+                    <span class="iconify lucide--arrow-up-from-line size-6 text-success"></span>
                 </div>
                 <div>
                     <p class="text-sm text-base-content/60">Avg Order Value</p>

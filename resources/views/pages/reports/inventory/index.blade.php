@@ -84,7 +84,7 @@
                     <p class="text-xs text-base-content/60 mt-1">Need restock</p>
                 </div>
                 <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--alert-triangle size-5 text-warning"></span>
+                    <span class="iconify lucide--triangle-alert size-5 text-warning"></span>
                 </div>
             </div>
         </div>
@@ -141,7 +141,7 @@
         <div class="card-body p-0">
             <div class="flex items-center justify-between px-5 pt-5">
                 <h3 class="text-lg font-semibold text-warning">
-                    <span class="iconify lucide--alert-triangle"></span>
+                    <span class="iconify lucide--triangle-alert"></span>
                     Low Stock Alerts
                 </h3>
             </div>
@@ -162,7 +162,7 @@
                     <tbody>
                         <tr>
                             <td colspan="7" class="text-center py-8 text-base-content/50">
-                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <span class="iconify lucide--badge-x size-8 mb-2"></span>
                                 <p>No low stock items</p>
                             </td>
                         </tr>
@@ -206,7 +206,7 @@
                     <tbody>
                         <tr>
                             <td colspan="8" class="text-center py-8 text-base-content/50">
-                                <span class="iconify lucide--inbox size-8 mb-2"></span>
+                                <span class="iconify lucide--badge-x size-8 mb-2"></span>
                                 <p>No data available</p>
                                 <p class="text-xs mt-1">Data will be populated from API</p>
                             </td>
