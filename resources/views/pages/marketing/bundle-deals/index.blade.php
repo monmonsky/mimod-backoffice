@@ -9,15 +9,35 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <x-stat-card title="Total Bundles" :value="$statistics->total_bundles" icon="package" icon-color="primary" />
-        <x-stat-card title="Active Bundles" :value="$statistics->active_bundles" icon="check-circle-2" icon-color="success" value-color="text-success" />
-        <x-stat-card title="Total Sold" :value="$statistics->total_sold" icon="package" icon-color="info" value-color="text-info" />
-        <x-stat-card title="Total Revenue" :value="'Rp ' . number_format($statistics->total_revenue, 0, ',', '.')" icon="package" icon-color="warning" value-color="text-warning" />
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Total Bundles</p>
+                <p class="text-2xl font-bold" id="statTotalBundles">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Active Bundles</p>
+                <p class="text-2xl font-bold text-success" id="statActiveBundles">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Total Sold</p>
+                <p class="text-2xl font-bold text-info" id="statTotalSold">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Total Revenue</p>
+                <p class="text-2xl font-bold text-warning" id="statTotalRevenue">...</p>
+            </div>
+        </div>
     </div>
 
     <!-- Filter Section -->
     <div class="mt-6">
-        <x-filter-section title="Filter Bundle Deals" :action="route('marketing.bundle-deals.index')">
+        <x-filter-section id="filterForm" title="Filter Bundle Deals" :action="route('marketing.bundle-deals.index')">
             <x-slot name="headerAction">
                 @if(hasPermission('marketing.bundle-deals.create'))
                 <button type="button" class="btn btn-sm btn-primary" onclick="openCreateModal()">
@@ -68,12 +88,10 @@
                     <span class="iconify lucide--search size-4"></span>
                     Apply Filter
                 </button>
-                @if(request()->hasAny(['search', 'status', 'sort_by']))
-                <a href="{{ route('marketing.bundle-deals.index') }}" class="btn btn-sm btn-ghost">
+                <button type="button" id="clearFilters" class="btn btn-sm btn-ghost">
                     <span class="iconify lucide--x size-4"></span>
                     Clear
-                </a>
-                @endif
+                </button>
             </x-slot>
         </x-filter-section>
     </div>
@@ -95,102 +113,18 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse($bundles as $bundle)
-                        <tr class="hover">
-                            <td>
-                                <div>
-                                    <div class="font-medium">{{ $bundle->name }}</div>
-                                    @if($bundle->description)
-                                    <div class="text-sm text-base-content/60">{{ Str::limit($bundle->description, 40) }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-sm">
-                                    <div class="font-bold text-success">Rp {{ number_format($bundle->bundle_price, 0, ',', '.') }}</div>
-                                    <div class="line-through text-base-content/60">Rp {{ number_format($bundle->original_price, 0, ',', '.') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                @php
-                                    $savings = $bundle->original_price - $bundle->bundle_price;
-                                    $savingsPercent = $bundle->original_price > 0 ? ($savings / $bundle->original_price * 100) : 0;
-                                @endphp
-                                <div class="text-sm">
-                                    <div class="text-success font-medium">{{ number_format($savingsPercent, 0) }}%</div>
-                                    <div class="text-base-content/60">Rp {{ number_format($savings, 0, ',', '.') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-sm">
-                                    <div>{{ $bundle->sold_count }} sold</div>
-                                    @if($bundle->stock_limit)
-                                    <div class="text-base-content/60">of {{ $bundle->stock_limit }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-sm">
-                                    <div>{{ \Carbon\Carbon::parse($bundle->start_date)->format('d M Y') }}</div>
-                                    <div class="text-base-content/60">{{ \Carbon\Carbon::parse($bundle->end_date)->format('d M Y') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                @php
-                                    $now = now();
-                                    $isActive = $bundle->is_active &&
-                                               $now >= $bundle->start_date &&
-                                               $now <= $bundle->end_date;
-                                    $isUpcoming = $bundle->is_active && $now < $bundle->start_date;
-                                    $isExpired = $now > $bundle->end_date;
-                                @endphp
-
-                                @if($isActive)
-                                <x-badge type="success" label="Active" />
-                                @elseif($isUpcoming)
-                                <x-badge type="info" label="Upcoming" />
-                                @elseif($isExpired)
-                                <x-badge type="error" label="Expired" />
-                                @else
-                                <x-badge type="ghost" label="Inactive" />
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    @if(hasPermission('marketing.bundle-deals.view'))
-                                    <button class="btn btn-sm btn-ghost" onclick="viewBundle({{ $bundle->id }})" title="View Items">
-                                        <span class="iconify lucide--eye size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.bundle-deals.update'))
-                                    <button class="btn btn-sm btn-ghost" onclick="editBundle({{ $bundle->id }})" title="Edit">
-                                        <span class="iconify lucide--pencil size-4"></span>
-                                    </button>
-                                    <button class="btn btn-sm btn-ghost" onclick="manageItems({{ $bundle->id }})" title="Manage Items">
-                                        <span class="iconify lucide--package size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.bundle-deals.delete'))
-                                    <button class="btn btn-sm btn-ghost text-error" onclick="deleteBundle({{ $bundle->id }})" title="Delete">
-                                        <span class="iconify lucide--trash-2 size-4"></span>
-                                    </button>
-                                    @endif
-                                </div>
+                    <tbody id="bundleDealsTableBody">
+                        <tr id="loadingRow">
+                            <td colspan="7" class="text-center py-8">
+                                <span class="loading loading-spinner loading-md"></span>
+                                <p class="mt-2 text-base-content/60">Loading bundle deals...</p>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-8 text-base-content/60">
-                                No bundle deals found
-                            </td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <x-pagination-info :paginator="$bundles" />
+            <div id="paginationContainer" class="p-4"></div>
             </div>
         </div>
     </div>

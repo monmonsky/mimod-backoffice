@@ -155,6 +155,18 @@ Route::middleware('auth.token')->group(function () {
     Route::prefix('orders')->group(function () {
         Route::get('/pending/count', [OrderApiController::class, 'pendingCount']);
         Route::get('/pending/recent', [OrderApiController::class, 'recentPending']);
+
+        // CRUD routes
+        Route::get('/', [OrderApiController::class, 'index'])
+            ->middleware('permission:orders.all-orders.view');
+        Route::get('/{id}', [OrderApiController::class, 'show'])
+            ->middleware('permission:orders.all-orders.view');
+        Route::put('/{id}', [OrderApiController::class, 'update'])
+            ->middleware('permission:orders.all-orders.update');
+        Route::put('/{id}/status', [OrderApiController::class, 'updateStatus'])
+            ->middleware('permission:orders.all-orders.update');
+        Route::delete('/{id}', [OrderApiController::class, 'destroy'])
+            ->middleware('permission:orders.all-orders.delete');
     });
 
     // Customer Segments API routes

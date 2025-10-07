@@ -46,4 +46,36 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the role that owns the user.
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get all permissions for the user through their role.
+     */
+    public function permissions()
+    {
+        if (!$this->role) {
+            return collect([]);
+        }
+
+        return $this->role->permissions();
+    }
+
+    /**
+     * Get permissions attribute for eager loading.
+     */
+    public function getPermissionsAttribute()
+    {
+        if (!$this->relationLoaded('role')) {
+            $this->load('role.permissions');
+        }
+
+        return $this->role ? $this->role->permissions : collect([]);
+    }
 }

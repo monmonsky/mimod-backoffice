@@ -108,6 +108,49 @@ if (!function_exists('isUserRole')) {
     }
 }
 
+if (!function_exists('getUserPermissionsList')) {
+    /**
+     * Get all permissions for current user as array (for JavaScript)
+     *
+     * @return array
+     */
+    function getUserPermissionsList(): array
+    {
+        // Use currentUser() helper which gets user from request
+        $user = currentUser();
+
+        if (!$user) {
+            return [];
+        }
+
+        $roleId = $user['role_id'] ?? null;
+
+        if (!$roleId) {
+            return [];
+        }
+
+        // Cache permissions in session to avoid multiple queries
+        $cacheKey = 'user_permissions_list_' . ($user['id'] ?? 0);
+
+        if (session()->has($cacheKey)) {
+            return session($cacheKey);
+        }
+
+        // Query permissions from database
+        $permissions = \DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $roleId)
+            ->where('permissions.is_active', true)
+            ->pluck('permissions.name')
+            ->toArray();
+
+        // Cache in session
+        session()->put($cacheKey, $permissions);
+
+        return $permissions;
+    }
+}
+
 if (!function_exists('hasPermission')) {
     /**
      * Check if current user has specific permission

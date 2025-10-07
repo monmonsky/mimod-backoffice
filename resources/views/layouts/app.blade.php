@@ -20,21 +20,20 @@
             }
         </script>
 
-        {{-- Global User Permissions --}}
-        <script>
-            window.userPermissions = @json(auth()->check() ? auth()->user()->permissions->pluck('name')->toArray() : []);
-
-            window.hasPermission = function(permission) {
-                return window.userPermissions && window.userPermissions.includes(permission);
-            };
-        </script>
-
         <title>@yield('title', 'Dashboard') - Minimoda</title>
         @include('partials.head')
 
     </head>
 
     <body>
+        {{-- Global User Permissions - Moved to body to ensure auth is loaded --}}
+        <script>
+            window.userPermissions = @json(getUserPermissionsList());
+
+            window.hasPermission = function(permission) {
+                return window.userPermissions && window.userPermissions.includes(permission);
+            };
+        </script>
         <!--  Start: Layout - Main -->
 
         <div class="size-full">

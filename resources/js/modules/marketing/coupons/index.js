@@ -144,21 +144,21 @@ function renderTable(data) {
                     </div>
                 </td>
                 <td>${statusBadge}</td>
-                <td>
-                    <div class="flex gap-2">
+                <td class="text-right">
+                    <div class="inline-flex gap-2">
                         ${window.hasPermission && window.hasPermission('marketing.coupons.view') ? `
-                        <button class="btn btn-sm btn-ghost" onclick="viewCoupon(${coupon.id})" title="View">
-                            <span class="iconify lucide--eye size-4"></span>
+                        <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="viewCoupon(${coupon.id})" title="View Details">
+                            <span class="iconify lucide--eye size-5 text-info"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('marketing.coupons.update') ? `
-                        <button class="btn btn-sm btn-ghost" onclick="editCoupon(${coupon.id})" title="Edit">
-                            <span class="iconify lucide--pencil size-4"></span>
+                        <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="editCoupon(${coupon.id})" title="Edit">
+                            <span class="iconify lucide--pencil size-5 text-warning"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('marketing.coupons.delete') ? `
-                        <button class="btn btn-sm btn-ghost text-error" onclick="deleteCoupon(${coupon.id})" title="Delete">
-                            <span class="iconify lucide--trash-2 size-4"></span>
+                        <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="deleteCoupon(${coupon.id})" title="Delete">
+                            <span class="iconify lucide--trash-2 size-5 text-error"></span>
                         </button>
                         ` : ''}
                     </div>

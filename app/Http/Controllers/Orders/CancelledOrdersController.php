@@ -17,14 +17,6 @@ class CancelledOrdersController extends Controller
 
     public function index(Request $request)
     {
-        // Get filters
-        $filters = $request->only(['order_number', 'customer', 'date_from']);
-        $filters['status'] = 'cancelled';
-
-        // Get paginated orders with filters
-        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
-        $statistics = $this->orderRepo->getStatistics();
-
-        return view('pages.orders.cancelled-orders.index', compact('orders', 'statistics'));
+        return view('pages.orders.cancelled-orders.index');
     }
 }

@@ -14,33 +14,34 @@
     ]"
 />
 
-<div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2">
-    <x-stat-card
-        title="Shipped Orders"
-        :value="$statistics->shipped_count ?? 0"
-        subtitle="On delivery"
-        icon="truck"
-        icon-color="primary"
-    />
-
-    <x-stat-card
-        title="Total Value"
-        :value="'Rp ' . number_format($orders->sum('total_amount') ?? 0, 0, ',', '.')"
-        subtitle="Shipped orders value"
-        icon="badge-dollar-sign"
-        icon-color="success"
-    />
+<!-- Statistics Card -->
+<div class="grid grid-cols-1 gap-4 mt-6">
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-primary/10 p-3 rounded-lg">
+                    <span class="iconify lucide--truck text-primary size-8"></span>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm text-base-content/60">Shipped Orders</p>
+                    <p class="text-3xl font-bold" id="statShippedCount">...</p>
+                    <p class="text-xs text-base-content/50 mt-1">On delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Filter Section -->
 <div class="mt-6">
     <x-filter-section
+        id="filterForm"
         title="Filter Shipped Orders"
         :action="route('orders.shipped-orders.index')"
         method="GET"
     >
         <x-slot name="filters">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <x-form.input
                     name="order_number"
                     label="Order Number"
@@ -56,15 +57,8 @@
                 />
 
                 <x-form.input
-                    name="tracking"
-                    label="Tracking Number"
-                    placeholder="Search by tracking"
-                    :value="request('tracking')"
-                />
-
-                <x-form.input
                     name="date_from"
-                    label="Shipped From"
+                    label="Date From"
                     type="date"
                     :value="request('date_from')"
                 />
@@ -76,21 +70,26 @@
                 <span class="iconify lucide--filter size-4"></span>
                 Apply Filter
             </button>
-            <a href="{{ route('orders.shipped-orders.index') }}" class="btn btn-ghost btn-sm">
+            <button type="button" id="clearFilters" class="btn btn-ghost btn-sm">
                 <span class="iconify lucide--x size-4"></span>
                 Reset
-            </a>
+            </button>
         </x-slot>
     </x-filter-section>
 </div>
 
+<!-- Orders Table -->
 <div class="mt-6">
     <div class="bg-base-100 card shadow">
         <div class="card-body p-0">
             <div class="flex flex-col gap-4 px-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <label class="input input-sm">
                     <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
-                    <input class="w-24 sm:w-36" placeholder="Quick search..." type="search" id="searchInput" />
+                    <input
+                        class="w-24 sm:w-36"
+                        placeholder="Quick search..."
+                        type="search"
+                        id="searchInput" />
                 </label>
             </div>
 
@@ -100,63 +99,45 @@
                         <tr>
                             <th>Order Number</th>
                             <th>Customer</th>
-                            <th>Tracking</th>
+                            <th>Items</th>
                             <th>Total Amount</th>
-                            <th>Shipped Date</th>
+                            <th>Status</th>
+                            <th>Date</th>
                             <th class="text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="ordersTable">
-                        @forelse($orders as $order)
-                        <tr>
-                            <td><div class="font-medium">{{ $order->order_number }}</div></td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="font-medium">{{ $order->customer_name }}</span>
-                                    <span class="text-xs opacity-60">{{ $order->customer_email }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-medium">{{ $order->tracking_number ?? '-' }}</span>
-                                    <span class="text-xs opacity-60">{{ $order->courier ?? '-' }}</span>
-                                </div>
-                            </td>
-                            <td><span class="font-medium">Rp {{ number_format($order->total_amount ?? 0, 0, ',', '.') }}</span></td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="text-xs">{{ $order->shipped_at ? \Carbon\Carbon::parse($order->shipped_at)->format('d M Y') : '-' }}</span>
-                                    <span class="text-xs opacity-60">{{ $order->shipped_at ? \Carbon\Carbon::parse($order->shipped_at)->diffForHumans() : '-' }}</span>
-                                </div>
-                            </td>
-                            <td class="text-right">
-                                @if(hasPermission('orders.shipped-orders.complete'))
-                                <button class="btn btn-xs btn-success complete-order-btn" data-id="{{ $order->id }}">
-                                    <span class="iconify lucide--check-circle-2 size-3"></span>
-                                    Complete
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
+                    <tbody id="ordersTableBody">
+                        <tr id="loadingRow">
                             <td colspan="6" class="text-center py-8">
-                                <div class="flex flex-col items-center gap-2 text-base-content/60">
-                                    <span class="iconify lucide--badge-x size-12"></span>
-                                    <p>No shipped orders</p>
-                                </div>
+                                <span class="loading loading-spinner loading-md"></span>
+                                <p class="mt-2 text-base-content/60">Loading pending orders...</p>
                             </td>
                         </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
-            <x-pagination-info :paginator="$orders" />
+            <div id="paginationContainer" class="p-4"></div>
         </div>
     </div>
 </div>
+
+<!-- Order Detail Modal -->
+<x-modal id="orderDetailModal" size="max-w-4xl">
+    <x-slot name="title">
+        <h3 class="font-bold text-lg">Order Details</h3>
+    </x-slot>
+
+    <div id="orderDetailContent">
+        <!-- Order details will be loaded here -->
+    </div>
+
+    <x-slot name="footer">
+        <button type="button" class="btn btn-ghost" onclick="orderDetailModal.close()">Close</button>
+    </x-slot>
+</x-modal>
+
 @endsection
 
 @section('customjs')

@@ -17,14 +17,6 @@ class CompletedOrdersController extends Controller
 
     public function index(Request $request)
     {
-        // Get filters
-        $filters = $request->only(['order_number', 'customer', 'date_from']);
-        $filters['status'] = 'completed';
-
-        // Get paginated orders with filters
-        $orders = $this->orderRepo->getAllWithRelationsPaginated($filters, 15);
-        $statistics = $this->orderRepo->getStatistics();
-
-        return view('pages.orders.completed-orders.index', compact('orders', 'statistics'));
+        return view('pages.orders.completed-orders.index');
     }
 }

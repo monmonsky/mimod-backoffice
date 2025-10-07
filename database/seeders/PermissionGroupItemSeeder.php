@@ -89,6 +89,60 @@ class PermissionGroupItemSeeder extends Seeder
             }
         }
 
+        // Orders Management Group
+        $ordersManagement = DB::table('permission_groups')
+            ->where('name', 'orders_management')
+            ->first();
+
+        if ($ordersManagement) {
+            $ordersPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'orders.%')
+                ->get();
+
+            foreach ($ordersPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $ordersManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Customers Management Group
+        $customersManagement = DB::table('permission_groups')
+            ->where('name', 'customers_management')
+            ->first();
+
+        if ($customersManagement) {
+            $customersPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'customers.%')
+                ->get();
+
+            foreach ($customersPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $customersManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Marketing Management Group
+        $marketingManagement = DB::table('permission_groups')
+            ->where('name', 'marketing_management')
+            ->first();
+
+        if ($marketingManagement) {
+            $marketingPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'marketing.%')
+                ->get();
+
+            foreach ($marketingPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $marketingManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
         // Reports Management Group
         $reportsManagement = DB::table('permission_groups')
             ->where('name', 'reports_management')

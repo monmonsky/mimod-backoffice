@@ -9,15 +9,35 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-        <x-stat-card title="Total Flash Sales" :value="$statistics->total_flash_sales" icon="package" icon-color="primary" />
-        <x-stat-card title="Active" :value="$statistics->active_flash_sales" icon="check-circle-2" icon-color="success" value-color="text-success" />
-        <x-stat-card title="Upcoming" :value="$statistics->upcoming_flash_sales" icon="package" icon-color="info" value-color="text-info" />
-        <x-stat-card title="Total Products" :value="$statistics->total_products" icon="package" icon-color="warning" value-color="text-warning" />
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Total Flash Sales</p>
+                <p class="text-2xl font-bold" id="statTotalFlashSales">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Active</p>
+                <p class="text-2xl font-bold text-success" id="statActiveFlashSales">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Upcoming</p>
+                <p class="text-2xl font-bold text-info" id="statUpcomingFlashSales">...</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+                <p class="text-sm text-base-content/60">Total Products</p>
+                <p class="text-2xl font-bold text-warning" id="statTotalProducts">...</p>
+            </div>
+        </div>
     </div>
 
     <!-- Filter Section -->
     <div class="mt-6">
-        <x-filter-section title="Filter Flash Sales" :action="route('marketing.flash-sales.index')">
+        <x-filter-section id="filterForm" title="Filter Flash Sales" :action="route('marketing.flash-sales.index')">
             <x-slot name="headerAction">
                 @if(hasPermission('marketing.flash-sales.create'))
                 <button type="button" class="btn btn-sm btn-primary" onclick="openCreateModal()">
@@ -68,12 +88,10 @@
                     <span class="iconify lucide--search size-4"></span>
                     Apply Filter
                 </button>
-                @if(request()->hasAny(['search', 'status', 'sort_by']))
-                <a href="{{ route('marketing.flash-sales.index') }}" class="btn btn-sm btn-ghost">
+                <button type="button" id="clearFilters" class="btn btn-sm btn-ghost">
                     <span class="iconify lucide--x size-4"></span>
                     Clear
-                </a>
-                @endif
+                </button>
             </x-slot>
         </x-filter-section>
     </div>
@@ -93,81 +111,18 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse($flashSales as $flashSale)
-                        <tr class="hover">
-                            <td>
-                                <div>
-                                    <div class="font-medium">{{ $flashSale->name }}</div>
-                                    @if($flashSale->description)
-                                    <div class="text-sm text-base-content/60">{{ Str::limit($flashSale->description, 50) }}</div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <div class="text-sm">
-                                    <div>{{ \Carbon\Carbon::parse($flashSale->start_time)->format('d M Y H:i') }}</div>
-                                    <div class="text-base-content/60">{{ \Carbon\Carbon::parse($flashSale->end_time)->format('d M Y H:i') }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <x-badge type="info" label="{{ $flashSale->priority }}" />
-                            </td>
-                            <td>
-                                @php
-                                    $now = now();
-                                    $isActive = $flashSale->is_active &&
-                                               $now >= $flashSale->start_time &&
-                                               $now <= $flashSale->end_time;
-                                    $isUpcoming = $flashSale->is_active && $now < $flashSale->start_time;
-                                    $isExpired = $now > $flashSale->end_time;
-                                @endphp
-
-                                @if($isActive)
-                                <x-badge type="success" label="Active" />
-                                @elseif($isUpcoming)
-                                <x-badge type="info" label="Upcoming" />
-                                @elseif($isExpired)
-                                <x-badge type="error" label="Expired" />
-                                @else
-                                <x-badge type="ghost" label="Inactive" />
-                                @endif
-                            </td>
-                            <td>
-                                <div class="flex gap-2">
-                                    @if(hasPermission('marketing.flash-sales.view'))
-                                    <button class="btn btn-sm btn-ghost" onclick="viewFlashSale({{ $flashSale->id }})" title="View Products">
-                                        <span class="iconify lucide--eye size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.flash-sales.update'))
-                                    <button class="btn btn-sm btn-ghost" onclick="editFlashSale({{ $flashSale->id }})" title="Edit">
-                                        <span class="iconify lucide--pencil size-4"></span>
-                                    </button>
-                                    <button class="btn btn-sm btn-ghost" onclick="manageProducts({{ $flashSale->id }})" title="Manage Products">
-                                        <span class="iconify lucide--package size-4"></span>
-                                    </button>
-                                    @endif
-                                    @if(hasPermission('marketing.flash-sales.delete'))
-                                    <button class="btn btn-sm btn-ghost text-error" onclick="deleteFlashSale({{ $flashSale->id }})" title="Delete">
-                                        <span class="iconify lucide--trash-2 size-4"></span>
-                                    </button>
-                                    @endif
-                                </div>
+                    <tbody id="flashSalesTableBody">
+                        <tr id="loadingRow">
+                            <td colspan="5" class="text-center py-8">
+                                <span class="loading loading-spinner loading-md"></span>
+                                <p class="mt-2 text-base-content/60">Loading flash sales...</p>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-8 text-base-content/60">
-                                No flash sales found
-                            </td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <x-pagination-info :paginator="$flashSales" />
+            <div id="paginationContainer" class="p-4"></div>
             </div>
         </div>
     </div>
