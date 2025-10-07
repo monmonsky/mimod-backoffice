@@ -192,12 +192,12 @@ function renderTable(ordersData) {
                     <div class="inline-flex gap-2">
                         ${window.hasPermission && window.hasPermission('orders.cancelled-orders.view') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 view-order-btn" data-id="${order.id}" title="View Details">
-                            <span class="iconify lucide--eye size-5 text-info"></span>
+                            <span class="iconify lucide--eye size-5"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('orders.cancelled-orders.delete') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 delete-order-btn" data-id="${order.id}" title="Delete">
-                            <span class="iconify lucide--trash-2 size-5 text-error"></span>
+                            <span class="iconify lucide--trash-2 size-5"></span>
                         </button>
                         ` : ''}
                     </div>

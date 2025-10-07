@@ -12,25 +12,25 @@
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Total Bundles</p>
-                <p class="text-2xl font-bold" id="statTotalBundles">...</p>
+                <p class="text-2xl" id="statTotalBundles">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Active Bundles</p>
-                <p class="text-2xl font-bold text-success" id="statActiveBundles">...</p>
+                <p class="text-2xl" id="statActiveBundles">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Total Sold</p>
-                <p class="text-2xl font-bold text-info" id="statTotalSold">...</p>
+                <p class="text-2xl" id="statTotalSold">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Total Revenue</p>
-                <p class="text-2xl font-bold text-warning" id="statTotalRevenue">...</p>
+                <p class="text-2xl" id="statTotalRevenue">...</p>
             </div>
         </div>
     </div>

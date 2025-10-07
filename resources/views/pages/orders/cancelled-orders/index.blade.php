@@ -19,12 +19,12 @@
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-6">
             <div class="flex items-center gap-4">
-                <div class="bg-error/10 p-3 rounded-lg">
-                    <span class="iconify lucide--x-circle text-error size-8"></span>
+                <div class="p-3 rounded-lg">
+                    <span class="iconify lucide--x-circle size-8"></span>
                 </div>
                 <div class="flex-1">
                     <p class="text-sm text-base-content/60">Cancelled Orders</p>
-                    <p class="text-3xl font-bold" id="statCancelledCount">...</p>
+                    <p class="text-3xl" id="statCancelledCount">...</p>
                     <p class="text-xs text-base-content/50 mt-1">Order cancelled</p>
                 </div>
             </div>

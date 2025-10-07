@@ -15,9 +15,9 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-base-content/60">Total Coupons</p>
-                            <p class="text-2xl font-bold" id="statTotalCoupons">...</p>
+                            <p class="text-2xl" id="statTotalCoupons">...</p>
                         </div>
-                        <span class="iconify lucide--package size-8 text-primary"></span>
+                        <span class="iconify lucide--package size-8"></span>
                     </div>
                 </div>
             </div>
@@ -28,9 +28,9 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-base-content/60">Active Coupons</p>
-                            <p class="text-2xl font-bold text-success" id="statActiveCoupons">...</p>
+                            <p class="text-2xl" id="statActiveCoupons">...</p>
                         </div>
-                        <span class="iconify lucide--check-circle-2 size-8 text-success"></span>
+                        <span class="iconify lucide--check-circle-2 size-8"></span>
                     </div>
                 </div>
             </div>
@@ -41,9 +41,9 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-base-content/60">Total Usage</p>
-                            <p class="text-2xl font-bold text-info" id="statTotalUsage">...</p>
+                            <p class="text-2xl" id="statTotalUsage">...</p>
                         </div>
-                        <span class="iconify lucide--package size-8 text-info"></span>
+                        <span class="iconify lucide--package size-8"></span>
                     </div>
                 </div>
             </div>
@@ -54,9 +54,9 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm text-base-content/60">Total Discount</p>
-                            <p class="text-2xl font-bold text-warning" id="statTotalDiscount">...</p>
+                            <p class="text-2xl" id="statTotalDiscount">...</p>
                         </div>
-                        <span class="iconify lucide--package size-8 text-warning"></span>
+                        <span class="iconify lucide--package size-8"></span>
                     </div>
                 </div>
             </div>

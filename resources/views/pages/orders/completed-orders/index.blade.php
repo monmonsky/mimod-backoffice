@@ -19,12 +19,12 @@
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-6">
             <div class="flex items-center gap-4">
-                <div class="bg-success/10 p-3 rounded-lg">
-                    <span class="iconify lucide--check-circle text-success size-8"></span>
+                <div class="p-3 rounded-lg">
+                    <span class="iconify lucide--check-circle-2 size-8"></span>
                 </div>
                 <div class="flex-1">
                     <p class="text-sm text-base-content/60">Completed Orders</p>
-                    <p class="text-3xl font-bold" id="statCompletedCount">...</p>
+                    <p class="text-3xl" id="statCompletedCount">...</p>
                     <p class="text-xs text-base-content/50 mt-1">Successfully delivered</p>
                 </div>
             </div>

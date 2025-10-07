@@ -192,12 +192,12 @@ function renderTable(ordersData) {
                     <div class="inline-flex gap-2">
                         ${window.hasPermission && window.hasPermission('orders.processing-orders.view') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 view-order-btn" data-id="${order.id}" title="View Details">
-                            <span class="iconify lucide--eye size-5 text-info"></span>
+                            <span class="iconify lucide--eye size-5"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('orders.processing-orders.ship') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 update-status-btn" data-id="${order.id}" data-status="shipped" title="Mark as Shipped">
-                            <span class="iconify lucide--truck size-5 text-primary"></span>
+                            <span class="iconify lucide--truck size-5"></span>
                         </button>
                         ` : ''}
                     </div>

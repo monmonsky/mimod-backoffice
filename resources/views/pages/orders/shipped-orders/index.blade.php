@@ -19,12 +19,12 @@
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-6">
             <div class="flex items-center gap-4">
-                <div class="bg-primary/10 p-3 rounded-lg">
-                    <span class="iconify lucide--truck text-primary size-8"></span>
+                <div class=" p-3 rounded-lg">
+                    <span class="iconify lucide--truck size-8"></span>
                 </div>
                 <div class="flex-1">
                     <p class="text-sm text-base-content/60">Shipped Orders</p>
-                    <p class="text-3xl font-bold" id="statShippedCount">...</p>
+                    <p class="text-3xl" id="statShippedCount">...</p>
                     <p class="text-xs text-base-content/50 mt-1">On delivery</p>
                 </div>
             </div>

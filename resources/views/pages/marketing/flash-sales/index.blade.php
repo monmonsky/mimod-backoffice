@@ -12,25 +12,25 @@
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Total Flash Sales</p>
-                <p class="text-2xl font-bold" id="statTotalFlashSales">...</p>
+                <p class="text-2xl" id="statTotalFlashSales">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Active</p>
-                <p class="text-2xl font-bold text-success" id="statActiveFlashSales">...</p>
+                <p class="text-2xl" id="statActiveFlashSales">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Upcoming</p>
-                <p class="text-2xl font-bold text-info" id="statUpcomingFlashSales">...</p>
+                <p class="text-2xl" id="statUpcomingFlashSales">...</p>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
                 <p class="text-sm text-base-content/60">Total Products</p>
-                <p class="text-2xl font-bold text-warning" id="statTotalProducts">...</p>
+                <p class="text-2xl" id="statTotalProducts">...</p>
             </div>
         </div>
     </div>

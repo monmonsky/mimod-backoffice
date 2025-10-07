@@ -18,33 +18,53 @@
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-4">
-            <p class="text-sm text-base-content/60">Total Orders</p>
-            <p class="text-2xl font-bold" id="statTotalOrders">...</p>
-            <p class="text-xs text-base-content/60">All time</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Total Orders</p>
+                    <p class="text-2xl" id="statTotalOrders">...</p>
+                    <p class="text-xs text-base-content/60">All time</p>
+                </div>
+                <span class="iconify lucide--shopping-cart size-8 text-base-content/20"></span>
+            </div>
         </div>
     </div>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-4">
-            <p class="text-sm text-base-content/60">Pending</p>
-            <p class="text-2xl font-bold text-warning" id="statPendingOrders">...</p>
-            <p class="text-xs text-base-content/60">Awaiting confirmation</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Pending</p>
+                    <p class="text-2xl" id="statPendingOrders">...</p>
+                    <p class="text-xs text-base-content/60">Awaiting confirmation</p>
+                </div>
+                <span class="iconify lucide--clock size-8"></span>
+            </div>
         </div>
     </div>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-4">
-            <p class="text-sm text-base-content/60">Processing</p>
-            <p class="text-2xl font-bold text-info" id="statProcessingOrders">...</p>
-            <p class="text-xs text-base-content/60">Being prepared</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Processing</p>
+                    <p class="text-2xl" id="statProcessingOrders">...</p>
+                    <p class="text-xs text-base-content/60">Being prepared</p>
+                </div>
+                <span class="iconify lucide--package size-8"></span>
+            </div>
         </div>
     </div>
 
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body p-4">
-            <p class="text-sm text-base-content/60">Completed</p>
-            <p class="text-2xl font-bold text-success" id="statCompletedOrders">...</p>
-            <p class="text-xs text-base-content/60">Successfully delivered</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Completed</p>
+                    <p class="text-2xl" id="statCompletedOrders">...</p>
+                    <p class="text-xs text-base-content/60">Successfully delivered</p>
+                </div>
+                <span class="iconify lucide--check-circle-2 size-8"></span>
+            </div>
         </div>
     </div>
 </div>

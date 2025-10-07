@@ -138,20 +138,20 @@ function renderTable(data) {
                     <div class="inline-flex gap-2">
                         ${window.hasPermission && window.hasPermission('marketing.flash-sales.view') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="viewFlashSale(${flashSale.id})" title="View Details">
-                            <span class="iconify lucide--eye size-5 text-info"></span>
+                            <span class="iconify lucide--eye size-5"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('marketing.flash-sales.update') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="editFlashSale(${flashSale.id})" title="Edit">
-                            <span class="iconify lucide--pencil size-5 text-warning"></span>
+                            <span class="iconify lucide--pencil size-5"></span>
                         </button>
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="manageProducts(${flashSale.id})" title="Manage Products">
-                            <span class="iconify lucide--package size-5 text-success"></span>
+                            <span class="iconify lucide--package size-5"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('marketing.flash-sales.delete') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="deleteFlashSale(${flashSale.id})" title="Delete">
-                            <span class="iconify lucide--trash-2 size-5 text-error"></span>
+                            <span class="iconify lucide--trash-2 size-5"></span>
                         </button>
                         ` : ''}
                     </div>

@@ -20,11 +20,11 @@
         <div class="card-body p-6">
             <div class="flex items-center gap-4">
                 <div class="bg-warning/10 p-3 rounded-lg">
-                    <span class="iconify lucide--clock text-warning size-8"></span>
+                    <span class="iconify lucide--clock size-8"></span>
                 </div>
                 <div class="flex-1">
                     <p class="text-sm text-base-content/60">Pending Orders</p>
-                    <p class="text-3xl font-bold" id="statPendingCount">...</p>
+                    <p class="text-3xl" id="statPendingCount">...</p>
                     <p class="text-xs text-base-content/50 mt-1">Awaiting confirmation</p>
                 </div>
             </div>
