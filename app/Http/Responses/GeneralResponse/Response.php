@@ -18,11 +18,10 @@ class Response
         $data = $response->getData();
         $statusCode = $response->getStatusCode();
         $status = $response->getStatus();
-        $message = $this->generateMessage($statusCode);
+        $defaultMessage = $this->generateMessage($statusCode);
 
-        if ($statusCode == 200) {
-            $message = $response->getMessage() ?? $message;
-        }
+        // Always use message from ResultBuilder if provided, otherwise use default
+        $message = $response->getMessage() ?? $defaultMessage;
 
         $res = array(
             'status'      => $status,

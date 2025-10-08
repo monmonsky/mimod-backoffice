@@ -11,26 +11,46 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
-                <p class="text-sm text-base-content/60">Total Flash Sales</p>
-                <p class="text-2xl" id="statTotalFlashSales">...</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-base-content/60">Total Flash Sales</p>
+                        <p class="text-2xl font-bold" id="statTotalFlashSales">...</p>
+                    </div>
+                    <span class="iconify lucide--zap size-8 text-base-content/20"></span>
+                </div>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
-                <p class="text-sm text-base-content/60">Active</p>
-                <p class="text-2xl" id="statActiveFlashSales">...</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-base-content/60">Active</p>
+                        <p class="text-2xl font-bold" id="statActiveFlashSales">...</p>
+                    </div>
+                    <span class="iconify lucide--check-circle-2  size-8"></span>
+                </div>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
-                <p class="text-sm text-base-content/60">Upcoming</p>
-                <p class="text-2xl" id="statUpcomingFlashSales">...</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-base-content/60">Upcoming</p>
+                        <p class="text-2xl font-bold" id="statUpcomingFlashSales">...</p>
+                    </div>
+                    <span class="iconify lucide--clock size-8"></span>
+                </div>
             </div>
         </div>
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body p-4">
-                <p class="text-sm text-base-content/60">Total Products</p>
-                <p class="text-2xl" id="statTotalProducts">...</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-base-content/60">Total Products</p>
+                        <p class="text-2xl font-bold" id="statTotalProducts">...</p>
+                    </div>
+                    <span class="iconify lucide--package size-8"></span>
+                </div>
             </div>
         </div>
     </div>

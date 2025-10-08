@@ -133,6 +133,8 @@ Route::middleware('auth.token')->group(function () {
             Route::get('/{id}/images', [ProductApiController::class, 'images']);
             Route::get('/category/{categoryId}', [ProductApiController::class, 'byCategory']);
             Route::get('/brand/{brandId}', [ProductApiController::class, 'byBrand']);
+            Route::patch('/{id}/status', [ProductApiController::class, 'updateStatus']);
+            Route::delete('/{id}', [ProductApiController::class, 'destroy']);
         });
 
         // Categories

@@ -82,17 +82,6 @@
 <div class="mt-6">
     <div class="bg-base-100 card shadow">
         <div class="card-body p-0">
-            <div class="flex flex-col gap-4 px-5 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <label class="input input-sm">
-                    <span class="iconify lucide--search text-base-content/80 size-3.5"></span>
-                    <input
-                        class="w-24 sm:w-36"
-                        placeholder="Quick search..."
-                        type="search"
-                        id="searchInput" />
-                </label>
-            </div>
-
             <div class="overflow-x-auto">
                 <table class="table table-xs md:table-sm">
                     <thead>

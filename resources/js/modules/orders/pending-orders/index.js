@@ -192,20 +192,15 @@ function renderTable(ordersData) {
                     <div class="inline-flex gap-2">
                         ${window.hasPermission && window.hasPermission('orders.pending-orders.view') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 view-order-btn" data-id="${order.id}" title="View Details">
-                            <span class="iconify lucide--eye size-5"></span>
+                            <span class="iconify lucide--eye size-5 text-info"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('orders.pending-orders.cancel') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 update-status-btn" data-id="${order.id}" data-status="processing" title="Confirm Order">
-                            <span class="iconify lucide--check size-5"></span>
+                            <span class="iconify lucide--check size-5 text-success"></span>
                         </button>
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 cancel-order-btn" data-id="${order.id}" title="Cancel Order">
-                            <span class="iconify lucide--x-circle size-5"></span>
-                        </button>
-                        ` : ''}
-                        ${window.hasPermission && window.hasPermission('orders.pending-orders.delete') ? `
-                        <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 delete-order-btn" data-id="${order.id}" title="Delete">
-                            <span class="iconify lucide--trash-2 size-5"></span>
+                            <span class="iconify lucide--x-circle size-5 text-error"></span>
                         </button>
                         ` : ''}
                     </div>
