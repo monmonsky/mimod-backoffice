@@ -39,7 +39,9 @@ async function loadFilterOptions() {
             parents.forEach(parent => {
                 parentOptions += `<option value="${parent.id}">${parent.name}</option>`;
             });
-            $('#parentFilter').html(parentOptions);
+
+            // Use parent_id because x-form.select uses name as ID by default
+            $('select[name="parent_id"]').html(parentOptions);
         }
     } catch (error) {
         console.error('Failed to load filter options:', error);
@@ -170,9 +172,6 @@ function renderTable(categories) {
                         ${window.hasPermission && window.hasPermission('catalog.products.categories.update') ? `
                         <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0" onclick="editCategory(${category.id})" title="Edit">
                             <span class="iconify lucide--pencil size-5 text-warning"></span>
-                        </button>
-                        <button class="btn btn-ghost btn-xs p-0 h-auto min-h-0 toggle-status-btn" data-id="${category.id}" data-active="${category.is_active ? 1 : 0}" title="${category.is_active ? 'Deactivate' : 'Activate'}">
-                            <span class="iconify lucide--${category.is_active ? 'eye-off' : 'eye'} size-5 text-warning"></span>
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('catalog.products.categories.delete') ? `
