@@ -9,7 +9,7 @@ class CategoryRepository implements CategoryRepositoryInterface
 {
     protected $tableName = 'categories';
 
-    private function table()
+    public function table()
     {
         return DB::table($this->tableName);
     }

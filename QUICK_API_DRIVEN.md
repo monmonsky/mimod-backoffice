@@ -411,7 +411,28 @@ if (response.success && response.data) { }
 if (response.status && response.data) { }
 ```
 
-### 2. No Toast Notification
+### 2. Wrong Ajax.get() Parameters (CRITICAL!)
+```javascript
+// ❌ WRONG - Global loading will appear!
+const params = { page: 1, search: 'test' };
+const response = await Ajax.get('/api/brands', params, {
+    showLoading: false  // This will be IGNORED!
+});
+
+// ✅ CORRECT - Build query string first
+const params = { page: 1, search: 'test' };
+Object.keys(params).forEach(key => {
+    if (!params[key] || params[key] === '') delete params[key];
+});
+const queryString = new URLSearchParams(params).toString();
+const response = await Ajax.get(`/api/brands?${queryString}`, {
+    showLoading: false  // This works correctly!
+});
+```
+
+**Explanation**: Ajax.get() only accepts 2 parameters: `(url, options)`. If you pass 3 parameters like `(url, params, options)`, the params will be treated as options and your actual options will be ignored, causing the global "Processing..." loading to appear.
+
+### 3. No Toast Notification
 ```javascript
 // ❌ WRONG
 await Ajax.create(url, data);
@@ -420,7 +441,7 @@ await Ajax.create(url, data);
 await Ajax.create(url, data, { showToast: true });
 ```
 
-### 3. Forgot to Reload
+### 4. Forgot to Reload
 ```javascript
 // ❌ WRONG
 await Ajax.destroy(url);
@@ -430,7 +451,7 @@ await Ajax.destroy(url, { showToast: true });
 await loadData();
 ```
 
-### 4. Not Resetting currentItemId
+### 5. Not Resetting currentItemId
 ```javascript
 // ❌ WRONG
 itemModal.close();
@@ -451,6 +472,7 @@ await loadData();
 | Problem | Solution |
 |---------|----------|
 | Data tidak tampil | Check `response.status` not `response.success` |
+| **Global loading "Processing..." muncul** | **Build query string manual, jangan pass params sebagai parameter kedua!** |
 | Action buttons hilang | Remove permission checks atau pastikan syntax benar |
 | Toast tidak muncul | Add `showToast: true` di Ajax options |
 | Tidak reload setelah CRUD | Add `await loadData()` setelah operasi |
@@ -505,10 +527,152 @@ Quick test after implementation:
 ## Reference Files
 
 **Copy these patterns:**
-- JavaScript: `resources/js/modules/marketing/coupons/index.js`
+- JavaScript: `resources/js/modules/marketing/coupons/index.js` (Complete CRUD)
+- JavaScript: `resources/js/modules/catalog/brands/index.js` (With file upload)
 - API Controller: `app/Http/Controllers/Api/Marketing/CouponApiController.php`
+- API Controller: `app/Http/Controllers/Api/Catalog/BrandApiController.php` (With file upload)
 - Ajax Utility: `resources/js/utils/ajax.js`
 - Blade View: `resources/views/pages/marketing/coupons/index.blade.php`
+- Blade View: `resources/views/pages/catalog/brands/brands.blade.php`
+
+---
+
+## File Upload Pattern (Brands Example)
+
+When you need to upload files (images, documents, etc.):
+
+### API Controller
+```php
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'slug' => 'required|string|max:255|unique:brands,slug',
+        'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+        'is_active' => 'nullable|boolean'
+    ]);
+
+    // Handle file upload
+    if ($request->hasFile('logo')) {
+        $logo = $request->file('logo');
+        $filename = time() . '_' . $logo->getClientOriginalName();
+        $path = $logo->storeAs('brands', $filename, 'public');
+        $validated['logo'] = $path;
+    }
+
+    $brand = $this->brandRepo->create($validated);
+
+    return response()->json($this->response->generateResponse($result), 201);
+}
+
+public function update(Request $request, $id)
+{
+    // Handle file upload
+    if ($request->hasFile('logo')) {
+        // Delete old file
+        if ($brand->logo && \Storage::disk('public')->exists($brand->logo)) {
+            \Storage::disk('public')->delete($brand->logo);
+        }
+
+        $logo = $request->file('logo');
+        $filename = time() . '_' . $logo->getClientOriginalName();
+        $path = $logo->storeAs('brands', $filename, 'public');
+        $validated['logo'] = $path;
+    }
+
+    $brand = $this->brandRepo->update($id, $validated);
+
+    return response()->json($this->response->generateResponse($result), 200);
+}
+```
+
+### JavaScript (FormData)
+```javascript
+// Generate slug from name
+$(document).on('input', '#brandName', function() {
+    const name = $(this).val();
+    const slug = name.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    $('#brandSlug').val(slug);
+});
+
+// Image preview
+$(document).on('change', '#brandLogo', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#logoPreview img').attr('src', e.target.result);
+            $('#logoPreview').removeClass('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Submit with file
+async function saveBrand(form) {
+    const formData = new FormData(form); // Use FormData for files
+
+    // Convert checkbox
+    formData.set('is_active', $('#brandActive').is(':checked') ? '1' : '0');
+
+    // Remove unnecessary fields
+    formData.delete('_token');
+
+    try {
+        let response;
+        if (brandId) {
+            // Update - use POST not PUT for file uploads!
+            response = await Ajax.post(`/api/catalog/brands/${brandId}`, formData, {
+                showToast: true
+            });
+        } else {
+            // Create
+            response = await Ajax.post('/api/catalog/brands', formData, {
+                showToast: true
+            });
+        }
+
+        if (response.status) {
+            document.getElementById('brandModal').close();
+            loadData(currentPage);
+        }
+    } catch (error) {
+        console.error('Failed to save brand:', error);
+    }
+}
+```
+
+### Blade Form
+```blade
+<form id="brandForm" enctype="multipart/form-data">
+    <x-form.input name="name" id="brandName" label="Brand Name" required />
+    <x-form.input name="slug" id="brandSlug" label="Slug" required />
+
+    <div class="form-control">
+        <label class="label">Logo</label>
+        <input type="file" name="logo" id="brandLogo" class="file-input file-input-bordered" accept="image/*">
+        <div id="logoPreview" class="mt-3 hidden">
+            <img src="" alt="Preview" class="w-32 h-32 object-cover rounded">
+        </div>
+    </div>
+
+    <label class="label cursor-pointer">
+        <input type="checkbox" name="is_active" id="brandActive" class="checkbox" checked>
+        <span>Active</span>
+    </label>
+</form>
+```
+
+**Important Notes:**
+- Use `FormData` instead of JSON for file uploads
+- Use `POST` for both create AND update (Laravel can't handle files with PUT/PATCH)
+- Add `enctype="multipart/form-data"` to form
+- Delete old file before uploading new one in update
+- Use `storeAs()` to control filename
 
 ---
 

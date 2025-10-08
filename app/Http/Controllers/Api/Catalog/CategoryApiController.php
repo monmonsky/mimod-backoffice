@@ -20,18 +20,61 @@ class CategoryApiController extends Controller
     }
 
     /**
-     * Get all categories
+     * Get all categories with pagination and filters
      */
     public function index(Request $request)
     {
         try {
-            $categories = $this->categoryRepo->getAllActive();
+            $query = $this->categoryRepo->table();
+
+            // Search filter
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'ILIKE', '%' . $search . '%')
+                      ->orWhere('slug', 'ILIKE', '%' . $search . '%')
+                      ->orWhere('description', 'ILIKE', '%' . $search . '%');
+                });
+            }
+
+            // Status filter
+            if ($request->filled('status')) {
+                $query->where('is_active', $request->status === 'active');
+            }
+
+            // Parent filter
+            if ($request->filled('parent_id')) {
+                if ($request->parent_id === '0') {
+                    $query->whereNull('parent_id');
+                } else {
+                    $query->where('parent_id', $request->parent_id);
+                }
+            }
+
+            // Order and pagination
+            $perPage = $request->input('per_page', 15);
+            $categories = $query->orderBy('sort_order', 'asc')
+                               ->orderBy('name', 'asc')
+                               ->paginate($perPage);
+
+            // Add product count for each category
+            foreach ($categories->items() as $category) {
+                $category->product_count = \DB::table('product_categories')
+                    ->where('category_id', $category->id)
+                    ->count();
+            }
+
+            // Get statistics
+            $statistics = $this->getStatistics();
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
                 ->setStatusCode('200')
                 ->setMessage('Categories retrieved successfully')
-                ->setData($categories);
+                ->setData([
+                    'categories' => $categories,
+                    'statistics' => $statistics
+                ]);
 
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Exception $e) {
@@ -43,6 +86,25 @@ class CategoryApiController extends Controller
 
             return response()->json($this->response->generateResponse($result), 500);
         }
+    }
+
+    /**
+     * Get category statistics
+     */
+    private function getStatistics()
+    {
+        $total = $this->categoryRepo->table()->count();
+        $active = $this->categoryRepo->table()->where('is_active', true)->count();
+        $parents = $this->categoryRepo->table()->whereNull('parent_id')->count();
+        $totalProducts = \DB::table('product_categories')->distinct('product_id')->count('product_id');
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $total - $active,
+            'parent_categories' => $parents,
+            'total_products' => $totalProducts
+        ];
     }
 
     /**
@@ -177,6 +239,268 @@ class CategoryApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to retrieve category children: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Create new category
+     */
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:categories,slug',
+                'description' => 'nullable|string',
+                'parent_id' => 'nullable|exists:categories,id',
+                'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'is_active' => 'nullable|boolean'
+            ]);
+
+            \DB::beginTransaction();
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('categories', $filename, 'public');
+                $validated['image'] = $path;
+            }
+
+            $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : true;
+            $validated['sort_order'] = $this->categoryRepo->table()->max('sort_order') + 1;
+
+            $category = $this->categoryRepo->create($validated);
+
+            \DB::commit();
+
+            // Log activity
+            logActivity('create', 'Created category: ' . $category->name, 'Category', $category->id);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('201')
+                ->setMessage('Category created successfully')
+                ->setData($category);
+
+            return response()->json($this->response->generateResponse($result), 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to create category: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update category
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $category = $this->categoryRepo->findById($id);
+
+            if (!$category) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Category not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:categories,slug,' . $id,
+                'description' => 'nullable|string',
+                'parent_id' => 'nullable|exists:categories,id',
+                'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'is_active' => 'nullable|boolean'
+            ]);
+
+            // Prevent category from being its own parent
+            if (isset($validated['parent_id']) && $validated['parent_id'] == $id) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Category cannot be its own parent')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            \DB::beginTransaction();
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($category->image && \Storage::disk('public')->exists($category->image)) {
+                    \Storage::disk('public')->delete($category->image);
+                }
+
+                $image = $request->file('image');
+                $filename = time() . '_' . $image->getClientOriginalName();
+                $path = $image->storeAs('categories', $filename, 'public');
+                $validated['image'] = $path;
+            }
+
+            $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : $category->is_active;
+
+            $category = $this->categoryRepo->update($id, $validated);
+
+            \DB::commit();
+
+            // Log activity
+            logActivity('update', 'Updated category: ' . $category->name, 'Category', $category->id);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Category updated successfully')
+                ->setData($category);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update category: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update category status
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_active' => 'required|boolean'
+            ]);
+
+            $category = $this->categoryRepo->update($id, [
+                'is_active' => $request->is_active
+            ]);
+
+            // Log activity
+            $status = $request->is_active ? 'activated' : 'deactivated';
+            logActivity('update', 'Category ' . $status . ': ' . $category->name, 'Category', $category->id);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Category status updated successfully')
+                ->setData($category);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update category status: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Delete category
+     */
+    public function destroy($id)
+    {
+        try {
+            $category = $this->categoryRepo->findById($id);
+
+            if (!$category) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Category not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $categoryName = $category->name;
+
+            // Check if has children
+            if ($this->categoryRepo->hasChildren($id)) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Cannot delete category with sub-categories. Please delete child categories first.')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            // Check if has products
+            if ($this->categoryRepo->hasProducts($id)) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Cannot delete category with assigned products. Please remove products first.')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            // Delete image if exists
+            if ($category->image && \Storage::disk('public')->exists($category->image)) {
+                \Storage::disk('public')->delete($category->image);
+            }
+
+            \DB::beginTransaction();
+            $this->categoryRepo->delete($id);
+            \DB::commit();
+
+            // Log activity
+            logActivity('delete', 'Deleted category: ' . $categoryName, 'Category', $id);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Category deleted successfully')
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to delete category: ' . $e->getMessage())
                 ->setData([]);
 
             return response()->json($this->response->generateResponse($result), 500);

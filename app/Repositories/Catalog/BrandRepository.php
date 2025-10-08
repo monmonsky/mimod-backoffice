@@ -9,7 +9,7 @@ class BrandRepository implements BrandRepositoryInterface
 {
     protected $tableName = 'brands';
 
-    private function table()
+    public function table()
     {
         return DB::table($this->tableName);
     }

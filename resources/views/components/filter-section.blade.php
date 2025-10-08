@@ -2,6 +2,7 @@
     'title' => 'Filter',
     'action' => '',
     'method' => 'GET',
+    'id' => 'filterForm',
 ])
 
 <div class="bg-base-100 card shadow">
@@ -13,7 +14,7 @@
             @endisset
         </div>
 
-        <form method="{{ $method }}" action="{{ $action }}" id="filterForm">
+        <form method="{{ $method }}" action="{{ $action }}" id="{{ $id }}">
             @if($method !== 'GET')
             @csrf
             @method($method)

@@ -140,16 +140,24 @@ Route::middleware('auth.token')->group(function () {
         // Categories
         Route::prefix('categories')->group(function () {
             Route::get('/', [CategoryApiController::class, 'index']);
+            Route::post('/', [CategoryApiController::class, 'store']);
             Route::get('/tree', [CategoryApiController::class, 'tree']);
             Route::get('/parents', [CategoryApiController::class, 'parents']);
             Route::get('/{id}', [CategoryApiController::class, 'show']);
+            Route::post('/{id}', [CategoryApiController::class, 'update']);
             Route::get('/{parentId}/children', [CategoryApiController::class, 'children']);
+            Route::patch('/{id}/status', [CategoryApiController::class, 'updateStatus']);
+            Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
         });
 
         // Brands
         Route::prefix('brands')->group(function () {
             Route::get('/', [BrandApiController::class, 'index']);
+            Route::post('/', [BrandApiController::class, 'store']);
             Route::get('/{id}', [BrandApiController::class, 'show']);
+            Route::post('/{id}', [BrandApiController::class, 'update']);
+            Route::patch('/{id}/status', [BrandApiController::class, 'updateStatus']);
+            Route::delete('/{id}', [BrandApiController::class, 'destroy']);
         });
     });
 

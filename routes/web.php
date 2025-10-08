@@ -474,22 +474,10 @@ Route::middleware('auth.token')->group(function () {
 
             Route::controller(CategoriesController::class)->group(function () {
                 Route::get('/categories', 'categories')->name('catalog.products.categories')->middleware('permission:catalog.products.categories.view');
-                Route::get('/categories/tree', 'getTree')->name('catalog.products.categories.tree')->middleware('permission:catalog.products.categories.view');
-                Route::post('/categories/store', 'store')->name('catalog.products.categories.store')->middleware('permission:catalog.products.categories.create');
-                Route::put('/categories/{id}', 'update')->name('catalog.products.categories.update')->middleware('permission:catalog.products.categories.update');
-                Route::delete('/categories/{id}', 'destroy')->name('catalog.products.categories.destroy')->middleware('permission:catalog.products.categories.delete');
-                Route::post('/categories/{id}/toggle-active', 'toggleActive')->name('catalog.products.categories.toggle-active')->middleware('permission:catalog.products.categories.update');
-                Route::post('/categories/update-order', 'updateOrder')->name('catalog.products.categories.update-order')->middleware('permission:catalog.products.categories.update');
-                Route::delete('/categories/{id}/delete-image', 'deleteImage')->name('catalog.products.categories.delete-image')->middleware('permission:catalog.products.categories.update');
             });
 
             Route::controller(BrandsController::class)->group(function () {
                 Route::get('/brands', 'brands')->name('catalog.products.brands')->middleware('permission:catalog.products.brands.view');
-                Route::post('/brands/store', 'store')->name('catalog.products.brands.store')->middleware('permission:catalog.products.brands.create');
-                Route::put('/brands/{id}', 'update')->name('catalog.products.brands.update')->middleware('permission:catalog.products.brands.update');
-                Route::delete('/brands/{id}', 'destroy')->name('catalog.products.brands.destroy')->middleware('permission:catalog.products.brands.delete');
-                Route::post('/brands/{id}/toggle-active', 'toggleActive')->name('catalog.products.brands.toggle-active')->middleware('permission:catalog.products.brands.update');
-                Route::delete('/brands/{id}/delete-logo', 'deleteLogo')->name('catalog.products.brands.delete-logo')->middleware('permission:catalog.products.brands.update');
             });
 
             Route::controller(VariantsController::class)->group(function () {

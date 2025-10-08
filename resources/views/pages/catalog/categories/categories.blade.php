@@ -16,37 +16,57 @@
 
 <!-- Statistics Cards -->
 <div class="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 lg:grid-cols-4">
-    <x-stat-card
-        title="Total Categories"
-        :value="$statistics['total']"
-        subtitle="All categories"
-        icon="folder"
-        icon-color="primary"
-    />
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Total Categories</p>
+                    <p class="text-2xl font-bold" id="statTotalCategories">...</p>
+                    <p class="text-xs text-base-content/60">All categories</p>
+                </div>
+                <span class="iconify lucide--folder size-8 text-base-content/20"></span>
+            </div>
+        </div>
+    </div>
 
-    <x-stat-card
-        title="Active"
-        :value="$statistics['active']"
-        subtitle="Published categories"
-        icon="check-circle-2"
-        icon-color="success"
-    />
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Active</p>
+                    <p class="text-2xl font-bold" id="statActiveCategories">...</p>
+                    <p class="text-xs text-base-content/60">Published categories</p>
+                </div>
+                <span class="iconify lucide--check-circle-2 size-8"></span>
+            </div>
+        </div>
+    </div>
 
-    <x-stat-card
-        title="Parent Categories"
-        :value="$statistics['parents']"
-        subtitle="Top level"
-        icon="layers"
-        icon-color="info"
-    />
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Parent Categories</p>
+                    <p class="text-2xl font-bold" id="statParentCategories">...</p>
+                    <p class="text-xs text-base-content/60">Top level</p>
+                </div>
+                <span class="iconify lucide--layers size-8"></span>
+            </div>
+        </div>
+    </div>
 
-    <x-stat-card
-        title="Total Products"
-        :value="$statistics['total_products']"
-        subtitle="Categorized products"
-        icon="box"
-        icon-color="warning"
-    />
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-base-content/60">Total Products</p>
+                    <p class="text-2xl font-bold" id="statTotalProducts">...</p>
+                    <p class="text-xs text-base-content/60">Categorized products</p>
+                </div>
+                <span class="iconify lucide--box size-8"></span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Save Order Button (Hidden by default) -->
@@ -63,277 +83,195 @@
 
 <!-- Filter Section -->
 <div class="mt-6">
+    <x-filter-section
+        id="filterForm"
+        title="Filter Categories"
+        :action="route('catalog.products.categories')"
+        method="GET"
+    >
+        <x-slot name="filters">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <x-form.input
+                    name="search"
+                    label="Search"
+                    placeholder="Search by name or slug"
+                    :value="request('search')"
+                />
+
+                <x-form.select
+                    name="status"
+                    label="Status"
+                    :options="[
+                        '' => 'All Status',
+                        'active' => 'Active',
+                        'inactive' => 'Inactive'
+                    ]"
+                    :value="request('status')"
+                />
+
+                <x-form.select
+                    name="parent_id"
+                    label="Parent Category"
+                    id="parentFilter"
+                >
+                    <option value="">All Categories</option>
+                    <option value="0">Top Level Only</option>
+                </x-form.select>
+            </div>
+        </x-slot>
+
+        <x-slot name="actions">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <span class="iconify lucide--search size-4"></span>
+                Apply Filter
+            </button>
+            <button type="button" id="clearFilters" class="btn btn-ghost btn-sm">
+                <span class="iconify lucide--x size-4"></span>
+                Reset
+            </button>
+        </x-slot>
+    </x-filter-section>
+</div>
+
+<!-- Categories Table -->
+<div class="mt-6">
     <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium">Filter Categories</h3>
+        <div class="card-body p-0">
+            <div class="flex items-center justify-end px-5 pt-5">
                 @if(hasPermission('catalog.products.categories.create'))
-                <button class="btn btn-primary btn-sm" id="addCategoryBtn">
-                    <span class="iconify lucide--plus"></span>
+                <button class="btn btn-sm btn-primary" id="addCategoryBtn">
+                    <span class="iconify lucide--plus size-4"></span>
                     Add Category
                 </button>
                 @endif
             </div>
 
-            <form action="{{ route('catalog.products.categories') }}" method="GET">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Search -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Name</span>
-                        </label>
-                        <input type="text" name="search" placeholder="Search by name"
-                               class="input input-bordered input-sm w-full"
-                               value="{{ request('search') }}">
-                    </div>
-
-                    <!-- Status -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Status</span>
-                        </label>
-                        <select name="status" class="select select-bordered select-sm w-full">
-                            <option value="">All Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                    </div>
-
-                    <!-- Parent Category -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Parent Category</span>
-                        </label>
-                        <select name="parent" class="select select-bordered select-sm w-full">
-                            <option value="">All Categories</option>
-                            <option value="0" {{ request('parent') === '0' ? 'selected' : '' }}>Top Level Only</option>
-                            @foreach($parents ?? [] as $parent)
-                            <option value="{{ $parent->id }}" {{ request('parent') == $parent->id ? 'selected' : '' }}>
-                                {{ $parent->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <span class="iconify lucide--search size-4"></span>
-                        Apply Filter
-                    </button>
-                    <a href="{{ route('catalog.products.categories') }}" class="btn btn-ghost btn-sm">
-                        <span class="iconify lucide--x size-4"></span>
-                        Reset
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Categories Table -->
-<div class="mt-4">
-    <div class="bg-base-100 card shadow">
-        <div class="card-body p-0">
-
-            <div class="mt-4 overflow-auto">
-                <table class="table" id="categoriesTable">
+            <div class="overflow-x-auto">
+                <table class="table table-xs md:table-sm">
                     <thead>
                         <tr>
-                            <th class="w-12">
-                                <span class="iconify lucide--grip-vertical size-4 text-base-content/40"></span>
-                            </th>
                             <th>Category</th>
                             <th>Slug</th>
                             <th>Products</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="sortableCategories">
-                        @forelse($categories as $category)
-                        <tr class="sortable-category" data-category-id="{{ $category->id }}" data-parent-id="{{ $category->parent_id }}">
-                            <td>
-                                <span class="iconify lucide--grip-vertical size-5 text-base-content/40 cursor-move drag-handle"></span>
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    @if($category->image)
-                                    <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="w-10 h-10 rounded object-cover">
-                                    @else
-                                    <div class="w-10 h-10 rounded bg-base-200 flex items-center justify-center">
-                                        <span class="iconify lucide--image size-5 text-base-content/40"></span>
-                                    </div>
-                                    @endif
-                                    <div>
-                                        <p class="font-medium">{{ $category->name }}</p>
-                                        @if($category->parent_id)
-                                        <p class="text-xs text-base-content/60">Sub-category</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <code class="text-xs bg-base-200 px-2 py-1 rounded">{{ $category->slug }}</code>
-                            </td>
-                            <td>
-                                <span class="badge badge-sm badge-ghost">{{ $category->product_count ?? 0 }} products</span>
-                            </td>
-                            <td>
-                                <x-badge :type="$category->is_active ? 'success' : 'error'" :label="$category->is_active ? 'Active' : 'Inactive'" />
-                            </td>
-                            <td>
-                                <div class="inline-flex gap-2">
-                                    @if(hasPermission('catalog.products.categories.update'))
-                                    <button class="btn btn-sm btn-ghost edit-category-btn" data-id="{{ $category->id }}">
-                                        <span class="iconify lucide--pencil size-4"></span>
-                                    </button>
-
-                                    <form action="{{ route('catalog.products.categories.toggle-active', $category->id) }}" method="POST" class="toggle-form inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-ghost">
-                                            @if($category->is_active)
-                                            <span class="iconify lucide--eye-off size-4"></span>
-                                            @else
-                                            <span class="iconify lucide--eye size-4"></span>
-                                            @endif
-                                        </button>
-                                    </form>
-                                    @endif
-
-                                    @if(hasPermission('catalog.products.categories.delete'))
-                                    <form action="{{ route('catalog.products.categories.destroy', $category->id) }}" method="POST" class="delete-form inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-ghost text-error">
-                                            <span class="iconify lucide--trash size-4"></span>
-                                        </button>
-                                    </form>
-                                    @endif
-                                </div>
+                    <tbody id="categoriesTableBody">
+                        <tr id="loadingRow">
+                            <td colspan="5" class="text-center py-8">
+                                <span class="loading loading-spinner loading-md"></span>
+                                <p class="mt-2 text-base-content/60">Loading categories...</p>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-8">
-                                <div class="flex flex-col items-center gap-2 text-base-content/50">
-                                    <span class="iconify lucide--folder-open size-12"></span>
-                                    <p>No categories found</p>
-                                    <p class="text-xs">Create your first category to get started</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination Info & Links -->
-            <x-pagination-info :paginator="$categories" />
+            <!-- Pagination -->
+            <div id="paginationContainer" class="p-4"></div>
         </div>
     </div>
 </div>
 
 <!-- Add/Edit Category Modal -->
-<x-modal id="categoryModal" size="max-w-3xl">
-    <x-slot name="title">
-        <div>
-            <h3 class="font-bold text-lg" id="modalTitle">Add Category</h3>
-            <p class="text-sm text-base-content/70 mt-1">Define category details</p>
-        </div>
-    </x-slot>
-
-    <form id="categoryForm" class="space-y-6" enctype="multipart/form-data">
-        @csrf
+<x-modal id="categoryModal" title="Create Category" size="lg">
+    <form id="categoryForm" enctype="multipart/form-data">
         <input type="hidden" id="categoryId" name="category_id">
         <input type="hidden" id="formMethod" value="POST">
 
-        <!-- Basic Information -->
         <div class="space-y-4">
-            <h4 class="font-semibold text-sm">Basic Information</h4>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form.input
-                    name="name"
-                    id="categoryName"
-                    label="Category Name"
-                    placeholder="e.g., T-Shirts"
-                    required
-                    helper="Full category name"
-                />
-
-                <x-form.input
-                    name="slug"
-                    id="categorySlug"
-                    label="Slug"
-                    placeholder="e.g., t-shirts"
-                    required
-                    helper="Auto-generated from name"
-                />
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Category Name <span class="text-error">*</span></span>
+                </label>
+                <input type="text" name="name" id="categoryName" class="input input-bordered w-full" placeholder="e.g., T-Shirts" required>
+                <label class="label">
+                    <span class="label-text-alt">Full category name</span>
+                </label>
             </div>
 
-            <x-form.select
-                name="parent_id"
-                id="parentCategory"
-                label="Parent Category"
-                helper="Select parent for nested categories"
-            >
-                <option value="">None (Top Level)</option>
-                @foreach($parents as $parent)
-                <option value="{{ $parent->id }}">{{ $parent->name }}</option>
-                @endforeach
-            </x-form.select>
-
-            <x-form.textarea
-                name="description"
-                id="categoryDescription"
-                label="Description"
-                placeholder="Category description..."
-                rows="3"
-            />
-        </div>
-
-        <!-- Category Image -->
-        <div class="space-y-4">
-            <h4 class="font-semibold text-sm">Category Image</h4>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Slug <span class="text-error">*</span></span>
+                </label>
+                <input type="text" name="slug" id="categorySlug" class="input input-bordered w-full" placeholder="e.g., t-shirts" required>
+                <label class="label">
+                    <span class="label-text-alt">Auto-generated from name</span>
+                </label>
+            </div>
 
             <div class="form-control">
-                <input type="file" name="image" id="categoryImage" class="file-input file-input-bordered w-full" accept="image/*">
                 <label class="label">
-                    <span class="label-text-alt text-base-content/60">Max 2MB, recommended 500x500px</span>
+                    <span class="label-text">Parent Category</span>
                 </label>
+                <select name="parent_id" id="categoryParent" class="select select-bordered w-full">
+                    <option value="">No Parent (Top Level)</option>
+                </select>
+                <label class="label">
+                    <span class="label-text-alt">Select parent for nested categories</span>
+                </label>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea name="description" id="categoryDescription" class="textarea textarea-bordered w-full" rows="3" placeholder="Category description..."></textarea>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Category Image</span>
+                </label>
+
+                <div class="border-2 border-dashed border-primary/40 rounded-lg p-6 bg-base-200/30 hover:bg-base-200/50 transition-colors cursor-pointer" onclick="document.getElementById('categoryImage').click()">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span class="iconify lucide--upload size-8 text-primary"></span>
+                        </div>
+                        <div class="text-center">
+                            <p class="font-semibold text-base mb-1">Click to upload image</p>
+                            <p class="text-sm text-base-content/60">or drag and drop here</p>
+                        </div>
+                        <div class="text-xs text-base-content/50">
+                            <span class="iconify lucide--info size-3 inline"></span>
+                            Max 2MB | Recommended 500x500px | JPG, PNG, GIF
+                        </div>
+                    </div>
+                </div>
+
+                <input type="file" name="image" id="categoryImage" class="hidden" accept="image/*">
+
+                <!-- File name display -->
+                <div id="fileName" class="mt-2 text-sm text-base-content/70 hidden"></div>
 
                 <!-- Image Preview -->
                 <div id="imagePreview" class="mt-3 hidden">
-                    <div class="border border-base-300 rounded-lg p-2 inline-block">
-                        <img src="" alt="Preview" class="w-32 h-32 object-cover rounded">
+                    <div class="border-2 border-dashed border-success/30 rounded-lg p-3 inline-block bg-base-200/50">
+                        <img src="" alt="Preview" class="w-32 h-32 object-cover rounded-lg">
                     </div>
                 </div>
             </div>
+
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-2">
+                    <input type="checkbox" name="is_active" id="categoryActive" class="checkbox" checked>
+                    <span class="label-text">Active</span>
+                </label>
+            </div>
         </div>
 
-        <!-- Status -->
-        <div class="form-control">
-            <label class="label cursor-pointer justify-start gap-3">
-                <input type="checkbox" name="is_active" id="categoryActive" class="checkbox" checked>
-                <div>
-                    <span class="label-text font-medium">Active</span>
-                    <p class="text-xs text-base-content/60">Category is visible and active</p>
-                </div>
-            </label>
+        <div class="modal-action">
+            <button type="button" class="btn" onclick="categoryModal.close()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Save</button>
         </div>
     </form>
+</x-modal>
 
-    <x-slot name="footer">
-        <div class="flex justify-end gap-2">
-            <button type="button" class="btn btn-ghost" onclick="categoryModal.close()">Cancel</button>
-            <button type="submit" form="categoryForm" class="btn btn-primary" id="submitBtn">
-                <span class="iconify lucide--save size-4"></span>
-                Save Category
-            </button>
-        </div>
-    </x-slot>
+<!-- View Category Modal -->
+<x-modal id="viewCategoryModal" title="Category Details" size="lg">
+    <div id="categoryDetails"></div>
 </x-modal>
 @endsection
 
