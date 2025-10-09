@@ -125,6 +125,15 @@ class ProductRepository implements ProductRepositoryInterface
             ->orderBy('id', 'asc')
             ->get();
 
+        // Load variant images for each variant
+        foreach ($product->variants as $variant) {
+            $variant->images = DB::table('product_variant_images')
+                ->where('variant_id', $variant->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('sort_order', 'asc')
+                ->get();
+        }
+
         // Get images
         $product->images = DB::table('product_images')
             ->where('product_id', $product->id)

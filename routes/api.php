@@ -127,14 +127,30 @@ Route::middleware('auth.token')->group(function () {
         // Products
         Route::prefix('products')->group(function () {
             Route::get('/', [ProductApiController::class, 'index']);
+            Route::post('/', [ProductApiController::class, 'store']);
             Route::get('/featured', [ProductApiController::class, 'featured']);
             Route::get('/{identifier}', [ProductApiController::class, 'show']);
+            Route::post('/{id}', [ProductApiController::class, 'update']);
             Route::get('/{id}/variants', [ProductApiController::class, 'variants']);
             Route::get('/{id}/images', [ProductApiController::class, 'images']);
+            Route::post('/{id}/images', [ProductApiController::class, 'uploadImages']);
+            Route::delete('/{id}/images/{imageId}', [ProductApiController::class, 'deleteImage']);
+            Route::post('/{id}/images/{imageId}/primary', [ProductApiController::class, 'setPrimaryImage']);
             Route::get('/category/{categoryId}', [ProductApiController::class, 'byCategory']);
             Route::get('/brand/{brandId}', [ProductApiController::class, 'byBrand']);
             Route::patch('/{id}/status', [ProductApiController::class, 'updateStatus']);
+            Route::post('/{id}/categories', [ProductApiController::class, 'updateCategories']);
             Route::delete('/{id}', [ProductApiController::class, 'destroy']);
+
+            // Variants
+            Route::post('/{productId}/variants', [ProductApiController::class, 'storeVariant']);
+            Route::post('/{productId}/variants/{variantId}', [ProductApiController::class, 'updateVariant']);
+            Route::delete('/{productId}/variants/{variantId}', [ProductApiController::class, 'deleteVariant']);
+
+            // Variant Images
+            Route::post('/{productId}/variants/{variantId}/images', [ProductApiController::class, 'uploadVariantImages']);
+            Route::delete('/{productId}/variants/{variantId}/images/{imageId}', [ProductApiController::class, 'deleteVariantImage']);
+            Route::post('/{productId}/variants/{variantId}/images/{imageId}/primary', [ProductApiController::class, 'setPrimaryVariantImage']);
         });
 
         // Categories

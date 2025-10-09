@@ -67,7 +67,7 @@
 
         <x-slot name="actions">
             <button type="submit" class="btn btn-primary btn-sm">
-                <span class="iconify lucide--filter size-4"></span>
+                <span class="iconify lucide--search size-4"></span>
                 Apply Filter
             </button>
             <button type="button" id="clearFilters" class="btn btn-ghost btn-sm">

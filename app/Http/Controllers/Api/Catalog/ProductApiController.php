@@ -236,9 +236,20 @@ class ProductApiController extends Controller
                 ->orderBy('is_primary', 'desc')
                 ->get();
 
-            $product->variants = \DB::table('product_variants')
+            $variants = \DB::table('product_variants')
                 ->where('product_id', $product->id)
                 ->get();
+
+            // Load variant images for each variant
+            foreach ($variants as $variant) {
+                $variant->images = \DB::table('product_variant_images')
+                    ->where('variant_id', $variant->id)
+                    ->orderBy('is_primary', 'desc')
+                    ->orderBy('sort_order', 'asc')
+                    ->get();
+            }
+
+            $product->variants = $variants;
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -463,6 +474,27 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
+            // Check if product has variants that are in orders
+            $variantsInOrders = \DB::table('product_variants')
+                ->join('order_items', 'product_variants.id', '=', 'order_items.variant_id')
+                ->where('product_variants.product_id', $id)
+                ->exists();
+
+            if ($variantsInOrders) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Cannot delete product: It has variants that are associated with orders. Consider deactivating the product instead.');
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            // Delete related data first
+            \DB::table('product_categories')->where('product_id', $id)->delete();
+            \DB::table('product_images')->where('product_id', $id)->delete();
+            \DB::table('product_variants')->where('product_id', $id)->delete();
+
+            // Delete product
             $this->productRepo->delete($id);
 
             $result = (new ResultBuilder())
@@ -476,6 +508,791 @@ class ProductApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to delete product: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Store new product
+     */
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:products,slug',
+                'description' => 'nullable|string',
+                'brand_id' => 'nullable|exists:brands,id',
+                'status' => 'required|in:draft,active,inactive',
+                'age_min' => 'nullable|integer|min:0',
+                'age_max' => 'nullable|integer|min:0',
+                'tags' => 'nullable|string',
+                'is_featured' => 'nullable|boolean',
+                'categories' => 'nullable|array',
+                'categories.*' => 'exists:categories,id'
+            ]);
+
+            // Convert is_featured to boolean
+            $validated['is_featured'] = isset($validated['is_featured']) && $validated['is_featured'] ? true : false;
+
+            // Convert tags string to JSON array
+            if (isset($validated['tags']) && is_string($validated['tags'])) {
+                $tagsArray = array_map('trim', explode(',', $validated['tags']));
+                $validated['tags'] = json_encode($tagsArray);
+            }
+
+            // Extract categories before creating product
+            $categories = $validated['categories'] ?? [];
+            unset($validated['categories']);
+
+            // Create product and get ID
+            $productId = $this->productRepo->create($validated);
+
+            // Attach categories if any
+            if (!empty($categories)) {
+                // Insert into product_categories pivot table
+                $pivotData = [];
+                foreach ($categories as $categoryId) {
+                    $pivotData[] = [
+                        'product_id' => $productId,
+                        'category_id' => $categoryId
+                    ];
+                }
+                \DB::table('product_categories')->insert($pivotData);
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('201')
+                ->setMessage('Product created successfully')
+                ->setData(['product_id' => $productId]);
+
+            return response()->json($this->response->generateResponse($result), 201);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to create product: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update product
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $product = $this->productRepo->findById($id);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:255|unique:products,slug,' . $id,
+                'description' => 'nullable|string',
+                'brand_id' => 'nullable|exists:brands,id',
+                'status' => 'required|in:draft,active,inactive',
+                'age_min' => 'nullable|integer|min:0',
+                'age_max' => 'nullable|integer|min:0',
+                'tags' => 'nullable|string',
+                'is_featured' => 'nullable|boolean',
+                'categories' => 'nullable|array',
+                'categories.*' => 'exists:categories,id'
+            ]);
+
+            // Convert is_featured to boolean
+            $validated['is_featured'] = isset($validated['is_featured']) && $validated['is_featured'] ? true : false;
+
+            // Convert tags string to JSON array
+            if (isset($validated['tags']) && is_string($validated['tags'])) {
+                $tagsArray = array_map('trim', explode(',', $validated['tags']));
+                $validated['tags'] = json_encode($tagsArray);
+            }
+
+            // Extract categories before updating product
+            $categories = $validated['categories'] ?? [];
+            unset($validated['categories']);
+
+            // Update product
+            $this->productRepo->update($id, $validated);
+
+            // Sync categories - delete old ones first
+            \DB::table('product_categories')->where('product_id', $id)->delete();
+
+            // Insert new categories if any
+            if (!empty($categories)) {
+                $pivotData = [];
+                foreach ($categories as $categoryId) {
+                    $pivotData[] = [
+                        'product_id' => $id,
+                        'category_id' => $categoryId
+                    ];
+                }
+                \DB::table('product_categories')->insert($pivotData);
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Product updated successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update product: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update product categories only
+     */
+    public function updateCategories(Request $request, $id)
+    {
+        try {
+            $product = $this->productRepo->findById($id);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'categories' => 'nullable|array',
+                'categories.*' => 'exists:categories,id'
+            ]);
+
+            $categories = $validated['categories'] ?? [];
+
+            // Sync categories - delete old ones first
+            \DB::table('product_categories')->where('product_id', $id)->delete();
+
+            // Insert new categories if any
+            if (!empty($categories)) {
+                $pivotData = [];
+                foreach ($categories as $categoryId) {
+                    $pivotData[] = [
+                        'product_id' => $id,
+                        'category_id' => $categoryId
+                    ];
+                }
+                \DB::table('product_categories')->insert($pivotData);
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Categories updated successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update categories: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Upload product images
+     */
+    public function uploadImages(Request $request, $id)
+    {
+        try {
+            $product = $this->productRepo->findById($id);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $request->validate([
+                'images' => 'required|array',
+                'images.*' => 'image|mimes:jpeg,jpg,png,gif|max:20048'
+            ]);
+
+            // Create folder name from product slug or name
+            $folderName = $product->slug ?? \Str::slug($product->name);
+
+            $uploadedImages = [];
+            $existingImagesCount = \DB::table('product_images')->where('product_id', $id)->count();
+            $sortOrder = $existingImagesCount + 1;
+            $imageCounter = $existingImagesCount + 1;
+
+            foreach ($request->file('images') as $image) {
+                $extension = $image->getClientOriginalExtension();
+                $filename = $folderName . $imageCounter . '.' . $extension;
+                $path = $image->storeAs('products/' . $folderName, $filename, 'public');
+
+                $imageId = \DB::table('product_images')->insertGetId([
+                    'product_id' => $id,
+                    'url' => $path,
+                    'alt_text' => null,
+                    'is_primary' => $existingImagesCount === 0 && $sortOrder === 1,
+                    'sort_order' => $sortOrder,
+                    'created_at' => now()
+                ]);
+
+                $uploadedImages[] = [
+                    'id' => $imageId,
+                    'product_id' => $id,
+                    'url' => $path,
+                    'alt_text' => null,
+                    'is_primary' => $existingImagesCount === 0 && $sortOrder === 1,
+                    'sort_order' => $sortOrder
+                ];
+
+                $sortOrder++;
+                $existingImagesCount++;
+                $imageCounter++;
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Images uploaded successfully')
+                ->setData(['images' => $uploadedImages]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to upload images: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Delete product image
+     */
+    public function deleteImage($id, $imageId)
+    {
+        try {
+            $product = $this->productRepo->findById($id);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $image = \DB::table('product_images')
+                ->where('id', $imageId)
+                ->where('product_id', $id)
+                ->first();
+
+            if (!$image) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Image not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Delete file from storage
+            if (\Storage::disk('public')->exists($image->url)) {
+                \Storage::disk('public')->delete($image->url);
+            }
+
+            \DB::table('product_images')->where('id', $imageId)->delete();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Image deleted successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to delete image: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Set primary image
+     */
+    public function setPrimaryImage($id, $imageId)
+    {
+        try {
+            $product = $this->productRepo->findById($id);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $image = \DB::table('product_images')
+                ->where('id', $imageId)
+                ->where('product_id', $id)
+                ->first();
+
+            if (!$image) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Image not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Remove primary from all images
+            \DB::table('product_images')
+                ->where('product_id', $id)
+                ->update(['is_primary' => false, 'updated_at' => now()]);
+
+            // Set this image as primary
+            \DB::table('product_images')
+                ->where('id', $imageId)
+                ->update(['is_primary' => true, 'updated_at' => now()]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Primary image set successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to set primary image: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Store product variant
+     */
+    public function storeVariant(Request $request, $productId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'sku' => 'required|string|max:255|unique:product_variants,sku',
+                'size' => 'required|string|max:50',
+                'color' => 'nullable|string|max:50',
+                'weight_gram' => 'required|integer|min:1',
+                'price' => 'required|numeric|min:0',
+                'compare_at_price' => 'nullable|numeric|min:0',
+                'stock_quantity' => 'required|integer|min:0',
+                'barcode' => 'nullable|string|max:255'
+            ]);
+
+            $validated['product_id'] = $productId;
+            $validated['created_at'] = now();
+            $validated['updated_at'] = now();
+
+            $variantId = \DB::table('product_variants')->insertGetId($validated);
+
+            $variant = \DB::table('product_variants')->where('id', $variantId)->first();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('201')
+                ->setMessage('Variant created successfully')
+                ->setData(['variant' => $variant]);
+
+            return response()->json($this->response->generateResponse($result), 201);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to create variant: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update product variant
+     */
+    public function updateVariant(Request $request, $productId, $variantId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $variant = \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'sku' => 'required|string|max:255|unique:product_variants,sku,' . $variantId,
+                'size' => 'required|string|max:50',
+                'color' => 'nullable|string|max:50',
+                'weight_gram' => 'required|integer|min:1',
+                'price' => 'required|numeric|min:0',
+                'compare_at_price' => 'nullable|numeric|min:0',
+                'stock_quantity' => 'required|integer|min:0',
+                'barcode' => 'nullable|string|max:255'
+            ]);
+
+            $validated['updated_at'] = now();
+
+            \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->update($validated);
+
+            $updatedVariant = \DB::table('product_variants')->where('id', $variantId)->first();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant updated successfully')
+                ->setData(['variant' => $updatedVariant]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update variant: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Delete product variant
+     */
+    public function deleteVariant($productId, $variantId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $variant = \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            \DB::table('product_variants')->where('id', $variantId)->delete();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant deleted successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to delete variant: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Upload variant images
+     */
+    public function uploadVariantImages(Request $request, $productId, $variantId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $variant = \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $request->validate([
+                'images' => 'required|array',
+                'images.*' => 'image|mimes:jpeg,jpg,png,gif|max:20048'
+            ]);
+
+            // Create folder name from product slug or name
+            $productFolderName = $product->slug ?? \Str::slug($product->name);
+
+            // Create variant filename from SKU or variant details
+            $variantName = \Str::slug($variant->sku);
+
+            $uploadedImages = [];
+            $existingImagesCount = \DB::table('product_variant_images')->where('variant_id', $variantId)->count();
+            $sortOrder = $existingImagesCount + 1;
+            $imageCounter = $existingImagesCount + 1;
+
+            foreach ($request->file('images') as $image) {
+                $extension = $image->getClientOriginalExtension();
+                $filename = $variantName . ($imageCounter > 1 ? $imageCounter : '') . '.' . $extension;
+                $path = $image->storeAs('products/' . $productFolderName . '/variant', $filename, 'public');
+
+                $imageId = \DB::table('product_variant_images')->insertGetId([
+                    'variant_id' => $variantId,
+                    'url' => $path,
+                    'alt_text' => null,
+                    'is_primary' => $existingImagesCount === 0 && $sortOrder === 1,
+                    'sort_order' => $sortOrder,
+                    'created_at' => now()
+                ]);
+
+                $uploadedImages[] = [
+                    'id' => $imageId,
+                    'variant_id' => $variantId,
+                    'url' => $path,
+                    'alt_text' => null,
+                    'is_primary' => $existingImagesCount === 0 && $sortOrder === 1,
+                    'sort_order' => $sortOrder
+                ];
+
+                $sortOrder++;
+                $existingImagesCount++;
+                $imageCounter++;
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant images uploaded successfully')
+                ->setData(['images' => $uploadedImages]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to upload variant images: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Delete variant image
+     */
+    public function deleteVariantImage($productId, $variantId, $imageId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $variant = \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $image = \DB::table('product_variant_images')
+                ->where('id', $imageId)
+                ->where('variant_id', $variantId)
+                ->first();
+
+            if (!$image) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Image not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Delete file from storage
+            if (\Storage::disk('public')->exists($image->url)) {
+                \Storage::disk('public')->delete($image->url);
+            }
+
+            \DB::table('product_variant_images')->where('id', $imageId)->delete();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant image deleted successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to delete variant image: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Set primary variant image
+     */
+    public function setPrimaryVariantImage($productId, $variantId, $imageId)
+    {
+        try {
+            $product = $this->productRepo->findById($productId);
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $variant = \DB::table('product_variants')
+                ->where('id', $variantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $image = \DB::table('product_variant_images')
+                ->where('id', $imageId)
+                ->where('variant_id', $variantId)
+                ->first();
+
+            if (!$image) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Image not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Remove primary from all images
+            \DB::table('product_variant_images')
+                ->where('variant_id', $variantId)
+                ->update(['is_primary' => false]);
+
+            // Set this image as primary
+            \DB::table('product_variant_images')
+                ->where('id', $imageId)
+                ->update(['is_primary' => true]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Primary variant image set successfully');
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to set primary variant image: ' . $e->getMessage());
 
             return response()->json($this->response->generateResponse($result), 500);
         }

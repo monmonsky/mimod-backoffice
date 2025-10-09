@@ -457,19 +457,6 @@ Route::middleware('auth.token')->group(function () {
             Route::controller(AddProductsController::class)->group(function () {
                 Route::get('/add-products', 'addProducts')->name('catalog.products.add-products')->middleware('permission:catalog.products.add-products.view');
                 Route::get('/{id}/edit', 'edit')->name('catalog.products.edit')->middleware('permission:catalog.products.all-products.update');
-                Route::post('/store', 'store')->name('catalog.products.store')->middleware('permission:catalog.products.add-products.create');
-                Route::put('/{id}', 'update')->name('catalog.products.update')->middleware('permission:catalog.products.all-products.update');
-
-                // Product Images
-                Route::post('/{id}/images/upload', 'uploadImages')->name('catalog.products.images.upload')->middleware('permission:catalog.products.all-products.update');
-                Route::delete('/{productId}/images/{imageId}', 'deleteImage')->name('catalog.products.images.delete')->middleware('permission:catalog.products.all-products.update');
-                Route::post('/{productId}/images/{imageId}/set-primary', 'setPrimaryImage')->name('catalog.products.images.set-primary')->middleware('permission:catalog.products.all-products.update');
-                Route::post('/{productId}/images/update-order', 'updateImagesOrder')->name('catalog.products.images.update-order')->middleware('permission:catalog.products.all-products.update');
-
-                // Product Variants
-                Route::post('/{productId}/variants/store', 'storeVariant')->name('catalog.products.variants.store')->middleware('permission:catalog.products.add-products.create');
-                Route::put('/{productId}/variants/{variantId}', 'updateVariant')->name('catalog.products.variants.update')->middleware('permission:catalog.products.all-products.update');
-                Route::delete('/{productId}/variants/{variantId}', 'deleteVariant')->name('catalog.products.variants.delete')->middleware('permission:catalog.products.all-products.delete');
             });
 
             Route::controller(CategoriesController::class)->group(function () {

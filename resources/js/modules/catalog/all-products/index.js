@@ -234,7 +234,7 @@ function renderTable(productsData) {
         let imageUrl = '/images/placeholder-product.png';
         if (product.images && product.images.length > 0) {
             const primaryImage = product.images.find(img => img.is_primary) || product.images[0];
-            imageUrl = primaryImage.url;
+            imageUrl = `/storage/${primaryImage.url}`;
         }
 
         html += `
@@ -277,7 +277,7 @@ function renderTable(productsData) {
                         </button>
                         ` : ''}
                         ${window.hasPermission && window.hasPermission('catalog.products.all-products.update') ? `
-                        <a href="/catalog/products/add-products/${product.id}/edit" class="btn btn-ghost btn-xs p-0 h-auto min-h-0" title="Edit">
+                        <a href="/catalog/products/${product.id}/edit" class="btn btn-ghost btn-xs p-0 h-auto min-h-0" title="Edit">
                             <span class="iconify lucide--pencil size-5 text-warning"></span>
                         </a>
                         ` : ''}
@@ -413,7 +413,7 @@ function renderProductDetail(product) {
         imagesHtml = product.images.map(img => `
             <div class="avatar">
                 <div class="w-24 rounded">
-                    <img src="${img.url}" alt="Product image" />
+                    <img src="/storage/${img.url}" alt="Product image" />
                 </div>
             </div>
         `).join('');
@@ -465,6 +465,56 @@ function renderProductDetail(product) {
                 <p class="text-sm font-medium text-base-content/60 mb-2">Images</p>
                 <div class="flex flex-wrap gap-2">${imagesHtml}</div>
             </div>
+
+            ${product.variants && product.variants.length > 0 ? `
+            <div class="divider my-0"></div>
+
+            <div>
+                <p class="text-sm font-medium text-base-content/60 mb-2">Variants (${product.variants.length})</p>
+                <div class="overflow-x-auto">
+                    <table class="table table-xs">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>SKU</th>
+                                <th>Size</th>
+                                <th>Color</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${product.variants.map(variant => {
+                                const primaryImage = variant.images && variant.images.length > 0
+                                    ? variant.images.find(img => img.is_primary) || variant.images[0]
+                                    : null;
+
+                                return `
+                                <tr>
+                                    <td>
+                                        ${primaryImage ? `
+                                            <div class="avatar">
+                                                <div class="w-12 rounded">
+                                                    <img src="/storage/${primaryImage.url}" alt="${primaryImage.alt_text || variant.color}" />
+                                                </div>
+                                            </div>
+                                        ` : '<span class="text-xs opacity-60">No image</span>'}
+                                    </td>
+                                    <td class="font-mono text-xs">${variant.sku}</td>
+                                    <td>${variant.size || '-'}</td>
+                                    <td>${variant.color || '-'}</td>
+                                    <td>Rp ${parseFloat(variant.price || 0).toLocaleString('id-ID')}</td>
+                                    <td><span class="badge badge-sm ${variant.stock_quantity > 10 ? 'badge-success' : variant.stock_quantity > 0 ? 'badge-warning' : 'badge-error'}">${variant.stock_quantity || 0}</span></td>
+                                    <td>${variant.weight_gram || 0}g</td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            ` : ''}
 
             <div class="divider my-0"></div>
 

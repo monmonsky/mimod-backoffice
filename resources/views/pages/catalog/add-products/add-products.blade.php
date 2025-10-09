@@ -39,42 +39,71 @@
     </div>
 
     <!-- Product Images -->
+    @if(isset($product))
     <div class="bg-base-100 card shadow">
         <div class="card-body">
-            <h2 class="card-title text-lg">Product Images</h2>
-            <p class="text-sm text-base-content/70 mb-4">Upload and manage product images</p>
-            @if(isset($product))
-                @include('pages.catalog.add-products.partials.images')
-            @else
-                <div class="alert alert-info">
-                    <span class="iconify lucide--info size-5"></span>
-                    <div>
-                        <p class="font-semibold">Save Product First</p>
-                        <p class="text-sm">You need to save the product before you can upload images.</p>
-                    </div>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="card-title text-lg">Product Images</h2>
+                    <p class="text-sm text-base-content/70">Upload and manage product images</p>
                 </div>
-            @endif
+                <div class="flex gap-2">
+                    <input type="file" id="productImages" class="hidden" accept="image/*" multiple>
+                    <label for="productImages" class="btn btn-sm btn-ghost">
+                        <span class="iconify lucide--upload size-4"></span>
+                        Select Images
+                    </label>
+                    <button type="button" id="uploadImagesBtn" class="btn btn-sm btn-primary" disabled>
+                        <span class="iconify lucide--save size-4"></span>
+                        Upload
+                    </button>
+                </div>
+            </div>
+
+            <div id="imagePreviewContainer" class="grid grid-cols-4 gap-3 mb-4 hidden"></div>
+            <div id="productImagesContainer">
+                <!-- Images will be rendered here by JavaScript -->
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Product Variants -->
+    @if(isset($product))
+    <div class="bg-base-100 card shadow">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="card-title text-lg">Product Variants</h2>
+                    <p class="text-sm text-base-content/70">Manage sizes, colors, and pricing</p>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="addVariantBtn">
+                    <span class="iconify lucide--plus size-4"></span>
+                    Add Variant
+                </button>
+            </div>
+
+            <div id="productVariantsContainer">
+                <!-- Variants will be rendered here by JavaScript -->
+            </div>
         </div>
     </div>
 
-    <!-- Product Variants -->
-    <div class="bg-base-100 card shadow">
-        <div class="card-body">
-            <h2 class="card-title text-lg">Product Variants</h2>
-            <p class="text-sm text-base-content/70 mb-4">Manage sizes, colors, and pricing</p>
-            @if(isset($product))
-                @include('pages.catalog.add-products.partials.variants')
-            @else
-                <div class="alert alert-info">
-                    <span class="iconify lucide--info size-5"></span>
-                    <div>
-                        <p class="font-semibold">Save Product First</p>
-                        <p class="text-sm">You need to save the product before you can add variants.</p>
-                    </div>
-                </div>
-            @endif
+    <!-- Image Preview Modal -->
+    <dialog id="imagePreviewModal" class="modal">
+        <div class="modal-box max-w-4xl p-0">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 z-10">✕</button>
+            </form>
+            <div class="p-4">
+                <img id="previewImage" src="" alt="Preview" class="w-full h-auto rounded-lg">
+            </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    @endif
 </div>
 
 <!-- Variant Modal -->
