@@ -25,37 +25,19 @@ class BrandApiController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = $this->brandRepo->table();
+            $filters = [
+                'search' => $request->input('search'),
+                'status' => $request->input('status')
+            ];
 
-            // Search filter
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'ILIKE', '%' . $search . '%')
-                      ->orWhere('slug', 'ILIKE', '%' . $search . '%')
-                      ->orWhere('description', 'ILIKE', '%' . $search . '%');
-                });
-            }
-
-            // Status filter
-            if ($request->filled('status')) {
-                $query->where('is_active', $request->status === 'active');
-            }
-
-            // Order and pagination
             $perPage = $request->input('per_page', 15);
-            $brands = $query->orderBy('name', 'asc')
-                           ->paginate($perPage);
+            $brands = $this->brandRepo->getAllWithFilters($filters, $perPage);
 
             // Add product count for each brand
-            foreach ($brands->items() as $brand) {
-                $brand->product_count = \DB::table('products')
-                    ->where('brand_id', $brand->id)
-                    ->count();
-            }
+            $this->brandRepo->attachProductCounts($brands->items());
 
             // Get statistics
-            $statistics = $this->getStatistics();
+            $statistics = $this->brandRepo->getStatistics();
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -78,22 +60,6 @@ class BrandApiController extends Controller
         }
     }
 
-    /**
-     * Get brand statistics
-     */
-    private function getStatistics()
-    {
-        $total = $this->brandRepo->table()->count();
-        $active = $this->brandRepo->table()->where('is_active', true)->count();
-        $totalProducts = \DB::table('products')->whereNotNull('brand_id')->count();
-
-        return [
-            'total' => $total,
-            'active' => $active,
-            'inactive' => $total - $active,
-            'total_products' => $totalProducts
-        ];
-    }
 
     /**
      * Create new brand

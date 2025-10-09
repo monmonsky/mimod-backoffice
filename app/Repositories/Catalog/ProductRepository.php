@@ -252,4 +252,266 @@ class ProductRepository implements ProductRepositoryInterface
             ->orderBy('sort_order', 'asc')
             ->get();
     }
+
+    public function getProductsWithFilters($filters = [], $perPage = 15)
+    {
+        $query = $this->table();
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('slug', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('description', 'ILIKE', '%' . $search . '%');
+            });
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Brand filter
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        // Category filter
+        if (!empty($filters['category_id'])) {
+            $productIds = DB::table('product_categories')
+                ->where('category_id', $filters['category_id'])
+                ->pluck('product_id');
+            $query->whereIn('id', $productIds);
+        }
+
+        // Stock status filter
+        if (!empty($filters['stock_status'])) {
+            if ($filters['stock_status'] === 'in_stock') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('stock_quantity', '>', 0);
+                });
+            } elseif ($filters['stock_status'] === 'low_stock') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('stock_quantity', '>', 0)
+                        ->where('stock_quantity', '<=', 10);
+                });
+            } elseif ($filters['stock_status'] === 'out_of_stock') {
+                $query->whereNotExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('stock_quantity', '>', 0);
+                });
+            }
+        }
+
+        // Price filter
+        if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+            $query->whereExists(function($subQuery) use ($filters) {
+                $subQuery->select(DB::raw(1))
+                    ->from('product_variants')
+                    ->whereColumn('product_variants.product_id', 'products.id');
+
+                if (!empty($filters['min_price'])) {
+                    $subQuery->where('price', '>=', $filters['min_price']);
+                }
+                if (!empty($filters['max_price'])) {
+                    $subQuery->where('price', '<=', $filters['max_price']);
+                }
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+    }
+
+    public function attachRelations(&$products)
+    {
+        foreach ($products as $product) {
+            // Attach brand
+            if ($product->brand_id) {
+                $product->brand = DB::table('brands')->where('id', $product->brand_id)->first();
+            }
+
+            // Attach categories
+            $product->categories = DB::table('product_categories')
+                ->join('categories', 'product_categories.category_id', '=', 'categories.id')
+                ->where('product_categories.product_id', $product->id)
+                ->select('categories.*')
+                ->get();
+
+            // Attach images
+            $product->images = DB::table('product_images')
+                ->where('product_id', $product->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('sort_order', 'asc')
+                ->get();
+
+            // Attach variants
+            $product->variants = DB::table('product_variants')
+                ->where('product_id', $product->id)
+                ->get();
+        }
+    }
+
+    public function getOutOfStockCount()
+    {
+        return DB::table('products')
+            ->whereNotExists(function($query) {
+                $query->select(DB::raw(1))
+                    ->from('product_variants')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->where('stock_quantity', '>', 0);
+            })
+            ->count();
+    }
+
+    public function getVariantImages($variantId)
+    {
+        return DB::table('product_variant_images')
+            ->where('variant_id', $variantId)
+            ->orderBy('is_primary', 'desc')
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    public function attachCategoryProducts($categoryId, array $productIds)
+    {
+        $data = [];
+        foreach ($productIds as $productId) {
+            $data[] = [
+                'product_id' => $productId,
+                'category_id' => $categoryId
+            ];
+        }
+
+        if (!empty($data)) {
+            DB::table('product_categories')->insert($data);
+        }
+    }
+
+    public function detachCategoryProducts($categoryId, array $productIds)
+    {
+        DB::table('product_categories')
+            ->where('category_id', $categoryId)
+            ->whereIn('product_id', $productIds)
+            ->delete();
+    }
+
+    public function hasVariantsInOrders($productId)
+    {
+        $variantsInOrders = DB::table('product_variants')
+            ->where('product_id', $productId)
+            ->whereExists(function($query) {
+                $query->select(DB::raw(1))
+                    ->from('order_items')
+                    ->whereColumn('order_items.product_variant_id', 'product_variants.id');
+            })
+            ->count();
+
+        return $variantsInOrders > 0;
+    }
+
+    public function insertImage(array $data)
+    {
+        return DB::table('product_images')->insertGetId($data);
+    }
+
+    public function deleteImage($imageId)
+    {
+        return DB::table('product_images')->where('id', $imageId)->delete();
+    }
+
+    public function getImage($imageId)
+    {
+        return DB::table('product_images')->where('id', $imageId)->first();
+    }
+
+    public function setPrimaryImage($productId, $imageId)
+    {
+        // Remove primary from all images
+        DB::table('product_images')
+            ->where('product_id', $productId)
+            ->update(['is_primary' => false]);
+
+        // Set new primary
+        DB::table('product_images')
+            ->where('id', $imageId)
+            ->update(['is_primary' => true]);
+    }
+
+    public function updateImagesOrder(array $imageIds)
+    {
+        foreach ($imageIds as $index => $imageId) {
+            DB::table('product_images')
+                ->where('id', $imageId)
+                ->update(['sort_order' => $index + 1]);
+        }
+    }
+
+    public function createVariant(array $data)
+    {
+        $data['created_at'] = now();
+        $data['updated_at'] = now();
+        return DB::table('product_variants')->insertGetId($data);
+    }
+
+    public function updateVariant($variantId, array $data)
+    {
+        $data['updated_at'] = now();
+        return DB::table('product_variants')
+            ->where('id', $variantId)
+            ->update($data);
+    }
+
+    public function deleteVariant($variantId)
+    {
+        return DB::table('product_variants')->where('id', $variantId)->delete();
+    }
+
+    public function getVariant($variantId)
+    {
+        return DB::table('product_variants')->where('id', $variantId)->first();
+    }
+
+    public function insertVariantImage(array $data)
+    {
+        return DB::table('product_variant_images')->insertGetId($data);
+    }
+
+    public function deleteVariantImage($imageId)
+    {
+        return DB::table('product_variant_images')->where('id', $imageId)->delete();
+    }
+
+    public function getVariantImage($imageId)
+    {
+        return DB::table('product_variant_images')->where('id', $imageId)->first();
+    }
+
+    public function setPrimaryVariantImage($variantId, $imageId)
+    {
+        // Remove primary from all images
+        DB::table('product_variant_images')
+            ->where('variant_id', $variantId)
+            ->update(['is_primary' => false]);
+
+        // Set new primary
+        DB::table('product_variant_images')
+            ->where('id', $imageId)
+            ->update(['is_primary' => true]);
+    }
+
+    public function getImagesCount($productId)
+    {
+        return DB::table('product_images')
+            ->where('product_id', $productId)
+            ->count();
+    }
 }

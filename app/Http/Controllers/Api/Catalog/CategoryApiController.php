@@ -25,47 +25,20 @@ class CategoryApiController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = $this->categoryRepo->table();
+            $filters = [
+                'search' => $request->input('search'),
+                'status' => $request->input('status'),
+                'parent_id' => $request->input('parent_id')
+            ];
 
-            // Search filter
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('name', 'ILIKE', '%' . $search . '%')
-                      ->orWhere('slug', 'ILIKE', '%' . $search . '%')
-                      ->orWhere('description', 'ILIKE', '%' . $search . '%');
-                });
-            }
-
-            // Status filter
-            if ($request->filled('status')) {
-                $query->where('is_active', $request->status === 'active');
-            }
-
-            // Parent filter
-            if ($request->filled('parent_id')) {
-                if ($request->parent_id === '0') {
-                    $query->whereNull('parent_id');
-                } else {
-                    $query->where('parent_id', $request->parent_id);
-                }
-            }
-
-            // Order and pagination
             $perPage = $request->input('per_page', 15);
-            $categories = $query->orderBy('sort_order', 'asc')
-                               ->orderBy('name', 'asc')
-                               ->paginate($perPage);
+            $categories = $this->categoryRepo->getAllWithFilters($filters, $perPage);
 
             // Add product count for each category
-            foreach ($categories->items() as $category) {
-                $category->product_count = \DB::table('product_categories')
-                    ->where('category_id', $category->id)
-                    ->count();
-            }
+            $this->categoryRepo->attachProductCounts($categories->items());
 
             // Get statistics
-            $statistics = $this->getStatistics();
+            $statistics = $this->categoryRepo->getStatistics();
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -88,24 +61,6 @@ class CategoryApiController extends Controller
         }
     }
 
-    /**
-     * Get category statistics
-     */
-    private function getStatistics()
-    {
-        $total = $this->categoryRepo->table()->count();
-        $active = $this->categoryRepo->table()->where('is_active', true)->count();
-        $parents = $this->categoryRepo->table()->whereNull('parent_id')->count();
-        $totalProducts = \DB::table('product_categories')->distinct('product_id')->count('product_id');
-
-        return [
-            'total' => $total,
-            'active' => $active,
-            'inactive' => $total - $active,
-            'parent_categories' => $parents,
-            'total_products' => $totalProducts
-        ];
-    }
 
     /**
      * Get category tree
@@ -191,11 +146,7 @@ class CategoryApiController extends Controller
     public function parents()
     {
         try {
-            $categories = $this->categoryRepo->table()
-                ->whereNull('parent_id')
-                ->where('is_active', true)
-                ->orderBy('sort_order', 'asc')
-                ->get();
+            $categories = $this->categoryRepo->getParentCategories();
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -221,11 +172,7 @@ class CategoryApiController extends Controller
     public function children($parentId)
     {
         try {
-            $children = $this->categoryRepo->table()
-                ->where('parent_id', $parentId)
-                ->where('is_active', true)
-                ->orderBy('sort_order', 'asc')
-                ->get();
+            $children = $this->categoryRepo->getChildren($parentId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -271,7 +218,7 @@ class CategoryApiController extends Controller
             }
 
             $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : true;
-            $validated['sort_order'] = $this->categoryRepo->table()->max('sort_order') + 1;
+            $validated['sort_order'] = $this->categoryRepo->getMaxSortOrder() + 1;
 
             $category = $this->categoryRepo->create($validated);
 

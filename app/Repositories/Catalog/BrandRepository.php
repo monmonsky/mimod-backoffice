@@ -128,4 +128,40 @@ class BrandRepository implements BrandRepositoryInterface
 
         return $count > 0;
     }
+
+    public function getProductCount($id)
+    {
+        return DB::table('products')
+            ->where('brand_id', $id)
+            ->count();
+    }
+
+    public function getAllWithFilters($filters = [], $perPage = 15)
+    {
+        $query = $this->table();
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('slug', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('description', 'ILIKE', '%' . $search . '%');
+            });
+        }
+
+        // Status filter
+        if (isset($filters['status'])) {
+            $query->where('is_active', $filters['status'] === 'active');
+        }
+
+        return $query->orderBy('name', 'asc')->paginate($perPage);
+    }
+
+    public function attachProductCounts(&$brands)
+    {
+        foreach ($brands as $brand) {
+            $brand->product_count = $this->getProductCount($brand->id);
+        }
+    }
 }

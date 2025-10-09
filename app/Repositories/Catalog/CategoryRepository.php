@@ -201,4 +201,74 @@ class CategoryRepository implements CategoryRepositoryInterface
 
         return $count > 0;
     }
+
+    public function getProductCount($id)
+    {
+        return DB::table('product_categories')
+            ->where('category_id', $id)
+            ->count();
+    }
+
+    public function getAllWithFilters($filters = [], $perPage = 15)
+    {
+        $query = $this->table();
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('slug', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('description', 'ILIKE', '%' . $search . '%');
+            });
+        }
+
+        // Status filter
+        if (isset($filters['status'])) {
+            $query->where('is_active', $filters['status'] === 'active');
+        }
+
+        // Parent filter
+        if (isset($filters['parent_id'])) {
+            if ($filters['parent_id'] === '0') {
+                $query->whereNull('parent_id');
+            } else {
+                $query->where('parent_id', $filters['parent_id']);
+            }
+        }
+
+        return $query->orderBy('sort_order', 'asc')
+                     ->orderBy('name', 'asc')
+                     ->paginate($perPage);
+    }
+
+    public function attachProductCounts(&$categories)
+    {
+        foreach ($categories as $category) {
+            $category->product_count = $this->getProductCount($category->id);
+        }
+    }
+
+    public function getParentCategories()
+    {
+        return $this->table()
+            ->whereNull('parent_id')
+            ->where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    public function getChildren($parentId)
+    {
+        return $this->table()
+            ->where('parent_id', $parentId)
+            ->where('is_active', true)
+            ->orderBy('sort_order', 'asc')
+            ->get();
+    }
+
+    public function getMaxSortOrder()
+    {
+        return $this->table()->max('sort_order') ?? 0;
+    }
 }
