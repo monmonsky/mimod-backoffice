@@ -173,7 +173,7 @@ class OrderApiController extends Controller
 
             $this->orderRepo->update($id, $validated);
 
-            logActivity('update', 'order', $id, "Updated order: {$order->order_number}");
+            logActivity('update', "Updated order: {$order->order_number}", 'Order', $id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -215,7 +215,7 @@ class OrderApiController extends Controller
 
             $this->orderRepo->updateStatus($id, $validated['status']);
 
-            logActivity('update', 'order', $id, "Changed order status to: {$validated['status']}");
+            logActivity('update', "Changed order status to: {$validated['status']}", 'Order', $id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -263,7 +263,7 @@ class OrderApiController extends Controller
 
             $this->orderRepo->delete($id);
 
-            logActivity('delete', 'order', $id, "Deleted order: {$order->order_number}");
+            logActivity('delete', "Deleted order: {$order->order_number}", 'Order', $id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

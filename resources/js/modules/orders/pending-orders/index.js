@@ -67,7 +67,7 @@ async function loadData(page = 1) {
             <tr id="loadingRow">
                 <td colspan="6" class="text-center py-8">
                     <span class="loading loading-spinner loading-md"></span>
-                    <p class="mt-2 text-base-content/60">Loading orders...</p>
+                    <p class="mt-2 text-base-content/70">Loading orders...</p>
                 </td>
             </tr>
         `);
@@ -107,7 +107,7 @@ async function loadData(page = 1) {
             $('#ordersTableBody').html(`
                 <tr>
                     <td colspan="6" class="text-center py-8">
-                        <div class="flex flex-col items-center gap-2 text-base-content/60">
+                        <div class="flex flex-col items-center gap-2 text-base-content/70">
                             <span class="iconify lucide--badge-x size-12"></span>
                             <p>Failed to load orders</p>
                         </div>
@@ -137,7 +137,7 @@ function renderTable(ordersData) {
         $('#ordersTableBody').html(`
             <tr>
                 <td colspan="6" class="text-center py-8">
-                    <div class="flex flex-col items-center gap-2 text-base-content/60">
+                    <div class="flex flex-col items-center gap-2 text-base-content/70">
                         <span class="iconify lucide--badge-x size-12"></span>
                         <p>No orders found</p>
                     </div>
@@ -221,9 +221,10 @@ function renderPagination(ordersData) {
     }
 
     let html = `
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="text-sm text-base-content/60">
-                Showing ${pagination.from || 0} to ${pagination.to || 0} of ${pagination.total || 0} entries
+        <div class="border-t border-base-300 px-5 py-4">
+            <div class="flex flex-col items-center gap-3">
+            <div class="text-sm text-base-content/70">
+                Showing ${pagination.from || 0} to ${pagination.to || 0} of ${pagination.total || 0} results
             </div>
             <div class="join">
     `;
@@ -265,6 +266,7 @@ function renderPagination(ordersData) {
     `;
 
     html += `
+                </div>
             </div>
         </div>
     `;
@@ -304,11 +306,11 @@ async function viewOrder(id) {
                     <!-- Order Info -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-base-content/60">Order Number</label>
+                            <label class="text-sm font-medium text-base-content/70">Order Number</label>
                             <p class="font-medium text-lg">${order.order_number || '-'}</p>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-base-content/60">Status</label>
+                            <label class="text-sm font-medium text-base-content/70">Status</label>
                             <p><span class="badge badge-${statusBadgeMap[order.status] || 'ghost'}">${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : '-'}</span></p>
                         </div>
                     </div>
@@ -318,11 +320,11 @@ async function viewOrder(id) {
                         <h4 class="font-semibold mb-2">Customer Information</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-sm text-base-content/60">Name</label>
+                                <label class="text-sm text-base-content/70">Name</label>
                                 <p class="font-medium">${order.customer_name || '-'}</p>
                             </div>
                             <div>
-                                <label class="text-sm text-base-content/60">Email</label>
+                                <label class="text-sm text-base-content/70">Email</label>
                                 <p class="text-sm">${order.customer_email || '-'}</p>
                             </div>
                         </div>
@@ -360,18 +362,18 @@ async function viewOrder(id) {
                     <!-- Shipping & Payment -->
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm text-base-content/60">Shipping Address</label>
+                            <label class="text-sm text-base-content/70">Shipping Address</label>
                             <p class="text-sm">${order.shipping_address || '-'}</p>
                         </div>
                         <div>
-                            <label class="text-sm text-base-content/60">Total Amount</label>
+                            <label class="text-sm text-base-content/70">Total Amount</label>
                             <p class="font-bold text-xl text-primary">Rp ${parseFloat(order.total_amount || 0).toLocaleString('id-ID')}</p>
                         </div>
                     </div>
 
                     ${order.notes ? `
                     <div>
-                        <label class="text-sm font-medium text-base-content/60">Notes</label>
+                        <label class="text-sm font-medium text-base-content/70">Notes</label>
                         <p class="text-sm bg-base-200 p-3 rounded">${order.notes}</p>
                     </div>
                     ` : ''}

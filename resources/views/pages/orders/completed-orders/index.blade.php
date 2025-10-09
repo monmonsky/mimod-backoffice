@@ -108,7 +108,7 @@
             </div>
 
             <!-- Pagination -->
-            <div id="paginationContainer" class="p-4"></div>
+            <div id="paginationContainer"></div>
         </div>
     </div>
 </div>

@@ -213,9 +213,10 @@ function renderPagination(ordersData) {
     }
 
     let html = `
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="text-sm text-base-content/60">
-                Showing ${pagination.from || 0} to ${pagination.to || 0} of ${pagination.total || 0} entries
+        <div class="border-t border-base-300 px-5 py-4">
+            <div class="flex flex-col items-center gap-3">
+            <div class="text-sm text-base-content/70">
+                Showing ${pagination.from || 0} to ${pagination.to || 0} of ${pagination.total || 0} results
             </div>
             <div class="join">
     `;
@@ -257,6 +258,7 @@ function renderPagination(ordersData) {
     `;
 
     html += `
+                </div>
             </div>
         </div>
     `;
