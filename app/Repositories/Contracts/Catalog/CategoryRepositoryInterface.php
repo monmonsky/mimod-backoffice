@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts\Catalog;
 
 interface CategoryRepositoryInterface
 {
+    public function query();
     public function getAll();
     public function getAllActive();
     public function getAllWithChildren();

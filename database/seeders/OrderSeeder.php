@@ -12,27 +12,50 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get customer IDs
-        $customers = DB::table('customers')->pluck('id')->toArray();
+        // Truncate orders tables first
+        DB::statement('SET CONSTRAINTS ALL DEFERRED');
+        DB::table('order_items')->delete();
+        DB::table('orders')->delete();
+        DB::statement('ALTER SEQUENCE orders_id_seq RESTART WITH 1');
+        DB::statement('ALTER SEQUENCE order_items_id_seq RESTART WITH 1');
 
-        // Get product variants for order items
-        $variants = DB::table('product_variants')
-            ->join('products', 'product_variants.product_id', '=', 'products.id')
+        $this->command->info('Seeding orders...');
+
+        // Get customer IDs (only active customers with status = 'active')
+        $customers = DB::table('customers')
+            ->where('status', 'active')
+            ->pluck('id')
+            ->toArray();
+
+        // Get active products with their variants
+        $products = DB::table('products')
+            ->join('product_variants', 'products.id', '=', 'product_variants.product_id')
+            ->where('products.status', 'active')
+            ->where('product_variants.stock_quantity', '>', 0)
             ->select(
                 'product_variants.id as variant_id',
+                'products.id as product_id',
                 'products.name as product_name',
                 'product_variants.sku',
                 'product_variants.size',
                 'product_variants.color',
-                'product_variants.price'
+                'product_variants.price',
+                'product_variants.stock_quantity'
             )
             ->get()
             ->toArray();
 
-        if (empty($customers) || empty($variants)) {
-            $this->command->warn('No customers or product variants found. Please run CustomerSeeder and ProductSeeder first.');
+        if (empty($customers)) {
+            $this->command->warn('No active customers found. Please run CustomerSeeder first.');
             return;
         }
+
+        if (empty($products)) {
+            $this->command->warn('No products with variants found. Please run ProductSeeder first.');
+            return;
+        }
+
+        $this->command->info('Found ' . count($customers) . ' customers and ' . count($products) . ' product variants.');
 
         $statuses = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
         $paymentMethods = ['bank_transfer', 'credit_card', 'e_wallet', 'cod'];
@@ -41,8 +64,8 @@ class OrderSeeder extends Seeder
         $orders = [];
         $orderItems = [];
 
-        // Create 50 dummy orders
-        for ($i = 1; $i <= 50; $i++) {
+        // Create 20 orders (2 orders per customer on average)
+        for ($i = 1; $i <= 20; $i++) {
             $status = $statuses[array_rand($statuses)];
             $customerId = $customers[array_rand($customers)];
             $orderNumber = 'ORD-' . date('Ymd') . '-' . str_pad($i, 4, '0', STR_PAD_LEFT);
@@ -94,9 +117,9 @@ class OrderSeeder extends Seeder
             $subtotal = 0;
 
             for ($j = 0; $j < $itemCount; $j++) {
-                $variant = $variants[array_rand($variants)];
-                $quantity = rand(1, 3);
-                $price = $variant->price;
+                $product = $products[array_rand($products)];
+                $quantity = rand(1, min(3, $product->stock_quantity)); // Don't exceed stock
+                $price = $product->price;
                 $itemSubtotal = $price * $quantity;
                 $discount = $j === 0 ? rand(0, 10000) : 0; // First item might have discount
                 $itemTotal = $itemSubtotal - $discount;
@@ -105,11 +128,11 @@ class OrderSeeder extends Seeder
 
                 DB::table('order_items')->insert([
                     'order_id' => $orderId,
-                    'variant_id' => $variant->variant_id,
-                    'product_name' => $variant->product_name,
-                    'sku' => $variant->sku,
-                    'size' => $variant->size,
-                    'color' => $variant->color,
+                    'variant_id' => $product->variant_id,
+                    'product_name' => $product->product_name,
+                    'sku' => $product->sku,
+                    'size' => $product->size,
+                    'color' => $product->color,
                     'quantity' => $quantity,
                     'price' => $price,
                     'subtotal' => $itemSubtotal,
@@ -129,8 +152,9 @@ class OrderSeeder extends Seeder
         }
 
         $this->command->info('Orders seeded successfully.');
-        $this->command->info('- 50 orders created');
+        $this->command->info('- 20 orders created');
+        $this->command->info('- ' . DB::table('order_items')->count() . ' order items created');
         $this->command->info('- Status distribution: pending, processing, shipped, completed, cancelled');
-        $this->command->info('- Each order has 1-5 items');
+        $this->command->info('- Each order has 1-5 items from active products');
     }
 }

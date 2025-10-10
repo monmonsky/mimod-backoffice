@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 interface UserRepositoryInterface
 {
+    public function query();
     public function findByEmail(string $email);
     public function findById(string $id);
     public function updateLastLogin(string $userId, string $ip);

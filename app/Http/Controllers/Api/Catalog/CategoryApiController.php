@@ -35,7 +35,8 @@ class CategoryApiController extends Controller
             $categories = $this->categoryRepo->getAllWithFilters($filters, $perPage);
 
             // Add product count for each category
-            $this->categoryRepo->attachProductCounts($categories->items());
+            $items = $categories->items();
+            $this->categoryRepo->attachProductCounts($items);
 
             // Get statistics
             $statistics = $this->categoryRepo->getStatistics();
@@ -203,7 +204,7 @@ class CategoryApiController extends Controller
                 'slug' => 'required|string|max:255|unique:categories,slug',
                 'description' => 'nullable|string',
                 'parent_id' => 'nullable|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'image' => 'nullable',
                 'is_active' => 'nullable|boolean'
             ]);
 
@@ -225,7 +226,7 @@ class CategoryApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('create', 'Created category: ' . $category->name, 'Category', $category->id);
+            logActivity('create', 'Created category: ' . $category->name, 'category', (int)$category->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -278,7 +279,7 @@ class CategoryApiController extends Controller
                 'slug' => 'required|string|max:255|unique:categories,slug,' . $id,
                 'description' => 'nullable|string',
                 'parent_id' => 'nullable|exists:categories,id',
-                'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'image' => 'nullable',
                 'is_active' => 'nullable|boolean'
             ]);
 
@@ -295,17 +296,33 @@ class CategoryApiController extends Controller
 
             \DB::beginTransaction();
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
+            // Handle image change (URL from upload API or file upload)
+            if ($request->filled('image') || $request->hasFile('image')) {
                 // Delete old image if exists
-                if ($category->image && \Storage::disk('public')->exists($category->image)) {
-                    \Storage::disk('public')->delete($category->image);
+                if ($category->image) {
+                    $oldImagePath = $category->image;
+
+                    // Extract path from URL if contains full URL
+                    if (str_contains($oldImagePath, '/storage/')) {
+                        $oldImagePath = str_replace('/storage/', '', parse_url($oldImagePath, PHP_URL_PATH));
+                    }
+
+                    if (\Storage::disk('public')->exists($oldImagePath)) {
+                        \Storage::disk('public')->delete($oldImagePath);
+                    }
                 }
 
-                $image = $request->file('image');
-                $filename = time() . '_' . $image->getClientOriginalName();
-                $path = $image->storeAs('categories', $filename, 'public');
-                $validated['image'] = $path;
+                // If uploading new file directly
+                if ($request->hasFile('image')) {
+                    $image = $request->file('image');
+                    $filename = time() . '_' . $image->getClientOriginalName();
+                    $path = $image->storeAs('categories', $filename, 'public');
+                    $validated['image'] = url('storage/' . $path);
+                }
+                // If using URL from upload API
+                else if ($request->filled('image')) {
+                    $validated['image'] = $request->image;
+                }
             }
 
             $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : $category->is_active;
@@ -315,7 +332,7 @@ class CategoryApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('update', 'Updated category: ' . $category->name, 'Category', $category->id);
+            logActivity('update', 'Updated category: ' . $category->name, 'category', (int)$category->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -361,7 +378,7 @@ class CategoryApiController extends Controller
 
             // Log activity
             $status = $request->is_active ? 'activated' : 'deactivated';
-            logActivity('update', 'Category ' . $status . ': ' . $category->name, 'Category', $category->id);
+            logActivity('update', 'Category ' . $status . ': ' . $category->name, 'category', (int)$category->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -424,8 +441,20 @@ class CategoryApiController extends Controller
             }
 
             // Delete image if exists
-            if ($category->image && \Storage::disk('public')->exists($category->image)) {
-                \Storage::disk('public')->delete($category->image);
+            if ($category->image) {
+                // Extract path from URL if image contains full URL
+                // e.g., http://127.0.0.1:8000/storage/categories/1760023261_68e7d2dda9ba7.png
+                $imagePath = $category->image;
+
+                // If image contains full URL, extract the path
+                if (str_contains($imagePath, '/storage/')) {
+                    $imagePath = str_replace('/storage/', '', parse_url($imagePath, PHP_URL_PATH));
+                }
+
+                // Delete file if exists
+                if (\Storage::disk('public')->exists($imagePath)) {
+                    \Storage::disk('public')->delete($imagePath);
+                }
             }
 
             \DB::beginTransaction();
@@ -433,7 +462,7 @@ class CategoryApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('delete', 'Deleted category: ' . $categoryName, 'Category', $id);
+            logActivity('delete', 'Deleted category: ' . $categoryName, 'category', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

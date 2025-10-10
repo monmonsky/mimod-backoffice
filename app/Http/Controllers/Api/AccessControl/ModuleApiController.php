@@ -109,6 +109,186 @@ class ModuleApiController extends Controller
     }
 
     /**
+     * Get modules grouped by group_name, with children under parent
+     */
+    public function grouped()
+    {
+        try {
+            $query = $this->moduleRepo->query();
+
+            // Filter active and visible modules only
+            $query->where('is_active', true)
+                  ->where('is_visible', true);
+
+            $modules = $query->orderBy('sort_order')->get();
+
+            // Separate modules with group_name and without
+            $withGroup = collect($modules)->filter(function ($module) {
+                return !empty($module->group_name);
+            });
+
+            $withoutGroup = collect($modules)->filter(function ($module) {
+                return empty($module->group_name);
+            });
+
+            // Group modules with group_name
+            $grouped = $withGroup->groupBy('group_name')->map(function ($items, $groupName) use ($withoutGroup) {
+                // Get parent modules in this group
+                $parents = $items->filter(function ($module) {
+                    return $module->parent_id === null;
+                });
+
+                // For each parent, attach children (modules without group_name but with this parent_id)
+                $groupModules = $parents->map(function ($parent) use ($withoutGroup, $items) {
+                    $parentArray = (array) $parent;
+
+                    // Get children from same group
+                    $childrenFromGroup = $items->filter(function ($module) use ($parent) {
+                        return $module->parent_id === $parent->id;
+                    })->values()->toArray();
+
+                    // Get children without group_name but with this parent_id
+                    $childrenWithoutGroup = $withoutGroup->filter(function ($module) use ($parent) {
+                        return $module->parent_id === $parent->id;
+                    })->values()->toArray();
+
+                    // Merge children
+                    $parentArray['children'] = array_merge($childrenFromGroup, $childrenWithoutGroup);
+
+                    return $parentArray;
+                })->values()->toArray();
+
+                return [
+                    'group_name' => $groupName,
+                    'modules' => $groupModules
+                ];
+            })->values();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Grouped modules retrieved successfully')
+                ->setData($grouped);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve grouped modules: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get modules by specific group name
+     */
+    public function byGroup($groupName)
+    {
+        try {
+            $query = $this->moduleRepo->query();
+
+            $query->where('group_name', $groupName)
+                  ->where('is_active', true)
+                  ->where('is_visible', true);
+
+            $modules = $query->orderBy('sort_order')->get();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Modules retrieved successfully')
+                ->setData([
+                    'group_name' => $groupName,
+                    'modules' => $modules
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve modules by group: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Reorder modules
+     */
+    public function reorder(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'modules' => 'required|array|min:1',
+                'modules.*.id' => 'required|exists:modules,id',
+                'modules.*.sort_order' => 'required|integer|min:0',
+                'modules.*.group_name' => 'nullable|string',
+                'modules.*.parent_id' => 'nullable|exists:modules,id',
+            ]);
+
+            if ($validator->fails()) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Validation failed')
+                    ->setData(['errors' => $validator->errors()]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            $modules = $request->modules;
+
+            // Update each module's sort_order
+            foreach ($modules as $moduleData) {
+                $updateData = [
+                    'sort_order' => $moduleData['sort_order']
+                ];
+
+                // Update group_name if provided
+                if (isset($moduleData['group_name'])) {
+                    $updateData['group_name'] = $moduleData['group_name'];
+                }
+
+                // Update parent_id if provided
+                if (isset($moduleData['parent_id'])) {
+                    $updateData['parent_id'] = $moduleData['parent_id'];
+                }
+
+                $this->moduleRepo->update($moduleData['id'], $updateData);
+            }
+
+            logActivity('update', "Reordered " . count($modules) . " modules", 'module', null);
+
+            // Get updated modules
+            $updatedModules = $this->moduleRepo->query()
+                ->whereIn('id', collect($modules)->pluck('id')->toArray())
+                ->orderBy('sort_order')
+                ->get();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Modules reordered successfully')
+                ->setData($updatedModules);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to reorder modules: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
      * Get single module by ID
      */
     public function show($id)
@@ -177,7 +357,7 @@ class ModuleApiController extends Controller
 
             $module = $this->moduleRepo->create($validator->validated());
 
-            logActivity('create', 'module', $module->id, "Created module: {$module->name}");
+            logActivity('create', "Created module: {$module->name}", 'module', (int)$module->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -242,7 +422,7 @@ class ModuleApiController extends Controller
 
             $updatedModule = $this->moduleRepo->update($id, $validator->validated());
 
-            logActivity('update', 'module', $id, "Updated module: {$updatedModule->name}");
+            logActivity('update', "Updated module: {$updatedModule->name}", 'module', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -282,7 +462,7 @@ class ModuleApiController extends Controller
 
             $this->moduleRepo->delete($id);
 
-            logActivity('delete', 'module', $id, "Deleted module: {$module->name}");
+            logActivity('delete', "Deleted module: {$module->name}", 'module', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -323,7 +503,7 @@ class ModuleApiController extends Controller
             $newStatus = !$module->is_visible;
             $updatedModule = $this->moduleRepo->update($id, ['is_visible' => $newStatus]);
 
-            logActivity('update', 'module', $id, "Changed module visibility to: " . ($newStatus ? 'visible' : 'hidden'));
+            logActivity('update', "Changed module visibility to: " . ($newStatus ? 'visible' : 'hidden'), 'module', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -364,7 +544,7 @@ class ModuleApiController extends Controller
             $newStatus = !$module->is_active;
             $updatedModule = $this->moduleRepo->update($id, ['is_active' => $newStatus]);
 
-            logActivity('update', 'module', $id, "Changed module status to: " . ($newStatus ? 'active' : 'inactive'));
+            logActivity('update', "Changed module status to: " . ($newStatus ? 'active' : 'inactive'), 'module', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

@@ -40,14 +40,14 @@ class CustomerSeeder extends Seeder
         $genders = ['male', 'female'];
 
         $customers = [];
-        for ($i = 1; $i <= 100; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $firstName = $firstNames[array_rand($firstNames)];
             $lastName = $lastNames[array_rand($lastNames)];
             $fullName = $firstName . ' ' . $lastName;
             $email = strtolower(str_replace(' ', '.', $fullName)) . $i . '@example.com';
 
-            $totalOrders = rand(0, 50);
-            $totalSpent = rand(100000, 50000000);
+            $totalOrders = rand(1, 10);
+            $totalSpent = rand(500000, 10000000);
             $avgOrderValue = $totalOrders > 0 ? $totalSpent / $totalOrders : 0;
 
             // Determine segment based on spending
@@ -108,7 +108,7 @@ class CustomerSeeder extends Seeder
 
         $insertedCustomers = DB::table('customers')
             ->orderBy('id', 'desc')
-            ->limit(100)
+            ->limit(10)
             ->get();
 
         foreach ($insertedCustomers as $customer) {
@@ -225,7 +225,7 @@ class CustomerSeeder extends Seeder
         }
 
         $this->command->info('Customers seeded successfully.');
-        $this->command->info('- 100 customers created');
+        $this->command->info('- 10 customers created');
         $this->command->info('- ' . DB::table('customer_addresses')->count() . ' customer addresses created');
         $this->command->info('- 5 customer segments created');
     }

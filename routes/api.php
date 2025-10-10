@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UploadImageApiController;
 use App\Http\Controllers\Api\AccessControl\UserApiController;
 use App\Http\Controllers\Api\AccessControl\RoleApiController;
+use App\Http\Controllers\Api\AccessControl\RolePermissionApiController;
 use App\Http\Controllers\Api\AccessControl\PermissionApiController;
 use App\Http\Controllers\Api\AccessControl\ModuleApiController;
+use App\Http\Controllers\Api\AccessControl\UserActivityApiController;
 use App\Http\Controllers\Api\Catalog\ProductApiController;
 use App\Http\Controllers\Api\Catalog\CategoryApiController;
 use App\Http\Controllers\Api\Catalog\BrandApiController;
@@ -12,6 +15,7 @@ use App\Http\Controllers\Api\Settings\GeneralSettingsApiController;
 use App\Http\Controllers\Api\Settings\PaymentSettingsApiController;
 use App\Http\Controllers\Api\Settings\ShippingSettingsApiController;
 use App\Http\Controllers\Api\Orders\OrderApiController;
+use App\Http\Controllers\Api\Customers\CustomerApiController;
 use App\Http\Controllers\Api\Customers\CustomerSegmentApiController;
 use App\Http\Controllers\Api\Customers\CustomerGroupApiController;
 use App\Http\Controllers\Api\Customers\CustomerLoyaltyApiController;
@@ -39,47 +43,73 @@ Route::middleware('auth.token')->prefix('auth')->group(function () {
 });
 
 // Protected routes (using custom auth.token middleware)
-Route::middleware('auth.token')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Upload Image routes
+    Route::prefix('upload')->group(function () {
+        Route::post('/image', [UploadImageApiController::class, 'upload']);
+        Route::post('/images', [UploadImageApiController::class, 'uploadMultiple']);
+        Route::delete('/image', [UploadImageApiController::class, 'delete']);
+    });
 
     // Access Control routes
     Route::prefix('access-control')->group(function () {
         // Users
         Route::prefix('users')->group(function () {
-            Route::get('/', [UserApiController::class, 'index'])->middleware('permission:access-control.users.view');
-            Route::get('/{id}', [UserApiController::class, 'show'])->middleware('permission:access-control.users.view');
-            Route::post('/', [UserApiController::class, 'store'])->middleware('permission:access-control.users.create');
-            Route::put('/{id}', [UserApiController::class, 'update'])->middleware('permission:access-control.users.update');
-            Route::delete('/{id}', [UserApiController::class, 'destroy'])->middleware('permission:access-control.users.delete');
-            Route::post('/{id}/toggle-active', [UserApiController::class, 'toggleActive'])->middleware('permission:access-control.users.update');
+            Route::get('/', [UserApiController::class, 'index']);
+            Route::get('/{id}', [UserApiController::class, 'show']);
+            Route::post('/', [UserApiController::class, 'store']);
+            Route::put('/{id}', [UserApiController::class, 'update']);
+            Route::delete('/{id}', [UserApiController::class, 'destroy']);
         });
 
         // Roles
         Route::prefix('roles')->group(function () {
-            Route::get('/', [RoleApiController::class, 'index'])->middleware('permission:access-control.roles.view');
-            Route::get('/{id}', [RoleApiController::class, 'show'])->middleware('permission:access-control.roles.view');
-            Route::post('/', [RoleApiController::class, 'store'])->middleware('permission:access-control.roles.create');
-            Route::put('/{id}', [RoleApiController::class, 'update'])->middleware('permission:access-control.roles.update');
-            Route::delete('/{id}', [RoleApiController::class, 'destroy'])->middleware('permission:access-control.roles.delete');
-            Route::post('/{id}/toggle-active', [RoleApiController::class, 'toggleActive'])->middleware('permission:access-control.roles.update');
+            Route::get('/', [RoleApiController::class, 'index']);
+            Route::get('/{id}', [RoleApiController::class, 'show']);
+            Route::post('/', [RoleApiController::class, 'store']);
+            Route::put('/{id}', [RoleApiController::class, 'update']);
+            Route::delete('/{id}', [RoleApiController::class, 'destroy']);
+            Route::post('/{id}/toggle-active', [RoleApiController::class, 'toggleActive']);
+
+            // Role Permissions
+            Route::get('/{roleId}/permissions', [RolePermissionApiController::class, 'index']);
+            Route::get('/{roleId}/permissions/grouped', [RolePermissionApiController::class, 'grouped']);
+            Route::post('/{roleId}/permissions/sync', [RolePermissionApiController::class, 'sync']);
+            Route::post('/{roleId}/permissions/attach', [RolePermissionApiController::class, 'attach']);
+            Route::delete('/{roleId}/permissions/{permissionId}', [RolePermissionApiController::class, 'detach']);
         });
 
         // Permissions
         Route::prefix('permissions')->group(function () {
-            Route::get('/', [PermissionApiController::class, 'index'])->middleware('permission:access-control.permissions.view');
-            Route::get('/grouped', [PermissionApiController::class, 'grouped'])->middleware('permission:access-control.permissions.view');
-            Route::get('/{id}', [PermissionApiController::class, 'show'])->middleware('permission:access-control.permissions.view');
+            Route::get('/', [PermissionApiController::class, 'index']);
+            Route::get('/grouped', [PermissionApiController::class, 'grouped']);
+            Route::get('/{id}', [PermissionApiController::class, 'show']);
         });
 
         // Modules
         Route::prefix('modules')->group(function () {
-            Route::get('/', [ModuleApiController::class, 'index'])->middleware('permission:access-control.modules.view');
-            Route::get('/tree', [ModuleApiController::class, 'tree'])->middleware('permission:access-control.modules.view');
-            Route::get('/{id}', [ModuleApiController::class, 'show'])->middleware('permission:access-control.modules.view');
-            Route::post('/', [ModuleApiController::class, 'store'])->middleware('permission:access-control.modules.create');
-            Route::put('/{id}', [ModuleApiController::class, 'update'])->middleware('permission:access-control.modules.update');
-            Route::delete('/{id}', [ModuleApiController::class, 'destroy'])->middleware('permission:access-control.modules.delete');
-            Route::post('/{id}/toggle-visible', [ModuleApiController::class, 'toggleVisible'])->middleware('permission:access-control.modules.update');
-            Route::post('/{id}/toggle-active', [ModuleApiController::class, 'toggleActive'])->middleware('permission:access-control.modules.update');
+            Route::get('/', [ModuleApiController::class, 'index']);
+            Route::get('/tree', [ModuleApiController::class, 'tree']);
+            Route::get('/grouped', [ModuleApiController::class, 'grouped']);
+            Route::get('/group/{groupName}', [ModuleApiController::class, 'byGroup']);
+            Route::post('/reorder', [ModuleApiController::class, 'reorder']);
+            Route::get('/{id}', [ModuleApiController::class, 'show']);
+            Route::post('/', [ModuleApiController::class, 'store']);
+            Route::put('/{id}', [ModuleApiController::class, 'update']);
+            Route::delete('/{id}', [ModuleApiController::class, 'destroy']);
+            Route::post('/{id}/toggle-visible', [ModuleApiController::class, 'toggleVisible']);
+            Route::post('/{id}/toggle-active', [ModuleApiController::class, 'toggleActive']);
+        });
+
+        // User Activities
+        Route::prefix('user-activities')->group(function () {
+            Route::get('/', [UserActivityApiController::class, 'index']);
+            Route::get('/statistics', [UserActivityApiController::class, 'statistics']);
+            Route::get('/my-activities', [UserActivityApiController::class, 'myActivities']);
+            Route::get('/export', [UserActivityApiController::class, 'export']);
+            Route::delete('/clear', [UserActivityApiController::class, 'clear']);
+            Route::get('/{id}', [UserActivityApiController::class, 'show']);
         });
     });
 
@@ -160,7 +190,7 @@ Route::middleware('auth.token')->group(function () {
             Route::get('/tree', [CategoryApiController::class, 'tree']);
             Route::get('/parents', [CategoryApiController::class, 'parents']);
             Route::get('/{id}', [CategoryApiController::class, 'show']);
-            Route::post('/{id}', [CategoryApiController::class, 'update']);
+            Route::put('/{id}', [CategoryApiController::class, 'update']);
             Route::get('/{parentId}/children', [CategoryApiController::class, 'children']);
             Route::patch('/{id}/status', [CategoryApiController::class, 'updateStatus']);
             Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
@@ -171,7 +201,7 @@ Route::middleware('auth.token')->group(function () {
             Route::get('/', [BrandApiController::class, 'index']);
             Route::post('/', [BrandApiController::class, 'store']);
             Route::get('/{id}', [BrandApiController::class, 'show']);
-            Route::post('/{id}', [BrandApiController::class, 'update']);
+            Route::put('/{id}', [BrandApiController::class, 'update']);
             Route::patch('/{id}/status', [BrandApiController::class, 'updateStatus']);
             Route::delete('/{id}', [BrandApiController::class, 'destroy']);
         });
@@ -183,16 +213,23 @@ Route::middleware('auth.token')->group(function () {
         Route::get('/pending/recent', [OrderApiController::class, 'recentPending']);
 
         // CRUD routes
-        Route::get('/', [OrderApiController::class, 'index'])
-            ->middleware('permission:orders.all-orders.view');
-        Route::get('/{id}', [OrderApiController::class, 'show'])
-            ->middleware('permission:orders.all-orders.view');
-        Route::put('/{id}', [OrderApiController::class, 'update'])
-            ->middleware('permission:orders.all-orders.update');
-        Route::put('/{id}/status', [OrderApiController::class, 'updateStatus'])
-            ->middleware('permission:orders.all-orders.update');
-        Route::delete('/{id}', [OrderApiController::class, 'destroy'])
-            ->middleware('permission:orders.all-orders.delete');
+        Route::get('/', [OrderApiController::class, 'index']);
+        Route::get('/customer/{customerId}', [OrderApiController::class, 'byCustomer']);
+        Route::get('/{id}', [OrderApiController::class, 'show']);
+        Route::put('/{id}', [OrderApiController::class, 'update']);
+        Route::put('/{id}/status', [OrderApiController::class, 'updateStatus']);
+        Route::delete('/{id}', [OrderApiController::class, 'destroy']);
+    });
+
+    // Customers API routes
+    Route::prefix('customers')->group(function () {
+        Route::get('/', [CustomerApiController::class, 'index']);
+        Route::post('/', [CustomerApiController::class, 'store']);
+        Route::get('/{id}', [CustomerApiController::class, 'show']);
+        Route::put('/{id}', [CustomerApiController::class, 'update']);
+        Route::patch('/{id}/status', [CustomerApiController::class, 'updateStatus']);
+        Route::delete('/{id}', [CustomerApiController::class, 'destroy']);
+        Route::get('/{id}/orders', [CustomerApiController::class, 'orders']);
     });
 
     // Customer Segments API routes

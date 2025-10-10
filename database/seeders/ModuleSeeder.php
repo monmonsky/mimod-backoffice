@@ -105,22 +105,45 @@ class ModuleSeeder extends Seeder
             ]);
         }
 
+        // Catalog modules - direct modules (not parent-child)
         $catalogModules = [
             [
                 'name' => 'products',
                 'display_name' => 'Products',
                 'description' => 'Products management',
                 'icon' => 'lucide--box',
-                'route' => null,
+                'route' => 'catalog.products.index',
+                'permission_name' => 'catalog.products.view',
                 'component' => 'Products',
                 'sort_order' => 7,
                 'group_name' => 'catalog',
             ],
+            [
+                'name' => 'brands',
+                'display_name' => 'Brands',
+                'description' => 'Brands management',
+                'icon' => 'lucide--tag',
+                'route' => 'catalog.brands.index',
+                'permission_name' => 'catalog.brands.view',
+                'component' => 'Brands',
+                'sort_order' => 8,
+                'group_name' => 'catalog',
+            ],
+            [
+                'name' => 'categories',
+                'display_name' => 'Categories',
+                'description' => 'Categories management',
+                'icon' => 'lucide--folder',
+                'route' => 'catalog.categories.index',
+                'permission_name' => 'catalog.categories.view',
+                'component' => 'Categories',
+                'sort_order' => 9,
+                'group_name' => 'catalog',
+            ],
         ];
 
-        $catalogParentIds = [];
         foreach ($catalogModules as $catalog) {
-            $id = DB::table('modules')->insertGetId([
+            DB::table('modules')->insert([
                 'name' => $catalog['name'],
                 'display_name' => $catalog['display_name'],
                 'description' => $catalog['description'],
@@ -128,36 +151,9 @@ class ModuleSeeder extends Seeder
                 'parent_id' => null,
                 'group_name' => $catalog['group_name'],
                 'route' => $catalog['route'],
-                'component' => null,
+                'permission_name' => $catalog['permission_name'] ?? null,
+                'component' => $catalog['component'],
                 'sort_order' => $catalog['sort_order'],
-                'is_active' => true,
-                'is_visible' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $catalogParentIds[$catalog['name']] = $id;
-        }
-
-        $catalogsChildren = [
-            // Products children
-            ['parent' => 'products', 'name' => 'all-products', 'display_name' => 'All Products', 'route' => 'catalog.products.all-products', 'permission_name' => 'catalog.products.all-products.view', 'component' => 'AllProducts', 'sort_order' => 1],
-            ['parent' => 'products', 'name' => 'add-products', 'display_name' => 'Add Products', 'route' => 'catalog.products.add-products', 'permission_name' => 'catalog.products.add-products.view', 'component' => 'AddProducts', 'sort_order' => 2],
-            ['parent' => 'products', 'name' => 'categories', 'display_name' => 'Categories', 'route' => 'catalog.products.categories', 'permission_name' => 'catalog.products.categories.view', 'component' => 'Categories', 'sort_order' => 3],
-            ['parent' => 'products', 'name' => 'brands', 'display_name' => 'Brands', 'route' => 'catalog.products.brands', 'permission_name' => 'catalog.products.brands.view', 'component' => 'Brands', 'sort_order' => 4],
-            ['parent' => 'products', 'name' => 'variants', 'display_name' => 'Variants', 'route' => 'catalog.products.variants', 'permission_name' => 'catalog.products.variants.view', 'component' => 'Variants', 'sort_order' => 5],
-        ];
-
-        foreach ($catalogsChildren as $child) {
-            DB::table('modules')->insert([
-                'name' => $child['name'],
-                'display_name' => $child['display_name'],
-                'description' => null,
-                'icon' => null,
-                'parent_id' => $catalogParentIds[$child['parent']],
-                'route' => $child['route'],
-                'permission_name' => $child['permission_name'] ?? null,
-                'component' => $child['component'],
-                'sort_order' => $child['sort_order'],
                 'is_active' => true,
                 'is_visible' => true,
                 'created_at' => now(),
@@ -174,7 +170,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'General settings',
                 'icon' => 'lucide--settings',
                 'route' => null,
-                'sort_order' => 8,
+                'sort_order' => 10,
                 'group_name' => 'settings',
             ],
             [
@@ -183,7 +179,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Payment settings',
                 'icon' => 'lucide--wallet',
                 'route' => null,
-                'sort_order' => 9,
+                'sort_order' => 11,
                 'group_name' => 'settings',
             ],
             [
@@ -192,7 +188,7 @@ class ModuleSeeder extends Seeder
                 'description' => 'Shipping settings',
                 'icon' => 'lucide--truck',
                 'route' => null,
-                'sort_order' => 10,
+                'sort_order' => 12,
                 'group_name' => 'settings',
             ],
         ];
@@ -262,7 +258,7 @@ class ModuleSeeder extends Seeder
             'description' => 'Business reports and analytics',
             'icon' => 'lucide--line-chart',
             'route' => null,
-            'sort_order' => 11,
+            'sort_order' => 13,
             'group_name' => 'reports',
         ];
 
@@ -315,7 +311,7 @@ class ModuleSeeder extends Seeder
             'description' => 'Customer management and segmentation',
             'icon' => 'lucide--users',
             'route' => null,
-            'sort_order' => 11,
+            'sort_order' => 14,
             'group_name' => 'customers',
         ];
 
@@ -370,7 +366,7 @@ class ModuleSeeder extends Seeder
             'description' => 'Order management',
             'icon' => 'lucide--shopping-cart',
             'route' => null,
-            'sort_order' => 12,
+            'sort_order' => 15,
             'group_name' => 'orders',
         ];
 
@@ -425,7 +421,7 @@ class ModuleSeeder extends Seeder
             'description' => 'Marketing campaigns and promotions',
             'icon' => 'lucide--megaphone',
             'route' => null,
-            'sort_order' => 13,
+            'sort_order' => 16,
             'group_name' => 'marketing',
         ];
 
@@ -473,10 +469,9 @@ class ModuleSeeder extends Seeder
 
         $this->command->info('Modules seeded successfully.');
         $this->command->info('- 6 direct modules (dashboard + 5 access control)');
-        $this->command->info('- 1 catalog parent module (products)');
-        $this->command->info('- 5 catalog children');
+        $this->command->info('- 3 catalog modules (products, brands, categories)');
         $this->command->info('- 3 settings parent modules (generals, payments, shippings)');
-        $this->command->info('- 13 settings children (5 generals + 3 payments + 3 shippings + 2 more)');
+        $this->command->info('- 13 settings children (5 generals + 3 payments + 5 shippings)');
         $this->command->info('- 1 reports parent module');
         $this->command->info('- 4 reports children (sales, revenue, product-performance, inventory)');
         $this->command->info('- 1 customers parent module');
@@ -485,6 +480,6 @@ class ModuleSeeder extends Seeder
         $this->command->info('- 6 orders children (all, pending, processing, shipped, completed, cancelled)');
         $this->command->info('- 1 marketing parent module');
         $this->command->info('- 3 marketing children (coupons, flash-sales, bundle-deals)');
-        $this->command->info('Total: 47 modules');
+        $this->command->info('Total: 45 modules');
     }
 }

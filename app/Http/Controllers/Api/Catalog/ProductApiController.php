@@ -46,9 +46,7 @@ class ProductApiController extends Controller
 
             // Filter by category
             if ($request->filled('category_id')) {
-                $productIds = \DB::table('product_categories')
-                    ->where('category_id', $request->category_id)
-                    ->pluck('product_id');
+                $productIds = $this->productRepo->getProductIdsByCategory($request->category_id);
                 $query->whereIn('id', $productIds);
             }
 
@@ -117,32 +115,9 @@ class ProductApiController extends Controller
             $products = $query->orderBy('created_at', 'desc')
                 ->paginate($perPage);
 
-            // Load relationships manually for each product
-            foreach ($products as $product) {
-                // Get brand
-                if ($product->brand_id) {
-                    $product->brand = \DB::table('brands')->where('id', $product->brand_id)->first();
-                }
-
-                // Get categories
-                $product->categories = \DB::table('product_categories')
-                    ->join('categories', 'product_categories.category_id', '=', 'categories.id')
-                    ->where('product_categories.product_id', $product->id)
-                    ->select('categories.*')
-                    ->get();
-
-                // Get images
-                $product->images = \DB::table('product_images')
-                    ->where('product_id', $product->id)
-                    ->orderBy('is_primary', 'desc')
-                    ->get();
-
-                // Get variants for stock and price
-                $product->variants = \DB::table('product_variants')
-                    ->where('product_id', $product->id)
-                    ->select('id', 'sku', 'price', 'stock_quantity')
-                    ->get();
-            }
+            // Load relationships optimized (batch query to avoid N+1)
+            $items = $products->items();
+            $this->productRepo->attachRelationsOptimized(collect($items));
 
             // Get statistics
             $statistics = $this->getStatistics();
@@ -177,24 +152,7 @@ class ProductApiController extends Controller
      */
     private function getStatistics()
     {
-        $total = $this->productRepo->query()->count();
-        $active = $this->productRepo->query()->where('status', 'active')->count();
-        $inactive = $this->productRepo->query()->where('status', 'inactive')->count();
-
-        // Out of stock: products that have no variants with stock > 0
-        $outOfStock = \DB::table('products')
-            ->leftJoin('product_variants', 'products.id', '=', 'product_variants.product_id')
-            ->select('products.id')
-            ->groupBy('products.id')
-            ->havingRaw('COALESCE(SUM(product_variants.stock_quantity), 0) <= 0')
-            ->count();
-
-        return [
-            'total' => $total,
-            'active' => $active,
-            'inactive' => $inactive,
-            'out_of_stock' => $outOfStock
-        ];
+        return $this->productRepo->getStatistics();
     }
 
     /**
@@ -205,9 +163,9 @@ class ProductApiController extends Controller
         try {
             // Check if identifier is numeric (ID) or string (slug)
             if (is_numeric($identifier)) {
-                $product = $this->productRepo->findById($identifier);
+                $product = $this->productRepo->findByIdWithRelations($identifier);
             } else {
-                $product = \DB::table('products')->where('slug', $identifier)->first();
+                $product = $this->productRepo->findBySlugWithRelations($identifier);
             }
 
             if (!$product) {
@@ -219,37 +177,6 @@ class ProductApiController extends Controller
 
                 return response()->json($this->response->generateResponse($result), 404);
             }
-
-            // Load relationships manually
-            if ($product->brand_id) {
-                $product->brand = \DB::table('brands')->where('id', $product->brand_id)->first();
-            }
-
-            $product->categories = \DB::table('product_categories')
-                ->join('categories', 'product_categories.category_id', '=', 'categories.id')
-                ->where('product_categories.product_id', $product->id)
-                ->select('categories.*')
-                ->get();
-
-            $product->images = \DB::table('product_images')
-                ->where('product_id', $product->id)
-                ->orderBy('is_primary', 'desc')
-                ->get();
-
-            $variants = \DB::table('product_variants')
-                ->where('product_id', $product->id)
-                ->get();
-
-            // Load variant images for each variant
-            foreach ($variants as $variant) {
-                $variant->images = \DB::table('product_variant_images')
-                    ->where('variant_id', $variant->id)
-                    ->orderBy('is_primary', 'desc')
-                    ->orderBy('sort_order', 'asc')
-                    ->get();
-            }
-
-            $product->variants = $variants;
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -362,9 +289,7 @@ class ProductApiController extends Controller
         try {
             $perPage = $request->get('per_page', 15);
 
-            $productIds = \DB::table('product_categories')
-                ->where('category_id', $categoryId)
-                ->pluck('product_id');
+            $productIds = $this->productRepo->getProductIdsByCategory($categoryId);
 
             $products = $this->productRepo->query()
                 ->whereIn('id', $productIds)
@@ -475,12 +400,7 @@ class ProductApiController extends Controller
             }
 
             // Check if product has variants that are in orders
-            $variantsInOrders = \DB::table('product_variants')
-                ->join('order_items', 'product_variants.id', '=', 'order_items.variant_id')
-                ->where('product_variants.product_id', $id)
-                ->exists();
-
-            if ($variantsInOrders) {
+            if ($this->productRepo->checkVariantsInOrders($id)) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('422')
@@ -490,9 +410,9 @@ class ProductApiController extends Controller
             }
 
             // Delete related data first
-            \DB::table('product_categories')->where('product_id', $id)->delete();
-            \DB::table('product_images')->where('product_id', $id)->delete();
-            \DB::table('product_variants')->where('product_id', $id)->delete();
+            $this->productRepo->deleteProductCategories($id);
+            $this->productRepo->deleteProductImages($id);
+            $this->productRepo->deleteProductVariants($id);
 
             // Delete product
             $this->productRepo->delete($id);
@@ -551,15 +471,7 @@ class ProductApiController extends Controller
 
             // Attach categories if any
             if (!empty($categories)) {
-                // Insert into product_categories pivot table
-                $pivotData = [];
-                foreach ($categories as $categoryId) {
-                    $pivotData[] = [
-                        'product_id' => $productId,
-                        'category_id' => $categoryId
-                    ];
-                }
-                \DB::table('product_categories')->insert($pivotData);
+                $this->productRepo->insertProductCategories($productId, $categories);
             }
 
             $result = (new ResultBuilder())
@@ -626,20 +538,8 @@ class ProductApiController extends Controller
             // Update product
             $this->productRepo->update($id, $validated);
 
-            // Sync categories - delete old ones first
-            \DB::table('product_categories')->where('product_id', $id)->delete();
-
-            // Insert new categories if any
-            if (!empty($categories)) {
-                $pivotData = [];
-                foreach ($categories as $categoryId) {
-                    $pivotData[] = [
-                        'product_id' => $id,
-                        'category_id' => $categoryId
-                    ];
-                }
-                \DB::table('product_categories')->insert($pivotData);
-            }
+            // Sync categories
+            $this->productRepo->syncCategories($id, $categories);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -681,20 +581,8 @@ class ProductApiController extends Controller
 
             $categories = $validated['categories'] ?? [];
 
-            // Sync categories - delete old ones first
-            \DB::table('product_categories')->where('product_id', $id)->delete();
-
-            // Insert new categories if any
-            if (!empty($categories)) {
-                $pivotData = [];
-                foreach ($categories as $categoryId) {
-                    $pivotData[] = [
-                        'product_id' => $id,
-                        'category_id' => $categoryId
-                    ];
-                }
-                \DB::table('product_categories')->insert($pivotData);
-            }
+            // Sync categories
+            $this->productRepo->syncCategories($id, $categories);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -738,7 +626,7 @@ class ProductApiController extends Controller
             $folderName = $product->slug ?? \Str::slug($product->name);
 
             $uploadedImages = [];
-            $existingImagesCount = \DB::table('product_images')->where('product_id', $id)->count();
+            $existingImagesCount = $this->productRepo->getImagesCount($id);
             $sortOrder = $existingImagesCount + 1;
             $imageCounter = $existingImagesCount + 1;
 
@@ -747,7 +635,7 @@ class ProductApiController extends Controller
                 $filename = $folderName . $imageCounter . '.' . $extension;
                 $path = $image->storeAs('products/' . $folderName, $filename, 'public');
 
-                $imageId = \DB::table('product_images')->insertGetId([
+                $imageId = $this->productRepo->insertImage([
                     'product_id' => $id,
                     'url' => $path,
                     'alt_text' => null,
@@ -804,12 +692,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $image = \DB::table('product_images')
-                ->where('id', $imageId)
-                ->where('product_id', $id)
-                ->first();
+            $image = $this->productRepo->getImage($imageId);
 
-            if (!$image) {
+            if (!$image || $image->product_id != $id) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -823,7 +708,7 @@ class ProductApiController extends Controller
                 \Storage::disk('public')->delete($image->url);
             }
 
-            \DB::table('product_images')->where('id', $imageId)->delete();
+            $this->productRepo->deleteImage($imageId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -858,12 +743,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $image = \DB::table('product_images')
-                ->where('id', $imageId)
-                ->where('product_id', $id)
-                ->first();
+            $image = $this->productRepo->getImage($imageId);
 
-            if (!$image) {
+            if (!$image || $image->product_id != $id) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -872,15 +754,8 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            // Remove primary from all images
-            \DB::table('product_images')
-                ->where('product_id', $id)
-                ->update(['is_primary' => false, 'updated_at' => now()]);
-
-            // Set this image as primary
-            \DB::table('product_images')
-                ->where('id', $imageId)
-                ->update(['is_primary' => true, 'updated_at' => now()]);
+            // Set primary image
+            $this->productRepo->setPrimaryImage($id, $imageId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -927,12 +802,10 @@ class ProductApiController extends Controller
             ]);
 
             $validated['product_id'] = $productId;
-            $validated['created_at'] = now();
-            $validated['updated_at'] = now();
 
-            $variantId = \DB::table('product_variants')->insertGetId($validated);
+            $variantId = $this->productRepo->createVariant($validated);
 
-            $variant = \DB::table('product_variants')->where('id', $variantId)->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -968,12 +841,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $variant = \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->where('product_id', $productId)
-                ->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
-            if (!$variant) {
+            if (!$variant || $variant->product_id != $productId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -993,13 +863,9 @@ class ProductApiController extends Controller
                 'barcode' => 'nullable|string|max:255'
             ]);
 
-            $validated['updated_at'] = now();
+            $this->productRepo->updateVariant($variantId, $validated);
 
-            \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->update($validated);
-
-            $updatedVariant = \DB::table('product_variants')->where('id', $variantId)->first();
+            $updatedVariant = $this->productRepo->getVariant($variantId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -1035,12 +901,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $variant = \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->where('product_id', $productId)
-                ->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
-            if (!$variant) {
+            if (!$variant || $variant->product_id != $productId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1049,7 +912,7 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            \DB::table('product_variants')->where('id', $variantId)->delete();
+            $this->productRepo->deleteVariant($variantId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -1084,12 +947,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $variant = \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->where('product_id', $productId)
-                ->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
-            if (!$variant) {
+            if (!$variant || $variant->product_id != $productId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1110,7 +970,7 @@ class ProductApiController extends Controller
             $variantName = \Str::slug($variant->sku);
 
             $uploadedImages = [];
-            $existingImagesCount = \DB::table('product_variant_images')->where('variant_id', $variantId)->count();
+            $existingImagesCount = $this->productRepo->getVariantImagesCount($variantId);
             $sortOrder = $existingImagesCount + 1;
             $imageCounter = $existingImagesCount + 1;
 
@@ -1119,7 +979,7 @@ class ProductApiController extends Controller
                 $filename = $variantName . ($imageCounter > 1 ? $imageCounter : '') . '.' . $extension;
                 $path = $image->storeAs('products/' . $productFolderName . '/variant', $filename, 'public');
 
-                $imageId = \DB::table('product_variant_images')->insertGetId([
+                $imageId = $this->productRepo->insertVariantImage([
                     'variant_id' => $variantId,
                     'url' => $path,
                     'alt_text' => null,
@@ -1176,12 +1036,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $variant = \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->where('product_id', $productId)
-                ->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
-            if (!$variant) {
+            if (!$variant || $variant->product_id != $productId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1190,12 +1047,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $image = \DB::table('product_variant_images')
-                ->where('id', $imageId)
-                ->where('variant_id', $variantId)
-                ->first();
+            $image = $this->productRepo->getVariantImage($imageId);
 
-            if (!$image) {
+            if (!$image || $image->variant_id != $variantId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1209,7 +1063,7 @@ class ProductApiController extends Controller
                 \Storage::disk('public')->delete($image->url);
             }
 
-            \DB::table('product_variant_images')->where('id', $imageId)->delete();
+            $this->productRepo->deleteVariantImage($imageId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -1244,12 +1098,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $variant = \DB::table('product_variants')
-                ->where('id', $variantId)
-                ->where('product_id', $productId)
-                ->first();
+            $variant = $this->productRepo->getVariant($variantId);
 
-            if (!$variant) {
+            if (!$variant || $variant->product_id != $productId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1258,12 +1109,9 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            $image = \DB::table('product_variant_images')
-                ->where('id', $imageId)
-                ->where('variant_id', $variantId)
-                ->first();
+            $image = $this->productRepo->getVariantImage($imageId);
 
-            if (!$image) {
+            if (!$image || $image->variant_id != $variantId) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
                     ->setStatusCode('404')
@@ -1272,15 +1120,8 @@ class ProductApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            // Remove primary from all images
-            \DB::table('product_variant_images')
-                ->where('variant_id', $variantId)
-                ->update(['is_primary' => false]);
-
-            // Set this image as primary
-            \DB::table('product_variant_images')
-                ->where('id', $imageId)
-                ->update(['is_primary' => true]);
+            // Set primary variant image
+            $this->productRepo->setPrimaryVariantImage($variantId, $imageId);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

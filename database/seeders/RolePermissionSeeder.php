@@ -49,14 +49,16 @@ class RolePermissionSeeder extends Seeder
         // Staff - Limited permissions (Catalog + Dashboard only)
         $staffPermissionNames = [
             'dashboard.view',
-            'catalog.products.all-products.view',
-            'catalog.products.all-products.create',
-            'catalog.products.all-products.update',
-            'catalog.products.add-products.view',
-            'catalog.products.categories.view',
-            'catalog.products.categories.create',
-            'catalog.products.brands.view',
-            'catalog.products.brands.create',
+            // Products
+            'catalog.products.view',
+            'catalog.products.create',
+            'catalog.products.update',
+            // Brands
+            'catalog.brands.view',
+            'catalog.brands.create',
+            // Categories
+            'catalog.categories.view',
+            'catalog.categories.create',
         ];
 
         $staffPermissions = $allPermissions->filter(function ($permission) use ($staffPermissionNames) {

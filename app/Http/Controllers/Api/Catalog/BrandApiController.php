@@ -34,7 +34,8 @@ class BrandApiController extends Controller
             $brands = $this->brandRepo->getAllWithFilters($filters, $perPage);
 
             // Add product count for each brand
-            $this->brandRepo->attachProductCounts($brands->items());
+            $items = $brands->items();
+            $this->brandRepo->attachProductCounts($items);
 
             // Get statistics
             $statistics = $this->brandRepo->getStatistics();
@@ -43,10 +44,7 @@ class BrandApiController extends Controller
                 ->setStatus(true)
                 ->setStatusCode('200')
                 ->setMessage('Brands retrieved successfully')
-                ->setData([
-                    'brands' => $brands,
-                    'statistics' => $statistics
-                ]);
+                ->setData([$brands]);
 
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Exception $e) {
@@ -71,7 +69,7 @@ class BrandApiController extends Controller
                 'name' => 'required|string|max:255',
                 'slug' => 'required|string|max:255|unique:brands,slug',
                 'description' => 'nullable|string',
-                'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'logo' => 'nullable',
                 'is_active' => 'nullable|boolean'
             ]);
 
@@ -92,7 +90,7 @@ class BrandApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('create', 'Created brand: ' . $brand->name, 'Brand', $brand->id);
+            logActivity('create', 'Created brand: ' . $brand->name, 'brand', (int)$brand->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -180,23 +178,39 @@ class BrandApiController extends Controller
                 'name' => 'required|string|max:255',
                 'slug' => 'required|string|max:255|unique:brands,slug,' . $id,
                 'description' => 'nullable|string',
-                'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048',
+                'logo' => 'nullable',
                 'is_active' => 'nullable|boolean'
             ]);
 
             \DB::beginTransaction();
 
-            // Handle logo upload
-            if ($request->hasFile('logo')) {
+            // Handle logo change (URL from upload API or file upload)
+            if ($request->filled('logo') || $request->hasFile('logo')) {
                 // Delete old logo if exists
-                if ($brand->logo && \Storage::disk('public')->exists($brand->logo)) {
-                    \Storage::disk('public')->delete($brand->logo);
+                if ($brand->logo) {
+                    $oldLogoPath = $brand->logo;
+
+                    // Extract path from URL if contains full URL
+                    if (str_contains($oldLogoPath, '/storage/')) {
+                        $oldLogoPath = str_replace('/storage/', '', parse_url($oldLogoPath, PHP_URL_PATH));
+                    }
+
+                    if (\Storage::disk('public')->exists($oldLogoPath)) {
+                        \Storage::disk('public')->delete($oldLogoPath);
+                    }
                 }
 
-                $logo = $request->file('logo');
-                $filename = time() . '_' . $logo->getClientOriginalName();
-                $path = $logo->storeAs('brands', $filename, 'public');
-                $validated['logo'] = $path;
+                // If uploading new file directly
+                if ($request->hasFile('logo')) {
+                    $logo = $request->file('logo');
+                    $filename = time() . '_' . $logo->getClientOriginalName();
+                    $path = $logo->storeAs('brands', $filename, 'public');
+                    $validated['logo'] = url('storage/' . $path);
+                }
+                // If using URL from upload API
+                else if ($request->filled('logo')) {
+                    $validated['logo'] = $request->logo;
+                }
             }
 
             $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : $brand->is_active;
@@ -206,7 +220,7 @@ class BrandApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('update', 'Updated brand: ' . $brand->name, 'Brand', $brand->id);
+            logActivity('update', 'Updated brand: ' . $brand->name, 'brand', (int)$brand->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -252,7 +266,7 @@ class BrandApiController extends Controller
 
             // Log activity
             $status = $request->is_active ? 'activated' : 'deactivated';
-            logActivity('update', 'Brand ' . $status . ': ' . $brand->name, 'Brand', $brand->id);
+            logActivity('update', 'Brand ' . $status . ': ' . $brand->name, 'brand', (int)$brand->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -304,8 +318,20 @@ class BrandApiController extends Controller
             }
 
             // Delete logo if exists
-            if ($brand->logo && \Storage::disk('public')->exists($brand->logo)) {
-                \Storage::disk('public')->delete($brand->logo);
+            if ($brand->logo) {
+                // Extract path from URL if logo contains full URL
+                // e.g., http://127.0.0.1:8000/storage/brands/1760023261_68e7d2dda9ba7.png
+                $logoPath = $brand->logo;
+
+                // If logo contains full URL, extract the path
+                if (str_contains($logoPath, '/storage/')) {
+                    $logoPath = str_replace('/storage/', '', parse_url($logoPath, PHP_URL_PATH));
+                }
+
+                // Delete file if exists
+                if (\Storage::disk('public')->exists($logoPath)) {
+                    \Storage::disk('public')->delete($logoPath);
+                }
             }
 
             \DB::beginTransaction();
@@ -313,7 +339,7 @@ class BrandApiController extends Controller
             \DB::commit();
 
             // Log activity
-            logActivity('delete', 'Deleted brand: ' . $brandName, 'Brand', $id);
+            logActivity('delete', 'Deleted brand: ' . $brandName, 'brand', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

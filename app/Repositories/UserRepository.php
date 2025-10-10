@@ -22,6 +22,19 @@ class UserRepository implements UserRepositoryInterface
         return DB::table($this->tokenTableName);
     }
 
+    public function query()
+    {
+        return DB::table('users')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
+            ->select(
+                'users.*',
+                'roles.id as role_id',
+                'roles.name as role_name',
+                'roles.display_name as role_display_name',
+                'roles.priority as role_priority'
+            );
+    }
+
     public function findByEmail(string $email)
     {
         return $this->table()
@@ -60,6 +73,21 @@ class UserRepository implements UserRepositoryInterface
         $user->permissions = $permissionsResult;
 
         return $user;
+    }
+
+    public function findByIdWithRole(string $id)
+    {
+        return DB::table('users')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
+            ->where('users.id', $id)
+            ->select(
+                'users.*',
+                'roles.id as role_id',
+                'roles.name as role_name',
+                'roles.display_name as role_display_name',
+                'roles.priority as role_priority'
+            )
+            ->first();
     }
 
     public function updateLastLogin(string $userId, string $ip)

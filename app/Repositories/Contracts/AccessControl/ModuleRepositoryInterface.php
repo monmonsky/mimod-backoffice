@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts\AccessControl;
 
 interface ModuleRepositoryInterface
 {
+    public function query();
     public function getAll();
     public function getAllWithChildren();
     public function getParents();

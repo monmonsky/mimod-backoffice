@@ -14,6 +14,11 @@ class CategoryRepository implements CategoryRepositoryInterface
         return DB::table($this->tableName);
     }
 
+    public function query()
+    {
+        return $this->table();
+    }
+
     public function getAll()
     {
         return $this->table()

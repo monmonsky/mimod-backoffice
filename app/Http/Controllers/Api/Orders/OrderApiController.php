@@ -134,7 +134,7 @@ class OrderApiController extends Controller
                 ->setStatus(true)
                 ->setStatusCode('200')
                 ->setMessage('Order retrieved successfully')
-                ->setData(['order' => $order]);
+                ->setData($order);
 
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Exception $e) {
@@ -276,6 +276,43 @@ class OrderApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to delete order')
+                ->setError($e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get orders by customer ID
+     */
+    public function byCustomer(Request $request, $customerId)
+    {
+        try {
+            $perPage = $request->input('per_page', 20);
+            $status = $request->input('status');
+
+            $query = $this->orderRepo->query()
+                ->where('customer_id', $customerId)
+                ->orderBy('created_at', 'desc');
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $orders = $query->paginate($perPage);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Customer orders retrieved successfully')
+                ->setData($orders);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve customer orders')
                 ->setError($e->getMessage());
 
             return response()->json($this->response->generateResponse($result), 500);

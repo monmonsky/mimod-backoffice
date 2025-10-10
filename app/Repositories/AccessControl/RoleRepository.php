@@ -18,6 +18,14 @@ class RoleRepository implements RoleRepositoryInterface
     }
 
     /**
+     * Get query builder for roles
+     */
+    public function query()
+    {
+        return $this->table();
+    }
+
+    /**
      * Get all roles
      * Filtered by current user's role priority (users can only assign roles with same or lower priority)
      */

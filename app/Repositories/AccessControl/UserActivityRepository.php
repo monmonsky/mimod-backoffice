@@ -17,6 +17,11 @@ class UserActivityRepository implements UserActivityRepositoryInterface
         return DB::table($this->tableName);
     }
 
+    public function query()
+    {
+        return $this->table();
+    }
+
     /**
      * Get all activities with filters
      */

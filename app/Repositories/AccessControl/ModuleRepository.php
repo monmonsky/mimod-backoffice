@@ -17,6 +17,11 @@ class ModuleRepository implements ModuleRepositoryInterface
         return DB::table($this->tableName);
     }
 
+    public function query()
+    {
+        return $this->table();
+    }
+
     public function getAll()
     {
         return $this->table()->orderBy('sort_order')->get();

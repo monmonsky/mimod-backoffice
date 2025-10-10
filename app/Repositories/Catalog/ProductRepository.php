@@ -514,4 +514,172 @@ class ProductRepository implements ProductRepositoryInterface
             ->where('product_id', $productId)
             ->count();
     }
+
+    public function getProductIdsByCategory($categoryId)
+    {
+        return DB::table('product_categories')
+            ->where('category_id', $categoryId)
+            ->pluck('product_id');
+    }
+
+    public function getBrand($brandId)
+    {
+        return DB::table('brands')->where('id', $brandId)->first();
+    }
+
+    public function getProductCategories($productId)
+    {
+        return DB::table('product_categories')
+            ->join('categories', 'product_categories.category_id', '=', 'categories.id')
+            ->where('product_categories.product_id', $productId)
+            ->select('categories.*')
+            ->get();
+    }
+
+    public function getProductImagesByProductId($productId)
+    {
+        return DB::table('product_images')
+            ->where('product_id', $productId)
+            ->orderBy('is_primary', 'desc')
+            ->get();
+    }
+
+    public function getProductVariantsByProductId($productId)
+    {
+        return DB::table('product_variants')
+            ->where('product_id', $productId)
+            ->select('id', 'sku', 'price', 'stock_quantity')
+            ->get();
+    }
+
+    public function findBySlugWithRelations($slug)
+    {
+        $product = DB::table('products')->where('slug', $slug)->first();
+
+        if (!$product) {
+            return null;
+        }
+
+        // Get brand
+        if ($product->brand_id) {
+            $product->brand = $this->getBrand($product->brand_id);
+        }
+
+        // Get categories
+        $product->categories = $this->getProductCategories($product->id);
+
+        // Get images
+        $product->images = DB::table('product_images')
+            ->where('product_id', $product->id)
+            ->orderBy('is_primary', 'desc')
+            ->get();
+
+        // Get variants
+        $variants = DB::table('product_variants')
+            ->where('product_id', $product->id)
+            ->get();
+
+        // Load variant images for each variant
+        foreach ($variants as $variant) {
+            $variant->images = DB::table('product_variant_images')
+                ->where('variant_id', $variant->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('sort_order', 'asc')
+                ->get();
+        }
+
+        $product->variants = $variants;
+
+        return $product;
+    }
+
+    public function deleteProductCategories($productId)
+    {
+        return DB::table('product_categories')->where('product_id', $productId)->delete();
+    }
+
+    public function deleteProductImages($productId)
+    {
+        return DB::table('product_images')->where('product_id', $productId)->delete();
+    }
+
+    public function deleteProductVariants($productId)
+    {
+        return DB::table('product_variants')->where('product_id', $productId)->delete();
+    }
+
+    public function insertProductCategories($productId, array $categoryIds)
+    {
+        $pivotData = [];
+        foreach ($categoryIds as $categoryId) {
+            $pivotData[] = [
+                'product_id' => $productId,
+                'category_id' => $categoryId
+            ];
+        }
+        return DB::table('product_categories')->insert($pivotData);
+    }
+
+    public function getVariantImagesCount($variantId)
+    {
+        return DB::table('product_variant_images')->where('variant_id', $variantId)->count();
+    }
+
+    public function checkVariantsInOrders($productId)
+    {
+        return DB::table('product_variants')
+            ->join('order_items', 'product_variants.id', '=', 'order_items.variant_id')
+            ->where('product_variants.product_id', $productId)
+            ->exists();
+    }
+
+    public function attachRelationsOptimized($products)
+    {
+        if ($products->isEmpty()) {
+            return;
+        }
+
+        $productIds = $products->pluck('id')->toArray();
+
+        // Batch load brands
+        $brands = DB::table('brands')
+            ->whereIn('id', $products->pluck('brand_id')->filter()->unique())
+            ->get()
+            ->keyBy('id');
+
+        // Batch load categories with grouping
+        $categories = DB::table('product_categories')
+            ->join('categories', 'product_categories.category_id', '=', 'categories.id')
+            ->whereIn('product_categories.product_id', $productIds)
+            ->select('product_categories.product_id', 'categories.name')
+            ->get()
+            ->groupBy('product_id')
+            ->map(function($items) {
+                return $items->pluck('name')->toArray();
+            });
+
+        // Batch load primary images only
+        $images = DB::table('product_images')
+            ->whereIn('product_id', $productIds)
+            ->where('is_primary', true)
+            ->select('product_id', 'url')
+            ->get()
+            ->keyBy('product_id');
+
+        // Attach data to products
+        foreach ($products as $product) {
+            // Attach brand name
+            $product->brand_name = isset($brands[$product->brand_id])
+                ? $brands[$product->brand_id]->name
+                : null;
+
+            // Attach category names
+            $product->category_names = $categories->get($product->id, []);
+
+            // Attach primary image URL
+            $product->image_url = isset($images[$product->id])
+                ? $images[$product->id]->url
+                : null;
+        }
+    }
 }

@@ -17,6 +17,11 @@ class PermissionRepository implements PermissionRepositoryInterface
         return DB::table($this->tableName);
     }
 
+    public function query()
+    {
+        return $this->table();
+    }
+
     public function getAll()
     {
         return $this->table()->orderBy('name')->get();

@@ -43,14 +43,14 @@ class UserApiController extends Controller
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
-                    $q->where('name', 'ILIKE', '%' . $search . '%')
+                    $q->where('users.name', 'ILIKE', '%' . $search . '%')
                       ->orWhere('email', 'ILIKE', '%' . $search . '%');
                 });
             }
 
             // Pagination
-            $perPage = $request->get('per_page', 15);
-            $users = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            $perPage = $request->get('per_page', 20);
+            $users = $query->orderBy('created_at', 'asc')->paginate($perPage);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -136,7 +136,7 @@ class UserApiController extends Controller
 
             $user = $this->userRepo->create($data);
 
-            logActivity('create', 'user', $user->id, "Created user: {$user->name}");
+            logActivity('create', "Created user: {$user->name}", 'user', (int)$user->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -204,7 +204,7 @@ class UserApiController extends Controller
 
             $updatedUser = $this->userRepo->update($id, $data);
 
-            logActivity('update', 'user', $id, "Updated user: {$updatedUser->name}");
+            logActivity('update', "Updated user: {$updatedUser->name}", 'user', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -255,7 +255,7 @@ class UserApiController extends Controller
 
             $this->userRepo->delete($id);
 
-            logActivity('delete', 'user', $id, "Deleted user: {$user->name}");
+            logActivity('delete', "Deleted user: {$user->name}", 'user', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -296,7 +296,7 @@ class UserApiController extends Controller
             $newStatus = $user->status === 'active' ? 'suspended' : 'active';
             $updatedUser = $this->userRepo->update($id, ['status' => $newStatus]);
 
-            logActivity('update', 'user', $id, "Changed user status to: {$newStatus}");
+            logActivity('update', "Changed user status to: {$newStatus}", 'user', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

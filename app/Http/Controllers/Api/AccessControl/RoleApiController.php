@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\AccessControl;
 use App\Http\Controllers\Controller;
 use App\Http\Responses\GeneralResponse\Response;
 use App\Http\Responses\GeneralResponse\ResultBuilder;
-use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\AccessControl\RoleRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -154,7 +154,7 @@ class RoleApiController extends Controller
 
             DB::commit();
 
-            logActivity('create', 'role', $role->id, "Created role: {$role->name}");
+            logActivity('create', "Created role: {$role->name}", 'role', (int)$role->id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -240,7 +240,7 @@ class RoleApiController extends Controller
 
             DB::commit();
 
-            logActivity('update', 'role', $id, "Updated role: {$updatedRole->name}");
+            logActivity('update', "Updated role: {$updatedRole->name}", 'role', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -305,7 +305,7 @@ class RoleApiController extends Controller
 
             $this->roleRepo->delete($id);
 
-            logActivity('delete', 'role', $id, "Deleted role: {$role->name}");
+            logActivity('delete', "Deleted role: {$role->name}", 'role', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -346,7 +346,7 @@ class RoleApiController extends Controller
             $newStatus = !$role->is_active;
             $updatedRole = $this->roleRepo->update($id, ['is_active' => $newStatus]);
 
-            logActivity('update', 'role', $id, "Changed role status to: " . ($newStatus ? 'active' : 'inactive'));
+            logActivity('update', "Changed role status to: " . ($newStatus ? 'active' : 'inactive'), 'role', (int)$id);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

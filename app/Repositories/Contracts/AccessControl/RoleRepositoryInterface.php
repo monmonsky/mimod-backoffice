@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts\AccessControl;
 
 interface RoleRepositoryInterface
 {
+    public function query();
     public function getAll();
     public function getAllWithCounts();
     public function findById($id);

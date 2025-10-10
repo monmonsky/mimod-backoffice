@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 interface PermissionRepositoryInterface
 {
+    public function query();
     public function getAll();
     public function getAllWithGroup();
     public function findById($id);
