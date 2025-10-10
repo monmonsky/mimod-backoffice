@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
             RoleModuleSeeder::class,
 
             // 9. Seed settings
-            SettingSeeder::class,
+            SettingsSeeder::class,
 
             // 10. Seed catalog data (categories, brands, products)
             CategorySeeder::class,
