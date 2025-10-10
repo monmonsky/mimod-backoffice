@@ -38,15 +38,18 @@ class DatabaseSeeder extends Seeder
             // 8. Seed role modules (requires roles and modules)
             RoleModuleSeeder::class,
 
-            // 9. Seed catalog data (categories, brands, products)
+            // 9. Seed settings
+            SettingSeeder::class,
+
+            // 10. Seed catalog data (categories, brands, products)
             CategorySeeder::class,
             BrandSeeder::class,
             ProductSeeder::class,
 
-            // 10. Seed customers (required by orders)
+            // 11. Seed customers (required by orders)
             CustomerSeeder::class,
 
-            // 11. Seed orders (requires customers and products)
+            // 12. Seed orders (requires customers and products)
             OrderSeeder::class,
         ]);
     }

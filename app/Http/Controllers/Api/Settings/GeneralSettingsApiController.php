@@ -29,7 +29,7 @@ class GeneralSettingsApiController extends Controller
     public function index()
     {
         try {
-            $settings = $this->settingsRepo->getByPrefix('store.');
+            $settings = $this->settingsRepo->getByPrefix('general.');
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
