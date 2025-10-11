@@ -151,7 +151,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Settings API
     Route::get('/settings', [SettingsApiController::class, 'index']);
-    Route::get('/settings/{key}', [SettingsApiController::class, 'show']);
+    Route::get('/settings/{prefix}', [SettingsApiController::class, 'show']);
+    Route::put('/settings/{key}', [SettingsApiController::class, 'update']);
+    Route::post('/settings/bulk-update', [SettingsApiController::class, 'updateBulk']);
+
+    // Email Test API
+    Route::post('/email/test-connection', [\App\Http\Controllers\Api\EmailTestApiController::class, 'testConnection']);
+    Route::get('/email/config', [\App\Http\Controllers\Api\EmailTestApiController::class, 'getConfig']);
 
     // Catalog routes
     Route::prefix('catalog')->group(function () {

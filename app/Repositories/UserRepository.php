@@ -131,6 +131,7 @@ class UserRepository implements UserRepositoryInterface
             'name' => $tokenName,
             'token' => $hashedToken,
             'abilities' => json_encode($abilities),
+            'expires_at' => now()->addMinutes(30), // Token expires in 30 minutes
             'created_at' => now(),
             'updated_at' => now(),
         ]);
