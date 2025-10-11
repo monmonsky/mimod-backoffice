@@ -10,7 +10,13 @@ if (!function_exists('currentUser')) {
      */
     function currentUser(?string $key = null, $default = null)
     {
-        $user = request()->get('user');
+        // Try to get from attributes first (set by middleware)
+        $user = request()->attributes->get('user');
+
+        // Fallback to request parameter
+        if (!$user) {
+            $user = request()->get('user');
+        }
 
         if (!$user) {
             return $default;
@@ -20,7 +26,14 @@ if (!function_exists('currentUser')) {
             return $user;
         }
 
-        return $user[$key] ?? $default;
+        // Handle both array and object
+        if (is_array($user)) {
+            return $user[$key] ?? $default;
+        } elseif (is_object($user)) {
+            return $user->$key ?? $default;
+        }
+
+        return $default;
     }
 }
 
@@ -239,11 +252,15 @@ if (!function_exists('logActivity')) {
      * @param string|null $subjectType Subject type (Model name: User, Role, Permission, Module, Settings, etc.)
      * @param int|null $subjectId Subject ID
      * @param array|null $properties Additional properties (old/new values, metadata, etc.)
+     * @param int|null $userId User ID (optional, defaults to current user from request)
      * @return bool
      *
      * @example
      * // Simple login log
      * logActivity('login', 'User logged in successfully');
+     *
+     * // Login log with explicit user_id (when user not in request yet)
+     * logActivity('login', 'User logged in successfully', 'auth', null, null, $user->id);
      *
      * // Log with subject
      * logActivity('create', 'Created new user: John Doe', 'User', 123);
@@ -269,12 +286,20 @@ if (!function_exists('logActivity')) {
         ?string $description = null,
         ?string $subjectType = null,
         ?int $subjectId = null,
-        ?array $properties = null
+        ?array $properties = null,
+        ?int $userId = null
     ): bool {
         try {
-            $userId = userId();
+            // Use provided userId or get from current request
+            $userId = $userId ?? userId();
 
             if (!$userId) {
+                \Illuminate\Support\Facades\Log::warning('logActivity: No user ID found', [
+                    'action' => $action,
+                    'description' => $description,
+                    'has_user_in_attributes' => request()->attributes->has('user'),
+                    'has_user_in_request' => request()->has('user'),
+                ]);
                 return false;
             }
 
@@ -296,7 +321,12 @@ if (!function_exists('logActivity')) {
             return true;
         } catch (\Exception $e) {
             // Log error silently, don't break application flow
-            \Illuminate\Support\Facades\Log::error('Failed to log activity: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to log activity: ' . $e->getMessage(), [
+                'action' => $action,
+                'description' => $description,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AccessControl\PermissionApiController;
 use App\Http\Controllers\Api\AccessControl\ModuleApiController;
 use App\Http\Controllers\Api\AccessControl\UserActivityApiController;
 use App\Http\Controllers\Api\Catalog\ProductApiController;
+use App\Http\Controllers\Api\Catalog\ProductVariantApiController;
 use App\Http\Controllers\Api\Catalog\CategoryApiController;
 use App\Http\Controllers\Api\Catalog\BrandApiController;
 use App\Http\Controllers\Api\SettingsApiController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Api\Customers\CustomerReviewApiController;
 use App\Http\Controllers\Api\Marketing\CouponApiController;
 use App\Http\Controllers\Api\Marketing\FlashSaleApiController;
 use App\Http\Controllers\Api\Marketing\BundleDealApiController;
+use App\Http\Controllers\Api\StoreTokenApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +33,28 @@ Route::get('/user', function (Request $request) {
 
 // Public routes
 Route::post('auth/login', [AuthController::class, 'login']);
+
+// Store API routes (read-only access for frontend)
+Route::middleware('store.api')->prefix('store')->group(function () {
+    // Products
+    Route::get('/products', [ProductApiController::class, 'index'])->middleware('store.api:products:read');
+    Route::get('/products/{id}', [ProductApiController::class, 'show'])->middleware('store.api:products:read');
+
+    // Categories
+    Route::get('/categories', [CategoryApiController::class, 'index'])->middleware('store.api:categories:read');
+    Route::get('/categories/tree', [CategoryApiController::class, 'tree'])->middleware('store.api:categories:read');
+    Route::get('/categories/parents', [CategoryApiController::class, 'parents'])->middleware('store.api:categories:read');
+    Route::get('/categories/{id}', [CategoryApiController::class, 'show'])->middleware('store.api:categories:read');
+    Route::get('/categories/{parentId}/children', [CategoryApiController::class, 'children'])->middleware('store.api:categories:read');
+
+    // Brands
+    Route::get('/brands', [BrandApiController::class, 'index'])->middleware('store.api:brands:read');
+    Route::get('/brands/{id}', [BrandApiController::class, 'show'])->middleware('store.api:brands:read');
+
+    // Settings
+    Route::get('/settings', [SettingsApiController::class, 'index'])->middleware('store.api:settings:read');
+    Route::get('/settings/{key}', [SettingsApiController::class, 'show'])->middleware('store.api:settings:read');
+});
 
 // Auth routes (using custom auth.token middleware)
 Route::middleware('auth.token')->prefix('auth')->group(function () {
@@ -47,7 +71,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('upload')->group(function () {
         Route::post('/image', [UploadImageApiController::class, 'upload']);
         Route::post('/images', [UploadImageApiController::class, 'uploadMultiple']);
+        Route::post('/bulk', [UploadImageApiController::class, 'uploadBulk']);
+        Route::post('/temp', [UploadImageApiController::class, 'uploadTemporary']);
+        Route::post('/move', [UploadImageApiController::class, 'moveFromTemp']);
         Route::delete('/image', [UploadImageApiController::class, 'delete']);
+        Route::delete('/product-image/{id}', [UploadImageApiController::class, 'deleteProductImage']);
+        Route::patch('/product-image/{id}/set-primary', [UploadImageApiController::class, 'setPrimaryImage']);
     });
 
     // Access Control routes
@@ -109,6 +138,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/clear', [UserActivityApiController::class, 'clear']);
             Route::get('/{id}', [UserActivityApiController::class, 'show']);
         });
+
+        // Store Token Management
+        Route::prefix('store-tokens')->group(function () {
+            Route::get('/', [StoreTokenApiController::class, 'index']);
+            Route::get('/stats', [StoreTokenApiController::class, 'stats']);
+            Route::post('/generate', [StoreTokenApiController::class, 'generate']);
+            Route::get('/{id}', [StoreTokenApiController::class, 'show']);
+            Route::delete('/{id}', [StoreTokenApiController::class, 'destroy']);
+        });
     });
 
     // Settings API
@@ -123,7 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/', [ProductApiController::class, 'store']);
             Route::get('/featured', [ProductApiController::class, 'featured']);
             Route::get('/{identifier}', [ProductApiController::class, 'show']);
-            Route::post('/{id}', [ProductApiController::class, 'update']);
+            Route::put('/{id}', [ProductApiController::class, 'update']);
             Route::get('/{id}/variants', [ProductApiController::class, 'variants']);
             Route::get('/{id}/images', [ProductApiController::class, 'images']);
             Route::post('/{id}/images', [ProductApiController::class, 'uploadImages']);
@@ -132,18 +170,18 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/category/{categoryId}', [ProductApiController::class, 'byCategory']);
             Route::get('/brand/{brandId}', [ProductApiController::class, 'byBrand']);
             Route::patch('/{id}/status', [ProductApiController::class, 'updateStatus']);
+            Route::post('/{id}/set-active', [ProductApiController::class, 'setActive']);
+            Route::post('/{id}/set-inactive', [ProductApiController::class, 'setInactive']);
             Route::post('/{id}/categories', [ProductApiController::class, 'updateCategories']);
             Route::delete('/{id}', [ProductApiController::class, 'destroy']);
 
-            // Variants
-            Route::post('/{productId}/variants', [ProductApiController::class, 'storeVariant']);
-            Route::post('/{productId}/variants/{variantId}', [ProductApiController::class, 'updateVariant']);
-            Route::delete('/{productId}/variants/{variantId}', [ProductApiController::class, 'deleteVariant']);
-
-            // Variant Images
-            Route::post('/{productId}/variants/{variantId}/images', [ProductApiController::class, 'uploadVariantImages']);
-            Route::delete('/{productId}/variants/{variantId}/images/{imageId}', [ProductApiController::class, 'deleteVariantImage']);
-            Route::post('/{productId}/variants/{variantId}/images/{imageId}/primary', [ProductApiController::class, 'setPrimaryVariantImage']);
+            // Product Variants
+            Route::prefix('variants')->group(function () {
+                Route::get('/{id}', [ProductVariantApiController::class, 'show']);
+                Route::post('/', [ProductVariantApiController::class, 'store']);
+                Route::put('/{id}', [ProductVariantApiController::class, 'update']);
+                Route::delete('/{id}', [ProductVariantApiController::class, 'destroy']);
+            });
         });
 
         // Categories

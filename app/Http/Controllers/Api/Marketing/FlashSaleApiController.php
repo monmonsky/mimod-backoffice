@@ -138,6 +138,8 @@ class FlashSaleApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created flash sale: {$flashSale->name}", 'flash_sale', $flashSale->id);
+
             $this->responseBuilder->setMessage("Flash sale created successfully.");
             $this->responseBuilder->setData(['flash_sale' => $flashSale]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -179,6 +181,8 @@ class FlashSaleApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated flash sale: {$flashSale->name}", 'flash_sale', (int)$id);
+
             $this->responseBuilder->setMessage("Flash sale updated successfully.");
             $this->responseBuilder->setData(['flash_sale' => $flashSale]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -196,7 +200,12 @@ class FlashSaleApiController extends Controller
     public function destroy($id)
     {
         try {
+            $flashSale = $this->flashSaleRepo->findById($id);
+            $flashSaleName = $flashSale ? $flashSale->name : "ID: {$id}";
+
             $this->flashSaleRepo->delete($id);
+
+            logActivity('delete', "Deleted flash sale: {$flashSaleName}", 'flash_sale', (int)$id);
 
             $this->responseBuilder->setMessage("Flash sale deleted successfully.");
             $this->responseBuilder->setData([]);
@@ -238,6 +247,8 @@ class FlashSaleApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Added product ID: {$validated['product_id']} to flash sale ID: {$id}", 'flash_sale', (int)$id);
+
             $this->responseBuilder->setMessage("Product added to flash sale successfully.");
             $this->responseBuilder->setData([]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -269,6 +280,8 @@ class FlashSaleApiController extends Controller
 
             $validated = $validator->validated();
             $this->flashSaleRepo->removeProduct($id, $validated['product_id']);
+
+            logActivity('delete', "Removed product ID: {$validated['product_id']} from flash sale ID: {$id}", 'flash_sale', (int)$id);
 
             $this->responseBuilder->setMessage("Product removed from flash sale successfully.");
             $this->responseBuilder->setData([]);

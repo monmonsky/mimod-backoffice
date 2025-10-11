@@ -151,6 +151,8 @@ class BundleDealApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created bundle deal: {$bundle->name}", 'bundle_deal', $bundle->id);
+
             $this->responseBuilder->setMessage("Bundle deal created successfully.");
             $this->responseBuilder->setData(['bundle' => $bundle]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -196,6 +198,8 @@ class BundleDealApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated bundle deal: {$bundle->name}", 'bundle_deal', (int)$id);
+
             $this->responseBuilder->setMessage("Bundle deal updated successfully.");
             $this->responseBuilder->setData(['bundle' => $bundle]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -213,7 +217,12 @@ class BundleDealApiController extends Controller
     public function destroy($id)
     {
         try {
+            $bundle = $this->bundleRepo->findById($id);
+            $bundleName = $bundle ? $bundle->name : "ID: {$id}";
+
             $this->bundleRepo->delete($id);
+
+            logActivity('delete', "Deleted bundle deal: {$bundleName}", 'bundle_deal', (int)$id);
 
             $this->responseBuilder->setMessage("Bundle deal deleted successfully.");
             $this->responseBuilder->setData([]);
@@ -257,6 +266,8 @@ class BundleDealApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Added product ID: {$validated['product_id']} to bundle deal ID: {$id}", 'bundle_deal', (int)$id);
+
             $this->responseBuilder->setMessage("Product added to bundle successfully.");
             $this->responseBuilder->setData([]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -288,6 +299,8 @@ class BundleDealApiController extends Controller
 
             $validated = $validator->validated();
             $this->bundleRepo->removeItem($id, $validated['product_id']);
+
+            logActivity('delete', "Removed product ID: {$validated['product_id']} from bundle deal ID: {$id}", 'bundle_deal', (int)$id);
 
             $this->responseBuilder->setMessage("Product removed from bundle successfully.");
             $this->responseBuilder->setData([]);

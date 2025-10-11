@@ -137,6 +137,8 @@ class CustomerReviewApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Approved product review ID: {$id}", 'product_review', (int)$id);
+
             $this->responseBuilder->setMessage("Review approved successfully.");
             $this->responseBuilder->setData(['review' => $review]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -174,6 +176,8 @@ class CustomerReviewApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Responded to product review ID: {$id}", 'product_review', (int)$id);
+
             $this->responseBuilder->setMessage("Response submitted successfully.");
             $this->responseBuilder->setData(['review' => $review]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -191,7 +195,11 @@ class CustomerReviewApiController extends Controller
     public function destroy($id)
     {
         try {
+            $review = DB::table('product_reviews')->where('id', $id)->first();
+
             $this->reviewRepo->delete($id);
+
+            logActivity('delete', "Deleted product review ID: {$id}", 'product_review', (int)$id);
 
             $this->responseBuilder->setMessage("Review deleted successfully.");
             $this->responseBuilder->setData([]);

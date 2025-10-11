@@ -132,6 +132,8 @@ class CustomerSegmentApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created customer segment: {$segment->name}", 'customer_segment', $segment->id);
+
             $this->responseBuilder->setMessage("Customer segment created successfully.");
             $this->responseBuilder->setData(['segment' => $segment]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -182,6 +184,8 @@ class CustomerSegmentApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated customer segment: {$segment->name}", 'customer_segment', (int)$id);
+
             $this->responseBuilder->setMessage("Customer segment updated successfully.");
             $this->responseBuilder->setData(['segment' => $segment]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -211,7 +215,11 @@ class CustomerSegmentApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 400);
             }
 
+            $segmentName = $segment ? $segment->name : "ID: {$id}";
+
             $this->segmentRepo->delete($id);
+
+            logActivity('delete', "Deleted customer segment: {$segmentName}", 'customer_segment', (int)$id);
 
             $this->responseBuilder->setMessage("Customer segment deleted successfully.");
             $this->responseBuilder->setData([]);

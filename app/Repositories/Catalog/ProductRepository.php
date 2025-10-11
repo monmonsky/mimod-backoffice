@@ -666,6 +666,14 @@ class ProductRepository implements ProductRepositoryInterface
             ->get()
             ->keyBy('product_id');
 
+        // Batch load variant counts
+        $variantCounts = DB::table('product_variants')
+            ->whereIn('product_id', $productIds)
+            ->select('product_id', DB::raw('COUNT(*) as total_variants'))
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
         // Attach data to products
         foreach ($products as $product) {
             // Attach brand name
@@ -680,6 +688,85 @@ class ProductRepository implements ProductRepositoryInterface
             $product->image_url = isset($images[$product->id])
                 ? $images[$product->id]->url
                 : null;
+
+            // Attach total variants
+            $product->total_variants = isset($variantCounts[$product->id])
+                ? (int) $variantCounts[$product->id]->total_variants
+                : 0;
+        }
+    }
+
+    /**
+     * Attach full relations to products (categories, variants with images, images)
+     * Similar to findByIdWithRelations but for multiple products
+     */
+    public function attachFullRelations($products)
+    {
+        if ($products->isEmpty()) {
+            return;
+        }
+
+        $productIds = $products->pluck('id')->toArray();
+
+        // Batch load brands
+        $brands = DB::table('brands')
+            ->whereIn('id', $products->pluck('brand_id')->filter()->unique())
+            ->get()
+            ->keyBy('id');
+
+        // Batch load categories (full object, not just names)
+        $categoriesByProduct = DB::table('product_categories')
+            ->join('categories', 'product_categories.category_id', '=', 'categories.id')
+            ->whereIn('product_categories.product_id', $productIds)
+            ->select('product_categories.product_id', 'categories.*')
+            ->get()
+            ->groupBy('product_id');
+
+        // Batch load all variants
+        $variantsByProduct = DB::table('product_variants')
+            ->whereIn('product_id', $productIds)
+            ->orderBy('id', 'asc')
+            ->get()
+            ->groupBy('product_id');
+
+        // Batch load all variant images
+        $variantIds = $variantsByProduct->flatten(1)->pluck('id')->toArray();
+        $variantImagesByVariant = [];
+        if (!empty($variantIds)) {
+            $variantImagesByVariant = DB::table('product_variant_images')
+                ->whereIn('variant_id', $variantIds)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('sort_order', 'asc')
+                ->get()
+                ->groupBy('variant_id');
+        }
+
+        // Batch load all product images
+        $imagesByProduct = DB::table('product_images')
+            ->whereIn('product_id', $productIds)
+            ->orderBy('sort_order', 'asc')
+            ->get()
+            ->groupBy('product_id');
+
+        // Attach data to products
+        foreach ($products as $product) {
+            // Attach brand name
+            $product->brand_name = isset($brands[$product->brand_id])
+                ? $brands[$product->brand_id]->name
+                : null;
+
+            // Attach categories
+            $product->categories = $categoriesByProduct->get($product->id, collect([]))->values();
+
+            // Attach variants with their images
+            $variants = $variantsByProduct->get($product->id, collect([]));
+            foreach ($variants as $variant) {
+                $variant->images = $variantImagesByVariant[$variant->id] ?? collect([]);
+            }
+            $product->variants = $variants->values();
+
+            // Attach images
+            $product->images = $imagesByProduct->get($product->id, collect([]))->values();
         }
     }
 }

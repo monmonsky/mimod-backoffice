@@ -58,7 +58,6 @@ class BrandApiController extends Controller
         }
     }
 
-
     /**
      * Create new brand
      */
@@ -79,8 +78,8 @@ class BrandApiController extends Controller
             if ($request->hasFile('logo')) {
                 $logo = $request->file('logo');
                 $filename = time() . '_' . $logo->getClientOriginalName();
-                $path = $logo->storeAs('brands', $filename, 'public');
-                $validated['logo'] = $path;
+                $path = $logo->storeAs('brands', $filename, 'ftp');
+                $validated['logo'] = env('FTP_URL') . '/' . $path;
             }
 
             $validated['is_active'] = $request->has('is_active') ? (bool)$request->is_active : true;
@@ -195,8 +194,8 @@ class BrandApiController extends Controller
                         $oldLogoPath = str_replace('/storage/', '', parse_url($oldLogoPath, PHP_URL_PATH));
                     }
 
-                    if (\Storage::disk('public')->exists($oldLogoPath)) {
-                        \Storage::disk('public')->delete($oldLogoPath);
+                    if (\Storage::disk('ftp')->exists($oldLogoPath)) {
+                        \Storage::disk('ftp')->delete($oldLogoPath);
                     }
                 }
 
@@ -204,8 +203,8 @@ class BrandApiController extends Controller
                 if ($request->hasFile('logo')) {
                     $logo = $request->file('logo');
                     $filename = time() . '_' . $logo->getClientOriginalName();
-                    $path = $logo->storeAs('brands', $filename, 'public');
-                    $validated['logo'] = url('storage/' . $path);
+                    $path = $logo->storeAs('brands', $filename, 'ftp');
+                    $validated['logo'] = env('FTP_URL') . '/' . $path;
                 }
                 // If using URL from upload API
                 else if ($request->filled('logo')) {
@@ -329,8 +328,8 @@ class BrandApiController extends Controller
                 }
 
                 // Delete file if exists
-                if (\Storage::disk('public')->exists($logoPath)) {
-                    \Storage::disk('public')->delete($logoPath);
+                if (\Storage::disk('ftp')->exists($logoPath)) {
+                    \Storage::disk('ftp')->delete($logoPath);
                 }
             }
 

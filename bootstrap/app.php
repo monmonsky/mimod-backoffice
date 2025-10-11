@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\AuthenticateToken::class,
             'auth.sanctum' => \App\Http\Middleware\SanctumAuth::class,
+            'store.api' => \App\Http\Middleware\StoreApiAuth::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         ]);

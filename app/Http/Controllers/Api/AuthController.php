@@ -70,6 +70,9 @@ class AuthController extends Controller
             $deviceName = $request->device_name ?? $request->userAgent() ?? 'unknown-device';
             $token = $this->userRepository->createToken($user->id, $deviceName);
 
+            // Log activity - pass user_id explicitly because user is not yet in request
+            logActivity('login', "User logged in from {$request->ip()}", 'auth', null, null, $user->id);
+
             $this->responseBuilder->setMessage("Login successful.");
             $this->responseBuilder->setData([
                 'token' => $token,
@@ -105,6 +108,11 @@ class AuthController extends Controller
                 $this->userRepository->revokeToken($token);
             }
 
+            // Log activity
+            if ($request->user) {
+                logActivity('logout', "User logged out", 'auth', (int) $request->user->id);
+            }
+
             $this->responseBuilder->setMessage("Logout successful.");
             return $this->response->generateResponse($this->responseBuilder);
         } catch (\Throwable $th) {
@@ -123,6 +131,9 @@ class AuthController extends Controller
             $user = $request->user;
 
             $this->userRepository->revokeAllUserTokens($user->id);
+
+            // Log activity
+            logActivity('logout_all', "User logged out from all devices", 'auth', (int) $user->id);
 
             $this->responseBuilder->setMessage("Logged out from all devices successfully.");
             return $this->response->generateResponse($this->responseBuilder);

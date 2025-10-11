@@ -166,6 +166,8 @@ class CouponApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created coupon: {$coupon->code}", 'coupon', $coupon->id);
+
             $this->responseBuilder->setMessage("Coupon created successfully.");
             $this->responseBuilder->setData(['coupon' => $coupon]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -224,6 +226,8 @@ class CouponApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated coupon: {$coupon->code}", 'coupon', (int)$id);
+
             $this->responseBuilder->setMessage("Coupon updated successfully.");
             $this->responseBuilder->setData(['coupon' => $coupon]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -241,7 +245,12 @@ class CouponApiController extends Controller
     public function destroy($id)
     {
         try {
+            $coupon = $this->couponRepo->findById($id);
+            $couponCode = $coupon ? $coupon->code : "ID: {$id}";
+
             $this->couponRepo->delete($id);
+
+            logActivity('delete', "Deleted coupon: {$couponCode}", 'coupon', (int)$id);
 
             $this->responseBuilder->setMessage("Coupon deleted successfully.");
             $this->responseBuilder->setData([]);

@@ -148,6 +148,8 @@ class CustomerLoyaltyApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created loyalty program: {$program->name}", 'loyalty_program', $program->id);
+
             $this->responseBuilder->setMessage("Loyalty program created successfully.");
             $this->responseBuilder->setData(['program' => $program]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -195,6 +197,8 @@ class CustomerLoyaltyApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated loyalty program: {$program->name}", 'loyalty_program', (int)$id);
+
             $this->responseBuilder->setMessage("Loyalty program updated successfully.");
             $this->responseBuilder->setData(['program' => $program]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -212,7 +216,12 @@ class CustomerLoyaltyApiController extends Controller
     public function destroyProgram($id)
     {
         try {
+            $program = $this->programRepo->findById($id);
+            $programName = $program ? $program->name : "ID: {$id}";
+
             $this->programRepo->delete($id);
+
+            logActivity('delete', "Deleted loyalty program: {$programName}", 'loyalty_program', (int)$id);
 
             $this->responseBuilder->setMessage("Loyalty program deleted successfully.");
             $this->responseBuilder->setData([]);
@@ -271,6 +280,8 @@ class CustomerLoyaltyApiController extends Controller
             }
 
             DB::commit();
+
+            logActivity('create', "Created loyalty transaction: {$type} - {$points} points for customer ID: {$customerId}", 'loyalty_transaction', $transaction->id ?? null);
 
             $this->responseBuilder->setMessage("Loyalty transaction created successfully.");
             $this->responseBuilder->setData(['transaction' => $transaction]);

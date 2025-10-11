@@ -119,6 +119,8 @@ class CustomerGroupApiController extends Controller
 
             DB::commit();
 
+            logActivity('create', "Created customer group: {$group->name}", 'customer_group', $group->id);
+
             $this->responseBuilder->setMessage("Customer group created successfully.");
             $this->responseBuilder->setData(['group' => $group]);
             return response()->json($this->response->generateResponse($this->responseBuilder), 201);
@@ -161,6 +163,8 @@ class CustomerGroupApiController extends Controller
 
             DB::commit();
 
+            logActivity('update', "Updated customer group: {$group->name}", 'customer_group', (int)$id);
+
             $this->responseBuilder->setMessage("Customer group updated successfully.");
             $this->responseBuilder->setData(['group' => $group]);
             return $this->response->generateResponse($this->responseBuilder);
@@ -189,7 +193,12 @@ class CustomerGroupApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 400);
             }
 
+            $group = $this->groupRepo->findById($id);
+            $groupName = $group ? $group->name : "ID: {$id}";
+
             $this->groupRepo->delete($id);
+
+            logActivity('delete', "Deleted customer group: {$groupName}", 'customer_group', (int)$id);
 
             $this->responseBuilder->setMessage("Customer group deleted successfully.");
             $this->responseBuilder->setData([]);

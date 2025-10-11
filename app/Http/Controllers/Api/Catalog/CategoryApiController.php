@@ -307,8 +307,8 @@ class CategoryApiController extends Controller
                         $oldImagePath = str_replace('/storage/', '', parse_url($oldImagePath, PHP_URL_PATH));
                     }
 
-                    if (\Storage::disk('public')->exists($oldImagePath)) {
-                        \Storage::disk('public')->delete($oldImagePath);
+                    if (\Storage::disk('ftp')->exists($oldImagePath)) {
+                        \Storage::disk('ftp')->delete($oldImagePath);
                     }
                 }
 
@@ -317,7 +317,7 @@ class CategoryApiController extends Controller
                     $image = $request->file('image');
                     $filename = time() . '_' . $image->getClientOriginalName();
                     $path = $image->storeAs('categories', $filename, 'public');
-                    $validated['image'] = url('storage/' . $path);
+                    $validated['image'] = env('FTP_URL') . '/' . $path;
                 }
                 // If using URL from upload API
                 else if ($request->filled('image')) {
@@ -452,8 +452,8 @@ class CategoryApiController extends Controller
                 }
 
                 // Delete file if exists
-                if (\Storage::disk('public')->exists($imagePath)) {
-                    \Storage::disk('public')->delete($imagePath);
+                if (\Storage::disk('ftp')->exists($imagePath)) {
+                    \Storage::disk('ftp')->delete($imagePath);
                 }
             }
 

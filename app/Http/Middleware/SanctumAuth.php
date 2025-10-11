@@ -53,6 +53,9 @@ class SanctumAuth
             ], 403);
         }
 
+        // Set user to request for helper functions (userId(), currentUser(), etc.)
+        $request->attributes->set('user', $user);
+
         // Token is valid, continue
         return $next($request);
     }
