@@ -53,8 +53,7 @@ class SettingsApiController extends Controller
             $result = (new ResultBuilder())
                 ->setStatus(false)
                 ->setStatusCode('500')
-                ->setMessage('Failed to retrieve settings')
-                ->setError($e->getMessage());
+                ->setMessage('Failed to retrieve settings: ' . $e->getMessage());
 
             return response()->json($this->response->generateResponse($result), 500);
         }
@@ -99,8 +98,7 @@ class SettingsApiController extends Controller
             $result = (new ResultBuilder())
                 ->setStatus(false)
                 ->setStatusCode('500')
-                ->setMessage('Failed to retrieve settings')
-                ->setError($e->getMessage());
+                ->setMessage('Failed to retrieve settings: ' . $e->getMessage());
 
             return response()->json($this->response->generateResponse($result), 500);
         }

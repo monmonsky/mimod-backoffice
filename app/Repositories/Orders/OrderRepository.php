@@ -176,17 +176,63 @@ class OrderRepository implements OrderRepositoryInterface
             $query->where('orders.status', $filters['status']);
         }
 
+        if (!empty($filters['payment_status'])) {
+            $query->where('orders.payment_status', $filters['payment_status']);
+        }
+
+        if (!empty($filters['payment_method'])) {
+            $query->where('orders.payment_method', $filters['payment_method']);
+        }
+
         if (!empty($filters['tracking'])) {
             $query->where('orders.tracking_number', 'like', '%' . $filters['tracking'] . '%');
+        }
+
+        if (!empty($filters['courier'])) {
+            $query->where('orders.courier', $filters['courier']);
         }
 
         if (!empty($filters['date_from'])) {
             $query->whereDate('orders.created_at', '>=', $filters['date_from']);
         }
 
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('orders.created_at', '<=', $filters['date_to']);
+        }
+
+        // Filter by min/max total
+        if (!empty($filters['min_total'])) {
+            $query->where('orders.total', '>=', $filters['min_total']);
+        }
+
+        if (!empty($filters['max_total'])) {
+            $query->where('orders.total', '<=', $filters['max_total']);
+        }
+
+        // Search across multiple fields
+        if (!empty($filters['search'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('orders.order_number', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('customers.name', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('customers.email', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('orders.tracking_number', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+
+        // Sort
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+
+        // Validate sort fields
+        $allowedSortFields = ['created_at', 'updated_at', 'order_number', 'total', 'status', 'payment_status'];
+        if (in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy('orders.' . $sortBy, $sortOrder);
+        } else {
+            $query->orderBy('orders.created_at', 'desc');
+        }
+
         // Paginate
-        $orders = $query->orderBy('orders.created_at', 'desc')
-                       ->paginate($perPage)
+        $orders = $query->paginate($perPage)
                        ->appends(request()->query());
 
         if ($orders->isEmpty()) {

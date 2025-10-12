@@ -32,7 +32,7 @@ Route::get('/user', function (Request $request) {
 
 
 // Public routes
-Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/login', [AuthController::class, 'login'])->name('login');
 
 // Store API routes (read-only access for frontend)
 Route::middleware('store.api')->prefix('store')->group(function () {
@@ -64,8 +64,8 @@ Route::middleware('auth.token')->prefix('auth')->group(function () {
     Route::get('sessions', [AuthController::class, 'sessions']);
 });
 
-// Protected routes (using custom auth.token middleware)
-Route::middleware('auth:sanctum')->group(function () {
+// Protected routes (using custom auth.sanctum middleware)
+Route::middleware('auth.sanctum')->group(function () {
 
     // Upload Image routes
     Route::prefix('upload')->group(function () {
@@ -225,6 +225,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [OrderApiController::class, 'show']);
         Route::put('/{id}', [OrderApiController::class, 'update']);
         Route::put('/{id}/status', [OrderApiController::class, 'updateStatus']);
+        Route::put('/{id}/payment-status', [OrderApiController::class, 'updatePaymentStatus']);
+        Route::post('/{id}/send-invoice', [OrderApiController::class, 'sendInvoice']);
         Route::delete('/{id}', [OrderApiController::class, 'destroy']);
     });
 

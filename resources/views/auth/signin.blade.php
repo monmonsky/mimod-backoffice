@@ -50,10 +50,6 @@
             <div class="col-span-12 lg:col-span-5 xl:col-span-4 2xl:col-span-3">
                 <div class="flex flex-col items-stretch p-6 md:p-8 lg:p-16">
                     <div class="flex items-center justify-between">
-                        <a href="{{ route('login') }}">
-                            @include('partials.logo')
-                        </a>
-
                         @include('partials.theme-toggle', ['class' => 'btn btn-circle btn-outline border-base-300 relative overflow-hidden'])
                     </div>
                     <h3 class="mt-8 text-center text-xl font-semibold md:mt-12 lg:mt-24">Login</h3>

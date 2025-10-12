@@ -220,6 +220,7 @@ class BrandApiController extends Controller
 
             // Log activity
             logActivity('update', 'Updated brand: ' . $brand->name, 'brand', (int)$brand->id);
+            \Log::info('Brand updated', ['brand_id' => $brand->id, 'user_id' => auth()->id() ?? userId()]);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)

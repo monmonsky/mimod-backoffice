@@ -18,23 +18,28 @@ class PermissionMiddleware
     {
         $user = currentUser();
 
-        // If no user, redirect to login
+        // If no user, return unauthorized
         if (!$user) {
-            if ($request->expectsJson() || $request->is('api/*')) {
+            // For API requests, return JSON
+            if ($request->expectsJson() || str_starts_with($request->path(), 'api/')) {
                 return response()->json([
-                    'success' => false,
+                    'status' => false,
+                    'statusCode' => '401',
                     'message' => 'Unauthenticated.'
                 ], 401);
             }
 
-            return redirect('/login')->with('error', 'Please login first.');
+            // For web requests, redirect to login
+            return redirect()->route('login')->with('error', 'Please login first.');
         }
 
         // Check if user has permission
         if (!hasPermission($permission)) {
-            if ($request->expectsJson() || $request->is('api/*')) {
+            // For API requests, return JSON
+            if ($request->expectsJson() || str_starts_with($request->path(), 'api/')) {
                 return response()->json([
-                    'success' => false,
+                    'status' => false,
+                    'statusCode' => '403',
                     'message' => 'You do not have permission to access this resource.',
                     'required_permission' => $permission
                 ], 403);

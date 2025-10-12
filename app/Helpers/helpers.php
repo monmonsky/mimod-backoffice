@@ -3,6 +3,13 @@
 if (!function_exists('currentUser')) {
     /**
      * Get current authenticated user data from request
+     * Works with both custom middleware (auth.token, auth.sanctum) and Laravel's Sanctum
+     *
+     * Priority order:
+     * 1. request()->attributes->get('user') - set by custom middleware
+     * 2. request()->get('user') - legacy method
+     * 3. request()->user() - Laravel Sanctum authenticated user
+     * 4. auth()->user() - Laravel auth facade
      *
      * @param string|null $key Specific key to get (e.g., 'name', 'email')
      * @param mixed $default Default value if key doesn't exist
@@ -10,12 +17,54 @@ if (!function_exists('currentUser')) {
      */
     function currentUser(?string $key = null, $default = null)
     {
-        // Try to get from attributes first (set by middleware)
+        // Method 1: Try to get from attributes first (set by custom middleware)
         $user = request()->attributes->get('user');
 
-        // Fallback to request parameter
+        // Method 2: Fallback to request parameter (legacy)
         if (!$user) {
             $user = request()->get('user');
+        }
+
+        // Method 3: Fallback to Sanctum's authenticated user
+        if (!$user) {
+            try {
+                $sanctumUser = request()->user();
+
+                // If we got Sanctum user, convert to array for consistency
+                if ($sanctumUser) {
+                    $user = [
+                        'id' => $sanctumUser->id,
+                        'name' => $sanctumUser->name,
+                        'email' => $sanctumUser->email,
+                        'phone' => $sanctumUser->phone ?? null,
+                        'avatar' => $sanctumUser->avatar ?? null,
+                        'role_id' => $sanctumUser->role_id ?? null,
+                        'status' => $sanctumUser->status ?? 'active',
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::debug('Failed to get Sanctum user in currentUser(): ' . $e->getMessage());
+            }
+        }
+
+        // Method 4: Try auth facade as last resort
+        if (!$user) {
+            try {
+                $authUser = auth()->user();
+                if ($authUser) {
+                    $user = [
+                        'id' => $authUser->id,
+                        'name' => $authUser->name,
+                        'email' => $authUser->email,
+                        'phone' => $authUser->phone ?? null,
+                        'avatar' => $authUser->avatar ?? null,
+                        'role_id' => $authUser->role_id ?? null,
+                        'status' => $authUser->status ?? 'active',
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::debug('Failed to get auth user in currentUser(): ' . $e->getMessage());
+            }
         }
 
         if (!$user) {
@@ -291,7 +340,18 @@ if (!function_exists('logActivity')) {
     ): bool {
         try {
             // Use provided userId or get from current request
-            $userId = $userId ?? userId();
+            // Try multiple methods to get user ID
+            if (!$userId) {
+                $userId = userId(); // Uses currentUser() with fallbacks
+            }
+
+            if (!$userId) {
+                $userId = auth()->id(); // Laravel auth facade
+            }
+
+            if (!$userId) {
+                $userId = request()->user()?->id; // Sanctum user
+            }
 
             if (!$userId) {
                 \Illuminate\Support\Facades\Log::warning('logActivity: No user ID found', [
@@ -299,6 +359,8 @@ if (!function_exists('logActivity')) {
                     'description' => $description,
                     'has_user_in_attributes' => request()->attributes->has('user'),
                     'has_user_in_request' => request()->has('user'),
+                    'sanctum_user' => request()->user() ? 'exists' : 'null',
+                    'auth_user' => auth()->user() ? 'exists' : 'null',
                 ]);
                 return false;
             }

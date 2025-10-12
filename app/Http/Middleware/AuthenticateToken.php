@@ -33,36 +33,26 @@ class AuthenticateToken
 
         // Check if token exists
         if (!$token) {
-            // For API requests, return JSON
-            if ($request->expectsJson() || $request->is('api/*')) {
+            if ($request->expectsJson() || str_starts_with($request->path(), 'api/')) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Unauthenticated. Token not provided.',
                     'code' => 'TOKEN_MISSING'
                 ], 401);
             }
-
-            // For web requests, redirect to login
-            return redirect('/login')->with('error', 'Please login first.');
         }
 
         // Find user by token
         $user = $this->userRepository->findByToken($token);
 
         if (!$user) {
-            // For API requests, return JSON
-            if ($request->expectsJson() || $request->is('api/*')) {
+            if ($request->expectsJson() || str_starts_with($request->path(), 'api/')) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Unauthenticated. Invalid or expired token.',
                     'code' => 'TOKEN_INVALID'
                 ], 401);
             }
-
-            // For web requests, redirect to login
-            return redirect('/login')
-                ->with('error', 'Session expired. Please login again.')
-                ->withCookie(Cookie::forget('auth_token'));
         }
 
         // Check account status
@@ -70,19 +60,13 @@ class AuthenticateToken
             // Revoke token
             $this->userRepository->revokeToken($token);
 
-            // For API requests, return JSON
-            if ($request->expectsJson() || $request->is('api/*')) {
+            if ($request->expectsJson() || str_starts_with($request->path(), 'api/')) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Your account has been ' . $user->status . '.',
                     'code' => 'ACCOUNT_' . strtoupper($user->status)
                 ], 403);
             }
-
-            // For web requests, redirect to login
-            return redirect('/login')
-                ->with('error', 'Your account has been ' . $user->status . '.')
-                ->withCookie(Cookie::forget('auth_token'));
         }
 
         // Convert user object to array properly (including dynamic properties)
