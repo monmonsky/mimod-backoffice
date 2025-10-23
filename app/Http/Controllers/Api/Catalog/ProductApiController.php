@@ -31,30 +31,30 @@ class ProductApiController extends Controller
 
             // Filter by status
             if ($request->filled('status')) {
-                $query->where('status', $request->status);
+                $query->where('products.status', $request->status);
             }
 
             // Filter by featured
             if ($request->filled('is_featured')) {
-                $query->where('is_featured', $request->is_featured);
+                $query->where('products.is_featured', $request->is_featured);
             }
 
             // Filter by brand
             if ($request->filled('brand_id')) {
-                $query->where('brand_id', $request->brand_id);
+                $query->where('products.brand_id', $request->brand_id);
             }
 
             // Filter by category
             if ($request->filled('category_id')) {
                 $productIds = $this->productRepo->getProductIdsByCategory($request->category_id);
-                $query->whereIn('id', $productIds);
+                $query->whereIn('products.id', $productIds);
             }
 
             // Search by name or SKU (SKU is in product_variants table)
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
-                    $q->where('name', 'ILIKE', '%' . $search . '%')
+                    $q->where('products.name', 'ILIKE', '%' . $search . '%')
                       ->orWhereExists(function($subQuery) use ($search) {
                           $subQuery->select(\DB::raw(1))
                               ->from('product_variants')
@@ -578,6 +578,10 @@ class ProductApiController extends Controller
                 'age_max' => 'nullable|integer|min:0',
                 'tags' => 'nullable',
                 'is_featured' => 'nullable|boolean',
+                'seo_meta' => 'nullable|array',
+                'seo_meta.title' => 'nullable|string|max:255',
+                'seo_meta.description' => 'nullable|string|max:500',
+                'seo_meta.keywords' => 'nullable|string|max:500',
                 'category_ids' => 'required|array',
                 'category_ids.*' => 'exists:categories,id',
                 'images' => 'required|array',
@@ -597,6 +601,11 @@ class ProductApiController extends Controller
                     $tagsArray = array_map('trim', explode(',', $validated['tags']));
                     $validated['tags'] = json_encode($tagsArray);
                 }
+            }
+
+            // Handle seo_meta - encode to JSON if present
+            if (isset($validated['seo_meta'])) {
+                $validated['seo_meta'] = json_encode($validated['seo_meta']);
             }
 
             // Extract categories and images before creating product
@@ -756,6 +765,10 @@ class ProductApiController extends Controller
                 'age_max' => 'nullable|integer|min:0',
                 'tags' => 'nullable',
                 'is_featured' => 'nullable|boolean',
+                'seo_meta' => 'nullable|array',
+                'seo_meta.title' => 'nullable|string|max:255',
+                'seo_meta.description' => 'nullable|string|max:500',
+                'seo_meta.keywords' => 'nullable|string|max:500',
                 'category_ids' => 'required|array',
                 'category_ids.*' => 'exists:categories,id',
                 'images' => 'required|array',
@@ -775,6 +788,11 @@ class ProductApiController extends Controller
                     $tagsArray = array_map('trim', explode(',', $validated['tags']));
                     $validated['tags'] = json_encode($tagsArray);
                 }
+            }
+
+            // Handle seo_meta - encode to JSON if present
+            if (isset($validated['seo_meta'])) {
+                $validated['seo_meta'] = json_encode($validated['seo_meta']);
             }
 
             // Extract categories and images before updating product

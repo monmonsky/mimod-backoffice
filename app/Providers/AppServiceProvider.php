@@ -18,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
         );
 
         // Settings Repositories
+        // TODO: Uncomment when Settings repositories are created
         $this->app->bind(
             \App\Repositories\Contracts\GeneralSettingsRepositoryInterface::class,
             \App\Repositories\Settings\GeneralSettingsRepository::class
@@ -136,6 +137,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Repositories\Contracts\Marketing\BundleDealRepositoryInterface::class,
             \App\Repositories\Marketing\BundleDealRepository::class
+        );
+
+        // Menu Repositories
+        $this->app->bind(
+            \App\Repositories\Contracts\Menu\MenuRepositoryInterface::class,
+            \App\Repositories\Menu\MenuRepository::class
         );
     }
 

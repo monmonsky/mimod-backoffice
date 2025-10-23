@@ -112,6 +112,14 @@ class ProductRepository implements ProductRepositoryInterface
             return null;
         }
 
+        // Decode JSON fields
+        if (isset($product->tags) && is_string($product->tags)) {
+            $product->tags = json_decode($product->tags);
+        }
+        if (isset($product->seo_meta) && is_string($product->seo_meta)) {
+            $product->seo_meta = json_decode($product->seo_meta);
+        }
+
         // Get categories
         $product->categories = DB::table('product_categories')
             ->join('categories', 'product_categories.category_id', '=', 'categories.id')
@@ -560,6 +568,14 @@ class ProductRepository implements ProductRepositoryInterface
             return null;
         }
 
+        // Decode JSON fields
+        if (isset($product->tags) && is_string($product->tags)) {
+            $product->tags = json_decode($product->tags);
+        }
+        if (isset($product->seo_meta) && is_string($product->seo_meta)) {
+            $product->seo_meta = json_decode($product->seo_meta);
+        }
+
         // Get brand
         if ($product->brand_id) {
             $product->brand = $this->getBrand($product->brand_id);
@@ -750,6 +766,14 @@ class ProductRepository implements ProductRepositoryInterface
 
         // Attach data to products
         foreach ($products as $product) {
+            // Decode JSON fields
+            if (isset($product->tags) && is_string($product->tags)) {
+                $product->tags = json_decode($product->tags);
+            }
+            if (isset($product->seo_meta) && is_string($product->seo_meta)) {
+                $product->seo_meta = json_decode($product->seo_meta);
+            }
+
             // Attach brand name
             $product->brand_name = isset($brands[$product->brand_id])
                 ? $brands[$product->brand_id]->name

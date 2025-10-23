@@ -48,34 +48,12 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the role that owns the user.
+     * Note: This project uses Repository Pattern instead of Eloquent relationships
+     * Role and permissions are loaded via:
+     * - UserRepository->getUserWithRole($userId)
+     * - Helper functions: hasPermission(), currentUser(), etc.
+     *
+     * DO NOT add role() or permissions() relationships here as they will cause errors
+     * because App\Models\Role does not exist.
      */
-    public function role()
-    {
-        return $this->belongsTo(Role::class);
-    }
-
-    /**
-     * Get all permissions for the user through their role.
-     */
-    public function permissions()
-    {
-        if (!$this->role) {
-            return collect([]);
-        }
-
-        return $this->role->permissions();
-    }
-
-    /**
-     * Get permissions attribute for eager loading.
-     */
-    public function getPermissionsAttribute()
-    {
-        if (!$this->relationLoaded('role')) {
-            $this->load('role.permissions');
-        }
-
-        return $this->role ? $this->role->permissions : collect([]);
-    }
 }

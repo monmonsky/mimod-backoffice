@@ -23,6 +23,9 @@ use App\Http\Controllers\Api\Marketing\CouponApiController;
 use App\Http\Controllers\Api\Marketing\FlashSaleApiController;
 use App\Http\Controllers\Api\Marketing\BundleDealApiController;
 use App\Http\Controllers\Api\StoreTokenApiController;
+use App\Http\Controllers\Api\ShippingApiController;
+use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\Admin\MenuController as AdminMenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +36,12 @@ Route::get('/user', function (Request $request) {
 
 // Public routes
 Route::post('auth/login', [AuthController::class, 'login'])->name('login');
+
+// Public Menu API (for frontend)
+Route::prefix('menus')->group(function () {
+    Route::get('/location', [MenuController::class, 'getMenuByLocation']);
+    Route::get('/all-locations', [MenuController::class, 'getAllLocations']);
+});
 
 // Store API routes (read-only access for frontend)
 Route::middleware('store.api')->prefix('store')->group(function () {
@@ -214,6 +223,27 @@ Route::middleware('auth.sanctum')->group(function () {
         });
     });
 
+    // Shipping / Ongkir routes
+    Route::prefix('shipping')->group(function () {
+        Route::get('/provinces', [ShippingApiController::class, 'getProvinces']);
+        Route::get('/cities', [ShippingApiController::class, 'getCities']);
+        Route::post('/calculate', [ShippingApiController::class, 'calculateCost']);
+        Route::post('/track', [ShippingApiController::class, 'trackShipment']);
+    });
+
+    // Menu Management (Admin)
+    Route::prefix('admin/menus')->group(function () {
+        Route::get('/', [AdminMenuController::class, 'index']);
+        Route::post('/', [AdminMenuController::class, 'store']);
+        Route::get('/parents', [AdminMenuController::class, 'getParents']);
+        Route::post('/bulk-create-categories', [AdminMenuController::class, 'bulkCreateFromCategories']);
+        Route::post('/bulk-create-brands', [AdminMenuController::class, 'bulkCreateFromBrands']);
+        Route::post('/reorder', [AdminMenuController::class, 'reorder']);
+        Route::get('/{id}', [AdminMenuController::class, 'show']);
+        Route::put('/{id}', [AdminMenuController::class, 'update']);
+        Route::delete('/{id}', [AdminMenuController::class, 'destroy']);
+    });
+
     // Orders routes
     Route::prefix('orders')->group(function () {
         Route::get('/pending/count', [OrderApiController::class, 'pendingCount']);
@@ -221,6 +251,7 @@ Route::middleware('auth.sanctum')->group(function () {
 
         // CRUD routes
         Route::get('/', [OrderApiController::class, 'index']);
+        Route::post('/', [OrderApiController::class, 'store']);
         Route::get('/customer/{customerId}', [OrderApiController::class, 'byCustomer']);
         Route::get('/{id}', [OrderApiController::class, 'show']);
         Route::put('/{id}', [OrderApiController::class, 'update']);
@@ -313,54 +344,34 @@ Route::middleware('auth.sanctum')->group(function () {
     Route::prefix('marketing')->group(function () {
         // Coupons API routes
         Route::prefix('coupons')->group(function () {
-            Route::get('/', [CouponApiController::class, 'index'])
-                ->middleware('permission:marketing.coupons.view');
-            Route::get('/{id}', [CouponApiController::class, 'show'])
-                ->middleware('permission:marketing.coupons.view');
-            Route::post('/', [CouponApiController::class, 'store'])
-                ->middleware('permission:marketing.coupons.create');
-            Route::put('/{id}', [CouponApiController::class, 'update'])
-                ->middleware('permission:marketing.coupons.update');
-            Route::delete('/{id}', [CouponApiController::class, 'destroy'])
-                ->middleware('permission:marketing.coupons.delete');
-            Route::post('/validate', [CouponApiController::class, 'validate'])
-                ->middleware('permission:marketing.coupons.view');
+            Route::get('/', [CouponApiController::class, 'index']);
+            Route::get('/{id}', [CouponApiController::class, 'show']);
+            Route::post('/', [CouponApiController::class, 'store']);
+            Route::put('/{id}', [CouponApiController::class, 'update']);
+            Route::delete('/{id}', [CouponApiController::class, 'destroy']);
+            Route::post('/validate', [CouponApiController::class, 'validate']);
         });
 
         // Flash Sales API routes
         Route::prefix('flash-sales')->group(function () {
-            Route::get('/', [FlashSaleApiController::class, 'index'])
-                ->middleware('permission:marketing.flash-sales.view');
-            Route::get('/{id}', [FlashSaleApiController::class, 'show'])
-                ->middleware('permission:marketing.flash-sales.view');
-            Route::post('/', [FlashSaleApiController::class, 'store'])
-                ->middleware('permission:marketing.flash-sales.create');
-            Route::put('/{id}', [FlashSaleApiController::class, 'update'])
-                ->middleware('permission:marketing.flash-sales.update');
-            Route::delete('/{id}', [FlashSaleApiController::class, 'destroy'])
-                ->middleware('permission:marketing.flash-sales.delete');
-            Route::post('/{id}/products', [FlashSaleApiController::class, 'addProduct'])
-                ->middleware('permission:marketing.flash-sales.update');
-            Route::delete('/{id}/products', [FlashSaleApiController::class, 'removeProduct'])
-                ->middleware('permission:marketing.flash-sales.update');
+            Route::get('/', [FlashSaleApiController::class, 'index']);
+            Route::get('/{id}', [FlashSaleApiController::class, 'show']);
+            Route::post('/', [FlashSaleApiController::class, 'store']);
+            Route::put('/{id}', [FlashSaleApiController::class, 'update']);
+            Route::delete('/{id}', [FlashSaleApiController::class, 'destroy']);
+            Route::post('/{id}/products', [FlashSaleApiController::class, 'addProduct']);
+            Route::delete('/{id}/products', [FlashSaleApiController::class, 'removeProduct']);
         });
 
         // Bundle Deals API routes
         Route::prefix('bundle-deals')->group(function () {
-            Route::get('/', [BundleDealApiController::class, 'index'])
-                ->middleware('permission:marketing.bundle-deals.view');
-            Route::get('/{id}', [BundleDealApiController::class, 'show'])
-                ->middleware('permission:marketing.bundle-deals.view');
-            Route::post('/', [BundleDealApiController::class, 'store'])
-                ->middleware('permission:marketing.bundle-deals.create');
-            Route::put('/{id}', [BundleDealApiController::class, 'update'])
-                ->middleware('permission:marketing.bundle-deals.update');
-            Route::delete('/{id}', [BundleDealApiController::class, 'destroy'])
-                ->middleware('permission:marketing.bundle-deals.delete');
-            Route::post('/{id}/items', [BundleDealApiController::class, 'addItem'])
-                ->middleware('permission:marketing.bundle-deals.update');
-            Route::delete('/{id}/items', [BundleDealApiController::class, 'removeItem'])
-                ->middleware('permission:marketing.bundle-deals.update');
+            Route::get('/', [BundleDealApiController::class, 'index']);
+            Route::get('/{id}', [BundleDealApiController::class, 'show']);
+            Route::post('/', [BundleDealApiController::class, 'store']);
+            Route::put('/{id}', [BundleDealApiController::class, 'update']);
+            Route::delete('/{id}', [BundleDealApiController::class, 'destroy']);
+            Route::post('/{id}/items', [BundleDealApiController::class, 'addItem']);
+            Route::delete('/{id}/items', [BundleDealApiController::class, 'removeItem']);
         });
     });
 });

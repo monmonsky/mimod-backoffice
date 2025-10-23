@@ -177,6 +177,187 @@ class OrderApiController extends Controller
     }
 
     /**
+     * Create new order
+     */
+    public function store(Request $request)
+    {
+        try {
+            // Validation
+            $validated = $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'items' => 'required|array|min:1',
+                'items.*.variant_id' => 'required|exists:product_variants,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'items.*.price' => 'required|numeric|min:0',
+                'shipping_address' => 'required|string',
+                'shipping_city' => 'required|string',
+                'shipping_province' => 'required|string',
+                'shipping_postal_code' => 'nullable|string',
+                'shipping_phone' => 'required|string',
+                'courier' => 'nullable|string',
+                'shipping_cost' => 'required|numeric|min:0',
+                'payment_method' => 'required|string',
+                'coupon_code' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'shipping_notes' => 'nullable|string',
+            ]);
+
+            DB::beginTransaction();
+
+            // Generate order number
+            $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+
+            // Calculate subtotal from items
+            $subtotal = 0;
+            foreach ($validated['items'] as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
+
+            // Apply coupon discount if provided
+            $discountAmount = 0;
+            if (!empty($validated['coupon_code'])) {
+                // Validate coupon
+                $couponRepo = app(\App\Repositories\Contracts\Marketing\CouponRepositoryInterface::class);
+                $couponValidation = $couponRepo->validateCoupon(
+                    $validated['coupon_code'],
+                    $validated['customer_id'],
+                    $subtotal
+                );
+
+                if ($couponValidation['valid'] ?? false) {
+                    $coupon = $couponValidation['coupon'];
+
+                    if ($coupon->type === 'percentage') {
+                        $discountAmount = ($subtotal * $coupon->value) / 100;
+                        if ($coupon->max_discount && $discountAmount > $coupon->max_discount) {
+                            $discountAmount = $coupon->max_discount;
+                        }
+                    } elseif ($coupon->type === 'fixed') {
+                        $discountAmount = $coupon->value;
+                    }
+                    // free_shipping type doesn't affect subtotal discount
+                }
+            }
+
+            // Calculate tax (if applicable) - assuming 0 for now
+            $taxAmount = 0;
+
+            // Calculate total
+            $totalAmount = $subtotal - $discountAmount + $taxAmount + $validated['shipping_cost'];
+
+            // Create order
+            $orderData = [
+                'order_number' => $orderNumber,
+                'customer_id' => $validated['customer_id'],
+                'user_id' => auth()->id(),
+                'status' => 'pending',
+                'payment_method' => $validated['payment_method'],
+                'payment_status' => 'pending',
+                'shipping_address' => $validated['shipping_address'],
+                'shipping_city' => $validated['shipping_city'],
+                'shipping_province' => $validated['shipping_province'],
+                'shipping_postal_code' => $validated['shipping_postal_code'] ?? null,
+                'shipping_phone' => $validated['shipping_phone'],
+                'courier' => $validated['courier'] ?? null,
+                'shipping_cost' => $validated['shipping_cost'],
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'notes' => $validated['notes'] ?? null,
+                'shipping_notes' => $validated['shipping_notes'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $orderId = DB::table('orders')->insertGetId($orderData);
+
+            // Create order items
+            foreach ($validated['items'] as $item) {
+                // Get variant details
+                $variant = DB::table('product_variants as pv')
+                    ->join('products as p', 'pv.product_id', '=', 'p.id')
+                    ->where('pv.id', $item['variant_id'])
+                    ->select('p.name as product_name', 'pv.sku', 'pv.size', 'pv.color')
+                    ->first();
+
+                $itemSubtotal = $item['price'] * $item['quantity'];
+                $itemDiscount = 0;
+                $itemTotal = $itemSubtotal - $itemDiscount;
+
+                DB::table('order_items')->insert([
+                    'order_id' => $orderId,
+                    'variant_id' => $item['variant_id'],
+                    'product_name' => $variant->product_name ?? 'Unknown Product',
+                    'sku' => $variant->sku ?? '',
+                    'size' => $variant->size ?? '',
+                    'color' => $variant->color ?? '',
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'subtotal' => $itemSubtotal,
+                    'discount_amount' => $itemDiscount,
+                    'total' => $itemTotal,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Update variant stock
+                DB::table('product_variants')
+                    ->where('id', $item['variant_id'])
+                    ->decrement('stock_quantity', $item['quantity']);
+            }
+
+            // Record coupon usage if applied
+            if (!empty($validated['coupon_code']) && $discountAmount > 0) {
+                $couponRepo = app(\App\Repositories\Contracts\Marketing\CouponRepositoryInterface::class);
+                $coupon = $couponRepo->findByCode($validated['coupon_code']);
+                if ($coupon) {
+                    $couponRepo->recordUsage($coupon->id, $validated['customer_id'], $orderId, $discountAmount);
+                }
+            }
+
+            DB::commit();
+
+            // Retrieve created order with relations
+            $order = $this->orderRepo->findByIdWithRelations($orderId);
+            $formattedOrder = $this->formatOrderWithCustomer($order);
+
+            // Log activity
+            logActivity('create', "Created order: {$orderNumber}", 'order', $orderId);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('201')
+                ->setMessage('Order created successfully')
+                ->setData($formattedOrder);
+
+            return response()->json($this->response->generateResponse($result), 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage($e->validator->errors()->first())
+                ->setData(['errors' => $e->validator->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Order creation failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to create order: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
      * Update order
      */
     public function update(Request $request, $id)
