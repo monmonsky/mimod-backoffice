@@ -69,12 +69,12 @@ class AiSeoController extends Controller
                 return response()->json($this->response->generateResponse($result), 500);
             }
 
-            // Use the correct Gemini API endpoint - gemini-2.5-flash (verified working)
+            // Use Gemini API v1 with gemini-pro (stable model)
             $httpResponse = Http::timeout(30)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
+                ->post("https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={$apiKey}", [
                     'contents' => [
                         [
                             'parts' => [
@@ -91,16 +91,24 @@ class AiSeoController extends Controller
                 ]);
 
             if ($httpResponse->failed()) {
+                Log::error('Gemini API Request Failed', [
+                    'status' => $httpResponse->status(),
+                    'body' => $httpResponse->body()
+                ]);
                 throw new \Exception('Failed to generate SEO from AI: ' . $httpResponse->body());
             }
 
             $apiResult = $httpResponse->json();
 
+            // Log full API response for debugging
+            Log::info('Gemini API Response', ['response' => $apiResult]);
+
             // Extract text from response
             $generatedText = $apiResult['candidates'][0]['content']['parts'][0]['text'] ?? '';
 
             if (empty($generatedText)) {
-                throw new \Exception('AI response is empty');
+                Log::error('Empty AI Response', ['api_result' => $apiResult]);
+                throw new \Exception('AI response is empty. Check logs for details.');
             }
 
             // Parse JSON from generated text
@@ -119,13 +127,27 @@ class AiSeoController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            $result = (new ResultBuilder())
-                ->setStatus(false)
-                ->setStatusCode('500')
-                ->setMessage('Failed to generate SEO: ' . $e->getMessage())
-                ->setData([]);
+            // Fallback: Generate SEO using template if AI fails
+            try {
+                Log::info('Using fallback template-based SEO generation');
+                $seoData = $this->generateSeoFallback($name, $description, $brandName, $categoriesStr, $tagsStr, $ageRange);
 
-            return response()->json($this->response->generateResponse($result), 500);
+                $result = (new ResultBuilder())
+                    ->setStatus(true)
+                    ->setStatusCode('200')
+                    ->setMessage('SEO generated successfully (using template)')
+                    ->setData($seoData);
+
+                return response()->json($this->response->generateResponse($result), 200);
+            } catch (\Exception $fallbackError) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('500')
+                    ->setMessage('Failed to generate SEO: ' . $e->getMessage())
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 500);
+            }
         }
     }
 
@@ -182,5 +204,70 @@ class AiSeoController extends Controller
 
         // Fallback if JSON parsing fails
         throw new \Exception('Failed to parse AI response. Invalid JSON format. Response: ' . substr($text, 0, 200));
+    }
+
+    /**
+     * Generate SEO using template (fallback when AI fails)
+     */
+    private function generateSeoFallback($name, $description, $brandName, $categories, $tags, $ageRange)
+    {
+        // Truncate description for meta
+        $shortDesc = mb_strlen($description) > 100 ? mb_substr($description, 0, 100) . '...' : $description;
+
+        // Build SEO Title (max 60 chars)
+        $title = $name;
+        if (!empty($brandName)) {
+            $title .= " - {$brandName}";
+        }
+        $title .= " | Minimoda";
+        if (mb_strlen($title) > 60) {
+            $title = mb_substr($name, 0, 40) . "... | Minimoda";
+        }
+
+        // Build Meta Description (120-160 chars)
+        $metaDesc = "Beli {$name}";
+        if (!empty($brandName)) {
+            $metaDesc .= " dari {$brandName}";
+        }
+        $metaDesc .= ". {$shortDesc}";
+        if (!empty($ageRange)) {
+            $metaDesc .= " Untuk usia {$ageRange}.";
+        }
+        $metaDesc .= " Belanja sekarang di Minimoda!";
+
+        if (mb_strlen($metaDesc) > 160) {
+            $metaDesc = mb_substr($metaDesc, 0, 157) . "...";
+        }
+
+        // Build Keywords
+        $keywords = [$name];
+
+        if (!empty($brandName)) {
+            $keywords[] = $brandName;
+        }
+
+        if (!empty($categories)) {
+            $catArray = explode(', ', $categories);
+            $keywords = array_merge($keywords, array_slice($catArray, 0, 3));
+        }
+
+        if (!empty($tags)) {
+            $tagArray = explode(', ', $tags);
+            $keywords = array_merge($keywords, array_slice($tagArray, 0, 3));
+        }
+
+        $keywords[] = 'pakaian anak';
+        $keywords[] = 'fashion anak';
+        $keywords[] = 'baju anak berkualitas';
+
+        // Remove duplicates and limit to 10
+        $keywords = array_unique($keywords);
+        $keywords = array_slice($keywords, 0, 10);
+
+        return [
+            'title' => $title,
+            'description' => $metaDesc,
+            'keywords' => implode(', ', $keywords)
+        ];
     }
 }

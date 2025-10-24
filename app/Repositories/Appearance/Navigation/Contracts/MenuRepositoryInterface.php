@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Contracts\Menu;
+namespace App\Repositories\Appearance\Navigation\Contracts;
 
 interface MenuRepositoryInterface
 {

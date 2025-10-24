@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'store.api' => \App\Http\Middleware\StoreApiAuth::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+            'pulse.code' => \App\Http\Middleware\PulseAccessCode::class,
         ]);
 
         // Disable CSRF for API routes
@@ -40,4 +41,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
         });
-    })->create();
+    })
+    ->withSchedule(function ($schedule) {
+        // Cleanup expired tokens daily at 3 AM
+        $schedule->command('tokens:cleanup')
+            ->daily()
+            ->at('03:00')
+            ->withoutOverlapping();
+    })
+    ->create();

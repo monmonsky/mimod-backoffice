@@ -7,6 +7,8 @@ use App\Http\Responses\GeneralResponse\Response;
 use App\Http\Responses\GeneralResponse\ResultBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UploadImageApiController extends Controller
 {
@@ -278,7 +280,7 @@ class UploadImageApiController extends Controller
             $variantId = $request->variant_id;
 
             // Get product info for folder naming
-            $product = \DB::table('products')->where('id', $productId)->first();
+            $product = DB::table('products')->where('id', $productId)->first();
             if (!$product) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
@@ -297,7 +299,7 @@ class UploadImageApiController extends Controller
                 $foreignId = $productId;
             } else {
                 // Variant
-                $variant = \DB::table('product_variants')->where('id', $variantId)->first();
+                $variant = DB::table('product_variants')->where('id', $variantId)->first();
                 if (!$variant) {
                     $result = (new ResultBuilder())
                         ->setStatus(false)
@@ -314,7 +316,7 @@ class UploadImageApiController extends Controller
             }
 
             // Get existing images count for sort_order
-            $existingCount = \DB::table($table)->where($foreignKey, $foreignId)->count();
+            $existingCount = DB::table($table)->where($foreignKey, $foreignId)->count();
             $sortOrder = $existingCount + 1;
 
             $uploadedImages = [];
@@ -333,7 +335,7 @@ class UploadImageApiController extends Controller
                 $isPrimary = ($existingCount === 0 && $index === 0);
 
                 // Insert to database with full URL
-                $imageId = \DB::table($table)->insertGetId([
+                $imageId = DB::table($table)->insertGetId([
                     $foreignKey => $foreignId,
                     'url' => $url,
                     'alt_text' => null,
@@ -406,7 +408,7 @@ class UploadImageApiController extends Controller
         try {
             $validated = $request->validate([
                 'images' => 'required|array|min:1|max:20',
-                'images.*' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:20480', // 20MB max
+                'images.*' => 'required|file|mimes:jpeg,jpg,png,gif,webp,svg,mp4,mov,avi,webm,mkv|max:102400', // Images + Videos, 100MB max
                 'type' => 'required|string|in:product,variant',
                 'session_id' => 'nullable|string', // Optional unique identifier
                 'product_id' => 'nullable|integer|exists:products,id', // If editing existing product
@@ -422,7 +424,7 @@ class UploadImageApiController extends Controller
 
             // If product_id exists, upload directly to permanent folder
             if ($productId && $type === 'product') {
-                $product = \DB::table('products')->where('id', $productId)->first();
+                $product = DB::table('products')->where('id', $productId)->first();
                 if (!$product) {
                     $result = (new ResultBuilder())
                         ->setStatus(false)
@@ -436,7 +438,7 @@ class UploadImageApiController extends Controller
                 $isTemp = false;
             } elseif ($variantId && $type === 'variant') {
                 // If variant_id exists, get product and upload to variant folder
-                $variant = \DB::table('product_variants')->where('id', $variantId)->first();
+                $variant = DB::table('product_variants')->where('id', $variantId)->first();
                 if (!$variant) {
                     $result = (new ResultBuilder())
                         ->setStatus(false)
@@ -445,7 +447,7 @@ class UploadImageApiController extends Controller
                     return response()->json($this->response->generateResponse($result), 404);
                 }
 
-                $product = \DB::table('products')->where('id', $variant->product_id)->first();
+                $product = DB::table('products')->where('id', $variant->product_id)->first();
                 $folderName = $product->slug ?? \Str::slug($product->name);
                 $directory = 'products/' . $folderName . '/variants';
                 $isTemp = false;
@@ -459,42 +461,126 @@ class UploadImageApiController extends Controller
             $existingCount = 0;
 
             if ($productId && $type === 'product') {
-                $existingCount = \DB::table('product_images')->where('product_id', $productId)->count();
+                $existingCount = DB::table('product_images')->where('product_id', $productId)->count();
             } elseif ($variantId && $type === 'variant') {
-                $existingCount = \DB::table('product_variant_images')->where('variant_id', $variantId)->count();
+                $existingCount = DB::table('product_variant_images')->where('variant_id', $variantId)->count();
             }
 
             $sortOrder = $existingCount + 1;
 
-            foreach ($request->file('images') as $index => $image) {
-                // Generate unique filename
-                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            foreach ($request->file('images') as $index => $file) {
+                // Detect media type from MIME type and extension
+                $mimeType = $file->getMimeType();
+                $extension = strtolower($file->getClientOriginalExtension());
 
-                // Store the image
-                $path = $image->storeAs($directory, $filename, 'ftp');
+                // Video extensions
+                $videoExtensions = ['mp4', 'mov', 'avi', 'webm', 'mkv', 'flv', 'wmv'];
+
+                // Detect media type
+                $mediaType = 'image';
+                if (str_starts_with($mimeType, 'video/') || in_array($extension, $videoExtensions)) {
+                    $mediaType = 'video';
+                }
+
+                Log::info('Media upload detected', [
+                    'filename' => $file->getClientOriginalName(),
+                    'mime_type' => $mimeType,
+                    'extension' => $extension,
+                    'detected_type' => $mediaType
+                ]);
+
+                // Generate unique filename
+                $filename = time() . '_' . uniqid() . '.' . $extension;
+
+                // Store the file
+                $path = $file->storeAs($directory, $filename, 'ftp');
 
                 // Generate URL
                 $url = $this->getFtpUrl($path);
+
+                // Get file size
+                $fileSize = $file->getSize();
+
+                // Initialize video metadata
+                $duration = null;
+                $thumbnailUrl = null;
+
+                // Get video metadata if it's a video
+                if ($mediaType === 'video') {
+                    // Try to get duration using getID3
+                    try {
+                        if (class_exists('\getID3')) {
+                            $getID3 = new \getID3();
+                            $fileInfo = $getID3->analyze($file->getRealPath());
+                            if (isset($fileInfo['playtime_seconds'])) {
+                                $duration = (int) $fileInfo['playtime_seconds'];
+                            }
+
+                            Log::info('Video metadata extracted', [
+                                'duration' => $duration,
+                                'filename' => $filename
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Could not get video duration: ' . $e->getMessage());
+                    }
+
+                    // Generate thumbnail for video using FFmpeg (if available)
+                    try {
+                        $thumbnailUrl = $this->generateVideoThumbnail($file, $directory);
+                        if ($thumbnailUrl) {
+                            Log::info('Video thumbnail generated', [
+                                'thumbnail_url' => $thumbnailUrl,
+                                'video_filename' => $filename
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Could not generate video thumbnail: ' . $e->getMessage());
+                    }
+                }
 
                 $imageData = [
                     'url' => $url,
                     'path' => $path,
                     'filename' => $filename,
                     'temp' => $isTemp,
+                    'media_type' => $mediaType,
+                    'file_size' => $fileSize,
                 ];
+
+                if ($mediaType === 'video') {
+                    if ($duration) {
+                        $imageData['duration'] = $duration;
+                    }
+                    if ($thumbnailUrl) {
+                        $imageData['thumbnail_url'] = $thumbnailUrl;
+                    }
+                }
 
                 // If product_id or variant_id exists, save directly to database
                 if ($productId && $type === 'product') {
                     $isPrimary = ($existingCount === 0 && $index === 0);
 
-                    $imageId = \DB::table('product_images')->insertGetId([
+                    $dbData = [
                         'product_id' => $productId,
                         'url' => $url,
                         'alt_text' => $altText,
                         'is_primary' => $isPrimary,
                         'sort_order' => $sortOrder,
+                        'media_type' => $mediaType,
+                        'file_size' => $fileSize,
                         'created_at' => now(),
-                    ]);
+                    ];
+
+                    if ($duration) {
+                        $dbData['duration'] = $duration;
+                    }
+
+                    if ($thumbnailUrl) {
+                        $dbData['thumbnail_url'] = $thumbnailUrl;
+                    }
+
+                    $imageId = DB::table('product_images')->insertGetId($dbData);
 
                     $imageData['id'] = $imageId;
                     $imageData['is_primary'] = $isPrimary;
@@ -505,14 +591,26 @@ class UploadImageApiController extends Controller
                 } elseif ($variantId && $type === 'variant') {
                     $isPrimary = ($existingCount === 0 && $index === 0);
 
-                    $imageId = \DB::table('product_variant_images')->insertGetId([
+                    $dbData = [
                         'variant_id' => $variantId,
                         'url' => $url,
                         'alt_text' => $altText,
                         'is_primary' => $isPrimary,
                         'sort_order' => $sortOrder,
+                        'media_type' => $mediaType,
+                        'file_size' => $fileSize,
                         'created_at' => now(),
-                    ]);
+                    ];
+
+                    if ($duration) {
+                        $dbData['duration'] = $duration;
+                    }
+
+                    if ($thumbnailUrl) {
+                        $dbData['thumbnail_url'] = $thumbnailUrl;
+                    }
+
+                    $imageId = DB::table('product_variant_images')->insertGetId($dbData);
 
                     $imageData['id'] = $imageId;
                     $imageData['is_primary'] = $isPrimary;
@@ -612,15 +710,21 @@ class UploadImageApiController extends Controller
                 'type' => 'required|string|in:product,variant',
                 'product_id' => 'required|integer|exists:products,id',
                 'variant_id' => 'required_if:type,variant|integer|exists:product_variants,id',
+                'metadata' => 'nullable|array', // Optional metadata from temp upload
+                'metadata.*.duration' => 'nullable|integer',
+                'metadata.*.media_type' => 'nullable|string|in:image,video',
+                'metadata.*.file_size' => 'nullable|integer',
+                'metadata.*.thumbnail_url' => 'nullable|string',
             ]);
 
             $type = $request->type;
             $productId = $request->product_id;
             $variantId = $request->variant_id;
             $tempPaths = $request->temp_paths;
+            $metadata = $request->metadata ?? []; // Metadata array from frontend
 
             // Get product info for folder naming
-            $product = \DB::table('products')->where('id', $productId)->first();
+            $product = DB::table('products')->where('id', $productId)->first();
             if (!$product) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
@@ -639,7 +743,7 @@ class UploadImageApiController extends Controller
                 $foreignId = $productId;
             } else {
                 // Variant
-                $variant = \DB::table('product_variants')->where('id', $variantId)->first();
+                $variant = DB::table('product_variants')->where('id', $variantId)->first();
                 if (!$variant) {
                     $result = (new ResultBuilder())
                         ->setStatus(false)
@@ -656,7 +760,7 @@ class UploadImageApiController extends Controller
             }
 
             // Get existing images count for sort_order
-            $existingCount = \DB::table($table)->where($foreignKey, $foreignId)->count();
+            $existingCount = DB::table($table)->where($foreignKey, $foreignId)->count();
             $sortOrder = $existingCount + 1;
 
             $movedImages = [];
@@ -664,13 +768,93 @@ class UploadImageApiController extends Controller
             foreach ($tempPaths as $index => $tempPath) {
                 // Check if temp file exists
                 if (!Storage::disk('ftp')->exists($tempPath)) {
+                    Log::warning('Temp file not found', ['path' => $tempPath]);
                     continue; // Skip if file doesn't exist
                 }
 
-                // Get file info
+                // Get file info and metadata
                 $filename = basename($tempPath);
-                $newFilename = time() . '_' . uniqid() . '.' . pathinfo($filename, PATHINFO_EXTENSION);
+                $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                $newFilename = time() . '_' . uniqid() . '.' . $extension;
                 $newPath = $permanentDir . '/' . $newFilename;
+
+                // Get metadata from frontend if provided (preferred)
+                $metadataItem = $metadata[$index] ?? null;
+
+                // Detect media type from extension (fallback if not provided)
+                $videoExtensions = ['mp4', 'mov', 'avi', 'webm', 'mkv', 'flv', 'wmv'];
+                $mediaType = $metadataItem['media_type'] ?? (in_array($extension, $videoExtensions) ? 'video' : 'image');
+
+                // Get file size from metadata or FTP
+                $fileSize = $metadataItem['file_size'] ?? Storage::disk('ftp')->size($tempPath);
+
+                // Get duration from metadata (only available if provided by frontend)
+                $duration = $metadataItem['duration'] ?? null;
+
+                // Initialize thumbnail URL
+                $thumbnailUrl = null;
+
+                // If video, try to move thumbnail
+                if ($mediaType === 'video') {
+                    // First, check if thumbnail_url provided in metadata
+                    $tempThumbnailUrl = $metadataItem['thumbnail_url'] ?? null;
+
+                    if ($tempThumbnailUrl) {
+                        // Extract path from URL
+                        $tempThumbnailPath = $this->getPathFromUrl($tempThumbnailUrl);
+
+                        Log::info('Processing thumbnail from metadata', [
+                            'thumbnail_url' => $tempThumbnailUrl,
+                            'thumbnail_path' => $tempThumbnailPath
+                        ]);
+
+                        // Check if thumbnail file exists
+                        if (Storage::disk('ftp')->exists($tempThumbnailPath)) {
+                            // Move thumbnail to permanent location
+                            $thumbnailPermanentDir = $permanentDir . '/thumbnails';
+                            $thumbnailFilename = basename($tempThumbnailPath);
+                            $thumbnailPermanentPath = $thumbnailPermanentDir . '/' . $thumbnailFilename;
+
+                            Storage::disk('ftp')->move($tempThumbnailPath, $thumbnailPermanentPath);
+                            $thumbnailUrl = $this->getFtpUrl($thumbnailPermanentPath);
+
+                            Log::info('Moved video thumbnail from metadata', [
+                                'from' => $tempThumbnailPath,
+                                'to' => $thumbnailPermanentPath,
+                                'new_url' => $thumbnailUrl
+                            ]);
+                        } else {
+                            Log::warning('Thumbnail file not found in FTP', [
+                                'thumbnail_path' => $tempThumbnailPath
+                            ]);
+                        }
+                    } else {
+                        // Fallback: Try to find thumbnail by searching temp directory
+                        $tempDir = dirname($tempPath) . '/thumbnails/';
+                        if (Storage::disk('ftp')->exists($tempDir)) {
+                            $thumbnailFiles = Storage::disk('ftp')->files($tempDir);
+                            $baseFilename = pathinfo($filename, PATHINFO_FILENAME);
+
+                            foreach ($thumbnailFiles as $thumbFile) {
+                                if (strpos(basename($thumbFile), $baseFilename) !== false) {
+                                    // Move thumbnail to permanent location
+                                    $thumbnailPermanentDir = $permanentDir . '/thumbnails';
+                                    $thumbnailFilename = basename($thumbFile);
+                                    $thumbnailPermanentPath = $thumbnailPermanentDir . '/' . $thumbnailFilename;
+
+                                    Storage::disk('ftp')->move($thumbFile, $thumbnailPermanentPath);
+                                    $thumbnailUrl = $this->getFtpUrl($thumbnailPermanentPath);
+
+                                    Log::info('Moved video thumbnail (fallback search)', [
+                                        'from' => $thumbFile,
+                                        'to' => $thumbnailPermanentPath
+                                    ]);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Move file from temp to permanent location
                 Storage::disk('ftp')->move($tempPath, $newPath);
@@ -681,23 +865,55 @@ class UploadImageApiController extends Controller
                 // Determine if this is primary
                 $isPrimary = ($existingCount === 0 && $index === 0);
 
-                // Insert to database with full URL
-                $imageId = \DB::table($table)->insertGetId([
+                Log::info('Moving media from temp to permanent', [
+                    'from' => $tempPath,
+                    'to' => $newPath,
+                    'media_type' => $mediaType,
+                    'file_size' => $fileSize,
+                    'has_thumbnail' => $thumbnailUrl !== null
+                ]);
+
+                // Insert to database with full metadata
+                $dbData = [
                     $foreignKey => $foreignId,
                     'url' => $url,
                     'alt_text' => null,
                     'is_primary' => $isPrimary,
                     'sort_order' => $sortOrder,
+                    'media_type' => $mediaType,
+                    'file_size' => $fileSize,
                     'created_at' => now(),
-                ]);
+                ];
 
-                $movedImages[] = [
+                if ($thumbnailUrl) {
+                    $dbData['thumbnail_url'] = $thumbnailUrl;
+                }
+
+                if ($duration) {
+                    $dbData['duration'] = $duration;
+                }
+
+                $imageId = DB::table($table)->insertGetId($dbData);
+
+                $movedImageData = [
                     'id' => $imageId,
                     'url' => $url,
                     'path' => $newPath,
                     'is_primary' => $isPrimary,
                     'sort_order' => $sortOrder,
+                    'media_type' => $mediaType,
+                    'file_size' => $fileSize,
                 ];
+
+                if ($thumbnailUrl) {
+                    $movedImageData['thumbnail_url'] = $thumbnailUrl;
+                }
+
+                if ($duration) {
+                    $movedImageData['duration'] = $duration;
+                }
+
+                $movedImages[] = $movedImageData;
 
                 $sortOrder++;
             }
@@ -756,7 +972,7 @@ class UploadImageApiController extends Controller
     {
         try {
             // Get image from database
-            $image = \DB::table('product_images')->where('id', $id)->first();
+            $image = DB::table('product_images')->where('id', $id)->first();
 
             if (!$image) {
                 $result = (new ResultBuilder())
@@ -776,12 +992,12 @@ class UploadImageApiController extends Controller
             }
 
             // Delete from database
-            \DB::table('product_images')->where('id', $id)->delete();
+            DB::table('product_images')->where('id', $id)->delete();
 
             // If deleted image was primary, set the next image (by sort_order) as primary
             if ($image->is_primary) {
                 // Get the next image after the deleted one by sort_order
-                $newPrimary = \DB::table('product_images')
+                $newPrimary = DB::table('product_images')
                     ->where('product_id', $image->product_id)
                     ->where('sort_order', '>', $image->sort_order)
                     ->orderBy('sort_order', 'asc')
@@ -789,14 +1005,14 @@ class UploadImageApiController extends Controller
 
                 // If no image after, get the first one
                 if (!$newPrimary) {
-                    $newPrimary = \DB::table('product_images')
+                    $newPrimary = DB::table('product_images')
                         ->where('product_id', $image->product_id)
                         ->orderBy('sort_order', 'asc')
                         ->first();
                 }
 
                 if ($newPrimary) {
-                    \DB::table('product_images')
+                    DB::table('product_images')
                         ->where('id', $newPrimary->id)
                         ->update(['is_primary' => true]);
                 }
@@ -841,7 +1057,7 @@ class UploadImageApiController extends Controller
     {
         try {
             // Get image from database
-            $image = \DB::table('product_images')->where('id', $id)->first();
+            $image = DB::table('product_images')->where('id', $id)->first();
 
             if (!$image) {
                 $result = (new ResultBuilder())
@@ -867,12 +1083,12 @@ class UploadImageApiController extends Controller
             }
 
             // Set all images of this product to not primary
-            \DB::table('product_images')
+            DB::table('product_images')
                 ->where('product_id', $image->product_id)
                 ->update(['is_primary' => false]);
 
             // Set this image as primary
-            \DB::table('product_images')
+            DB::table('product_images')
                 ->where('id', $id)
                 ->update(['is_primary' => true]);
 
@@ -930,7 +1146,230 @@ class UploadImageApiController extends Controller
             }
         } catch (\Exception $e) {
             // Silently fail cleanup
-            \Log::warning('Failed to cleanup temp directory: ' . $e->getMessage());
+            Log::warning('Failed to cleanup temp directory: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Upload media (image or video)
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function uploadMedia(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:jpeg,jpg,png,gif,webp,svg,mp4,mov,avi,webm|max:102400', // 100MB max
+                'type' => 'required|string|in:' . implode(',', array_keys($this->allowedTypes)),
+                'media_type' => 'nullable|string|in:image,video',
+                'path' => 'nullable|string',
+                'thumbnail' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120', // 5MB thumbnail
+            ]);
+
+            if (!$request->hasFile('file')) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('No file provided')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            $type = $request->type;
+            $file = $request->file('file');
+            $mimeType = $file->getMimeType();
+
+            // Auto-detect media type if not provided
+            $mediaType = $request->input('media_type');
+            if (!$mediaType) {
+                $mediaType = str_starts_with($mimeType, 'video/') ? 'video' : 'image';
+            }
+
+            // Determine directory path
+            $directory = $request->filled('path')
+                ? $request->path
+                : $this->allowedTypes[$type];
+
+            // Generate unique filename
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            // Store the file
+            $path = $file->storeAs($directory, $filename, 'ftp');
+
+            // Generate URL
+            $url = $this->getFtpUrl($path);
+
+            // Prepare response data
+            $responseData = [
+                'url' => $url,
+                'path' => $path,
+                'filename' => $filename,
+                'type' => $type,
+                'media_type' => $mediaType,
+                'file_size' => $file->getSize(),
+                'mime_type' => $mimeType,
+            ];
+
+            // Handle thumbnail for video
+            if ($mediaType === 'video' && $request->hasFile('thumbnail')) {
+                $thumbnail = $request->file('thumbnail');
+                $thumbnailFilename = 'thumb_' . time() . '_' . uniqid() . '.' . $thumbnail->getClientOriginalExtension();
+                $thumbnailPath = $thumbnail->storeAs($directory, $thumbnailFilename, 'ftp');
+                $responseData['thumbnail_url'] = $this->getFtpUrl($thumbnailPath);
+                $responseData['thumbnail_path'] = $thumbnailPath;
+            }
+
+            // Get video duration if available (requires ffmpeg or similar)
+            if ($mediaType === 'video') {
+                $responseData['duration'] = $this->getVideoDuration($file->getRealPath());
+            }
+
+            // Log activity
+            logActivity('create', "Uploaded {$mediaType} for {$type}: {$filename}", 'upload', null);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage(ucfirst($mediaType) . ' uploaded successfully')
+                ->setData($responseData);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to upload media: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get video duration in seconds
+     * Note: Requires getID3 library or FFmpeg
+     *
+     * @param string $filePath
+     * @return int|null
+     */
+    private function getVideoDuration($filePath)
+    {
+        try {
+            // Check if getID3 is available
+            if (class_exists('\getID3')) {
+                $getID3 = new \getID3();
+                $fileInfo = $getID3->analyze($filePath);
+                return isset($fileInfo['playtime_seconds']) ? (int) $fileInfo['playtime_seconds'] : null;
+            }
+
+            // Alternative: Use FFmpeg if available
+            if (function_exists('exec')) {
+                $command = "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 " . escapeshellarg($filePath);
+                $output = exec($command);
+                if ($output && is_numeric($output)) {
+                    return (int) $output;
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::warning('Failed to get video duration: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Generate thumbnail from video using FFmpeg
+     *
+     * @param \Illuminate\Http\UploadedFile $videoFile
+     * @param string $directory Directory where video is stored
+     * @return string|null Thumbnail URL or null if failed
+     */
+    private function generateVideoThumbnail($videoFile, $directory)
+    {
+        try {
+            // Check if FFmpeg is available
+            $ffmpegPath = env('FFMPEG_PATH', 'ffmpeg');
+            $checkCommand = "which {$ffmpegPath} 2>&1";
+            $ffmpegExists = exec($checkCommand);
+
+            if (empty($ffmpegExists)) {
+                Log::info('FFmpeg not found, skipping thumbnail generation');
+                return null;
+            }
+
+            // Get video file path
+            $videoPath = $videoFile->getRealPath();
+
+            // Generate thumbnail filename
+            $thumbnailFilename = pathinfo($videoFile->getClientOriginalName(), PATHINFO_FILENAME) . '_thumb_' . time() . '.jpg';
+            $thumbnailTempPath = sys_get_temp_dir() . '/' . $thumbnailFilename;
+
+            // FFmpeg command to extract frame at 1 second
+            // -ss 1: seek to 1 second
+            // -i: input file
+            // -vframes 1: extract 1 frame
+            // -q:v 2: quality (2 is high quality)
+            $command = sprintf(
+                '%s -ss 1 -i %s -vframes 1 -q:v 2 %s 2>&1',
+                $ffmpegPath,
+                escapeshellarg($videoPath),
+                escapeshellarg($thumbnailTempPath)
+            );
+
+            Log::info('Generating video thumbnail', [
+                'command' => $command,
+                'video_path' => $videoPath,
+                'thumbnail_path' => $thumbnailTempPath
+            ]);
+
+            // Execute FFmpeg command
+            $output = [];
+            $returnCode = 0;
+            exec($command, $output, $returnCode);
+
+            if ($returnCode !== 0 || !file_exists($thumbnailTempPath)) {
+                Log::warning('FFmpeg thumbnail generation failed', [
+                    'return_code' => $returnCode,
+                    'output' => implode("\n", $output)
+                ]);
+                return null;
+            }
+
+            // Upload thumbnail to FTP
+            $thumbnailDirectory = $directory . '/thumbnails';
+            $thumbnailStoragePath = $thumbnailDirectory . '/' . $thumbnailFilename;
+
+            // Read thumbnail file and upload to FTP
+            $thumbnailContent = file_get_contents($thumbnailTempPath);
+            Storage::disk('ftp')->put($thumbnailStoragePath, $thumbnailContent);
+
+            // Clean up temp file
+            @unlink($thumbnailTempPath);
+
+            // Generate thumbnail URL
+            $thumbnailUrl = $this->getFtpUrl($thumbnailStoragePath);
+
+            Log::info('Video thumbnail generated successfully', [
+                'thumbnail_url' => $thumbnailUrl
+            ]);
+
+            return $thumbnailUrl;
+        } catch (\Exception $e) {
+            Log::error('Failed to generate video thumbnail: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
+            return null;
         }
     }
 }

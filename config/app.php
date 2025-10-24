@@ -123,4 +123,32 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | SKU Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure SKU generation format and prefix for product variants.
+    | Formats: 'sequential', 'attribute-based', 'hybrid'
+    |
+    */
+
+    'sku_prefix' => env('SKU_PREFIX', 'MM'),
+    'sku_format' => env('SKU_FORMAT', 'attribute-based'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Barcode Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure barcode generation settings.
+    | Types: 'EAN13', 'UPC', 'CODE128'
+    | Company prefix should be obtained from GS1
+    |
+    */
+
+    'barcode_company_prefix' => env('BARCODE_COMPANY_PREFIX', '899123'),
+    'barcode_type' => env('BARCODE_TYPE', 'EAN13'),
+    'barcode_auto_generate' => env('BARCODE_AUTO_GENERATE', true),
+
 ];

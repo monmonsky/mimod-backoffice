@@ -142,8 +142,9 @@ class ProductRepository implements ProductRepositoryInterface
                 ->get();
         }
 
-        // Get images
+        // Get images (including videos)
         $product->images = DB::table('product_images')
+            ->select('id', 'product_id', 'url', 'media_type', 'thumbnail_url', 'duration', 'file_size', 'alt_text', 'is_primary', 'sort_order', 'created_at')
             ->where('product_id', $product->id)
             ->orderBy('sort_order', 'asc')
             ->get();
@@ -256,6 +257,7 @@ class ProductRepository implements ProductRepositoryInterface
     public function getProductImages($productId)
     {
         return DB::table('product_images')
+            ->select('id', 'product_id', 'url', 'media_type', 'thumbnail_url', 'duration', 'file_size', 'alt_text', 'is_primary', 'sort_order', 'created_at')
             ->where('product_id', $productId)
             ->orderBy('sort_order', 'asc')
             ->get();
@@ -354,8 +356,9 @@ class ProductRepository implements ProductRepositoryInterface
                 ->select('categories.*')
                 ->get();
 
-            // Attach images
+            // Attach images (including videos)
             $product->images = DB::table('product_images')
+                ->select('id', 'product_id', 'url', 'media_type', 'thumbnail_url', 'duration', 'file_size', 'alt_text', 'is_primary', 'sort_order', 'created_at')
                 ->where('product_id', $product->id)
                 ->orderBy('is_primary', 'desc')
                 ->orderBy('sort_order', 'asc')

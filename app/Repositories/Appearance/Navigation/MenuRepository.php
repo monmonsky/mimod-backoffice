@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories\Menu;
+namespace App\Repositories\Appearance\Navigation;
 
-use App\Repositories\Contracts\Menu\MenuRepositoryInterface;
+use App\Repositories\Appearance\Navigation\Contracts\MenuRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;

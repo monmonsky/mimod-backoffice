@@ -76,7 +76,7 @@ class ProductVariantApiController extends Controller
         try {
             $validated = $request->validate([
                 'product_id' => 'required|integer|exists:products,id',
-                'sku' => 'required|string|max:100|unique:product_variants,sku',
+                'sku' => 'nullable|string|max:100|unique:product_variants,sku',
                 'size' => 'required|string|max:50',
                 'color' => 'nullable|string|max:50',
                 'weight_gram' => 'required|integer|min:0',
@@ -96,8 +96,77 @@ class ProductVariantApiController extends Controller
             $validated['created_at'] = now();
             $validated['updated_at'] = now();
 
+            // Auto-generate SKU if not provided
+            $autoGenerateSku = empty($validated['sku']) && config('app.barcode_auto_generate', true);
+
+            if ($autoGenerateSku) {
+                // Get product to get brand and category
+                $product = DB::table('products')
+                    ->where('id', $validated['product_id'])
+                    ->first();
+
+                // Get category (first category)
+                $category = DB::table('product_categories')
+                    ->join('categories', 'categories.id', '=', 'product_categories.category_id')
+                    ->where('product_categories.product_id', $product->id)
+                    ->select('categories.id')
+                    ->first();
+
+                $categoryId = $category ? $category->id : null;
+
+                // Generate temporary SKU (will be updated after variant is created)
+                $tempSku = 'TEMP-' . time() . '-' . uniqid();
+                $validated['sku'] = $tempSku;
+            }
+
             // Create variant
             $variantId = DB::table('product_variants')->insertGetId($validated);
+
+            // If auto-generate is enabled, generate and update SKU & Barcode
+            if ($autoGenerateSku) {
+                $product = DB::table('products')
+                    ->where('id', $validated['product_id'])
+                    ->first();
+
+                $category = DB::table('product_categories')
+                    ->join('categories', 'categories.id', '=', 'product_categories.category_id')
+                    ->where('product_categories.product_id', $product->id)
+                    ->select('categories.id')
+                    ->first();
+
+                $categoryId = $category ? $category->id : null;
+
+                // Generate SKU with stock quantity
+                $sku = \App\Helpers\SkuBarcodeGenerator::generateSKU(
+                    $product->id,
+                    $product->brand_id,
+                    $categoryId,
+                    $validated['color'],
+                    $validated['size'],
+                    $validated['stock_quantity']
+                );
+                $uniqueSku = \App\Helpers\SkuBarcodeGenerator::ensureUniqueSKU($sku, $variantId);
+
+                // Generate Barcode if not provided
+                $barcode = !empty($validated['barcode'])
+                    ? $validated['barcode']
+                    : \App\Helpers\SkuBarcodeGenerator::generateBarcode($variantId);
+
+                // Update variant with generated SKU & Barcode
+                DB::table('product_variants')
+                    ->where('id', $variantId)
+                    ->update([
+                        'sku' => $uniqueSku,
+                        'barcode' => $barcode,
+                        'updated_at' => now()
+                    ]);
+
+                \Log::info('Auto-generated SKU & Barcode', [
+                    'variant_id' => $variantId,
+                    'sku' => $uniqueSku,
+                    'barcode' => $barcode
+                ]);
+            }
 
             // Get product for folder naming
             $product = DB::table('products')->where('id', $validated['product_id'])->first();
@@ -501,6 +570,340 @@ class ProductVariantApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to delete variant: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Generate SKU for a variant
+     *
+     * @param Request $request
+     * @param int $variantId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateSku(Request $request, $variantId)
+    {
+        try {
+            // Get variant with product info
+            $variant = DB::table('product_variants')
+                ->where('id', $variantId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get product to get brand and category
+            $product = DB::table('products')
+                ->where('id', $variant->product_id)
+                ->first();
+
+            // Get category (first category)
+            $category = DB::table('product_categories')
+                ->join('categories', 'categories.id', '=', 'product_categories.category_id')
+                ->where('product_categories.product_id', $product->id)
+                ->select('categories.id')
+                ->first();
+
+            $categoryId = $category ? $category->id : null;
+
+            // Generate SKU
+            $sku = \App\Helpers\SkuBarcodeGenerator::generateSKU(
+                $product->id,
+                $product->brand_id,
+                $categoryId,
+                $variant->color,
+                $variant->size,
+                $variant->stock_quantity
+            );
+
+            // Ensure uniqueness
+            $uniqueSku = \App\Helpers\SkuBarcodeGenerator::ensureUniqueSKU($sku, $variantId);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('SKU generated successfully')
+                ->setData([
+                    'variant_id' => $variantId,
+                    'sku' => $uniqueSku,
+                    'format' => config('app.sku_format')
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to generate SKU: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Generate Barcode for a variant
+     *
+     * @param Request $request
+     * @param int $variantId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateBarcode(Request $request, $variantId)
+    {
+        try {
+            // Check if variant exists
+            $variant = DB::table('product_variants')
+                ->where('id', $variantId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Generate Barcode
+            $barcode = \App\Helpers\SkuBarcodeGenerator::generateBarcode($variantId);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Barcode generated successfully')
+                ->setData([
+                    'variant_id' => $variantId,
+                    'barcode' => $barcode,
+                    'type' => config('app.barcode_type')
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to generate barcode: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Generate both SKU and Barcode for a variant
+     *
+     * @param Request $request
+     * @param int $variantId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateSkuAndBarcode(Request $request, $variantId)
+    {
+        try {
+            // Get variant with product info
+            $variant = DB::table('product_variants')
+                ->where('id', $variantId)
+                ->first();
+
+            if (!$variant) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get product
+            $product = DB::table('products')
+                ->where('id', $variant->product_id)
+                ->first();
+
+            // Get category
+            $category = DB::table('product_categories')
+                ->join('categories', 'categories.id', '=', 'product_categories.category_id')
+                ->where('product_categories.product_id', $product->id)
+                ->select('categories.id')
+                ->first();
+
+            $categoryId = $category ? $category->id : null;
+
+            // Generate SKU
+            $sku = \App\Helpers\SkuBarcodeGenerator::generateSKU(
+                $product->id,
+                $product->brand_id,
+                $categoryId,
+                $variant->color,
+                $variant->size,
+                $variant->stock_quantity
+            );
+            $uniqueSku = \App\Helpers\SkuBarcodeGenerator::ensureUniqueSKU($sku, $variantId);
+
+            // Generate Barcode
+            $barcode = \App\Helpers\SkuBarcodeGenerator::generateBarcode($variantId);
+
+            // Update variant
+            DB::table('product_variants')
+                ->where('id', $variantId)
+                ->update([
+                    'sku' => $uniqueSku,
+                    'barcode' => $barcode,
+                    'updated_at' => now()
+                ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('SKU and Barcode generated and saved successfully')
+                ->setData([
+                    'variant_id' => $variantId,
+                    'sku' => $uniqueSku,
+                    'barcode' => $barcode,
+                    'sku_format' => config('app.sku_format'),
+                    'barcode_type' => config('app.barcode_type')
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to generate SKU and barcode: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Batch generate SKU and Barcode for multiple variants or all variants of a product
+     *
+     * @param Request $request
+     * @param int $productId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function batchGenerate(Request $request, $productId)
+    {
+        try {
+            // Validate
+            $validated = $request->validate([
+                'variant_ids' => 'nullable|array',
+                'variant_ids.*' => 'integer|exists:product_variants,id',
+                'generate_all' => 'nullable|boolean',
+            ]);
+
+            // Get product
+            $product = DB::table('products')->where('id', $productId)->first();
+
+            if (!$product) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Product not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get category
+            $category = DB::table('product_categories')
+                ->join('categories', 'categories.id', '=', 'product_categories.category_id')
+                ->where('product_categories.product_id', $productId)
+                ->select('categories.id')
+                ->first();
+
+            $categoryId = $category ? $category->id : null;
+
+            // Get variants to process
+            if ($request->input('generate_all', false)) {
+                $variants = DB::table('product_variants')
+                    ->where('product_id', $productId)
+                    ->get();
+            } elseif (!empty($validated['variant_ids'])) {
+                $variants = DB::table('product_variants')
+                    ->whereIn('id', $validated['variant_ids'])
+                    ->where('product_id', $productId)
+                    ->get();
+            } else {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('422')
+                    ->setMessage('Please provide variant_ids or set generate_all to true')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 422);
+            }
+
+            $generated = [];
+
+            foreach ($variants as $variant) {
+                // Generate SKU
+                $sku = \App\Helpers\SkuBarcodeGenerator::generateSKU(
+                    $productId,
+                    $product->brand_id,
+                    $categoryId,
+                    $variant->color,
+                    $variant->size,
+                    $variant->stock_quantity
+                );
+                $uniqueSku = \App\Helpers\SkuBarcodeGenerator::ensureUniqueSKU($sku, $variant->id);
+
+                // Generate Barcode
+                $barcode = \App\Helpers\SkuBarcodeGenerator::generateBarcode($variant->id);
+
+                // Update variant
+                DB::table('product_variants')
+                    ->where('id', $variant->id)
+                    ->update([
+                        'sku' => $uniqueSku,
+                        'barcode' => $barcode,
+                        'updated_at' => now()
+                    ]);
+
+                $generated[] = [
+                    'variant_id' => $variant->id,
+                    'sku' => $uniqueSku,
+                    'barcode' => $barcode,
+                    'color' => $variant->color,
+                    'size' => $variant->size
+                ];
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage(count($generated) . ' variants processed successfully')
+                ->setData([
+                    'product_id' => $productId,
+                    'total_processed' => count($generated),
+                    'variants' => $generated
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to batch generate: ' . $e->getMessage())
                 ->setData([]);
 
             return response()->json($this->response->generateResponse($result), 500);

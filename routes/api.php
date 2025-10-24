@@ -24,8 +24,8 @@ use App\Http\Controllers\Api\Marketing\FlashSaleApiController;
 use App\Http\Controllers\Api\Marketing\BundleDealApiController;
 use App\Http\Controllers\Api\StoreTokenApiController;
 use App\Http\Controllers\Api\ShippingApiController;
-use App\Http\Controllers\Api\MenuController;
-use App\Http\Controllers\Api\Admin\MenuController as AdminMenuController;
+use App\Http\Controllers\Api\AiSeoController;
+use App\Http\Controllers\Api\Appearance\Navigation\MenuController as NavigationMenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -36,12 +36,6 @@ Route::get('/user', function (Request $request) {
 
 // Public routes
 Route::post('auth/login', [AuthController::class, 'login'])->name('login');
-
-// Public Menu API (for frontend)
-Route::prefix('menus')->group(function () {
-    Route::get('/location', [MenuController::class, 'getMenuByLocation']);
-    Route::get('/all-locations', [MenuController::class, 'getAllLocations']);
-});
 
 // Store API routes (read-only access for frontend)
 Route::middleware('store.api')->prefix('store')->group(function () {
@@ -63,6 +57,10 @@ Route::middleware('store.api')->prefix('store')->group(function () {
     // Settings
     Route::get('/settings', [SettingsApiController::class, 'index'])->middleware('store.api:settings:read');
     Route::get('/settings/{key}', [SettingsApiController::class, 'show'])->middleware('store.api:settings:read');
+
+    // Public Menu API (for frontend - header only)
+    // Route::get('/menus', [NavigationMenuController::class, 'getMenuByLocation'])->middleware('store.api:menus:read');
+    Route::get('/menus', [NavigationMenuController::class, 'getMenuByLocation']);
 });
 
 // Auth routes (using custom auth.token middleware)
@@ -79,6 +77,7 @@ Route::middleware('auth.sanctum')->group(function () {
     // Upload Image routes
     Route::prefix('upload')->group(function () {
         Route::post('/image', [UploadImageApiController::class, 'upload']);
+        Route::post('/media', [UploadImageApiController::class, 'uploadMedia']); // Support image + video
         Route::post('/images', [UploadImageApiController::class, 'uploadMultiple']);
         Route::post('/bulk', [UploadImageApiController::class, 'uploadBulk']);
         Route::post('/temp', [UploadImageApiController::class, 'uploadTemporary']);
@@ -168,6 +167,9 @@ Route::middleware('auth.sanctum')->group(function () {
     Route::post('/email/test-connection', [\App\Http\Controllers\Api\EmailTestApiController::class, 'testConnection']);
     Route::get('/email/config', [\App\Http\Controllers\Api\EmailTestApiController::class, 'getConfig']);
 
+    // AI SEO Generation API
+    Route::post('/ai/generate-seo', [AiSeoController::class, 'generateSeo']);
+
     // Catalog routes
     Route::prefix('catalog')->group(function () {
         // Products
@@ -192,11 +194,20 @@ Route::middleware('auth.sanctum')->group(function () {
 
             // Product Variants
             Route::prefix('variants')->group(function () {
+                // SKU & Barcode Generation (must be before generic routes)
+                Route::post('/{id}/generate-sku', [ProductVariantApiController::class, 'generateSku']);
+                Route::post('/{id}/generate-barcode', [ProductVariantApiController::class, 'generateBarcode']);
+                Route::post('/{id}/generate-sku-barcode', [ProductVariantApiController::class, 'generateSkuAndBarcode']);
+
+                // CRUD operations
                 Route::get('/{id}', [ProductVariantApiController::class, 'show']);
                 Route::post('/', [ProductVariantApiController::class, 'store']);
                 Route::put('/{id}', [ProductVariantApiController::class, 'update']);
                 Route::delete('/{id}', [ProductVariantApiController::class, 'destroy']);
             });
+
+            // Batch SKU & Barcode Generation
+            Route::post('/{id}/variants/batch-generate', [ProductVariantApiController::class, 'batchGenerate']);
         });
 
         // Categories
@@ -231,17 +242,17 @@ Route::middleware('auth.sanctum')->group(function () {
         Route::post('/track', [ShippingApiController::class, 'trackShipment']);
     });
 
-    // Menu Management (Admin)
-    Route::prefix('admin/menus')->group(function () {
-        Route::get('/', [AdminMenuController::class, 'index']);
-        Route::post('/', [AdminMenuController::class, 'store']);
-        Route::get('/parents', [AdminMenuController::class, 'getParents']);
-        Route::post('/bulk-create-categories', [AdminMenuController::class, 'bulkCreateFromCategories']);
-        Route::post('/bulk-create-brands', [AdminMenuController::class, 'bulkCreateFromBrands']);
-        Route::post('/reorder', [AdminMenuController::class, 'reorder']);
-        Route::get('/{id}', [AdminMenuController::class, 'show']);
-        Route::put('/{id}', [AdminMenuController::class, 'update']);
-        Route::delete('/{id}', [AdminMenuController::class, 'destroy']);
+    // Appearance / Navigation Menu Management
+    Route::prefix('appearance/navigation/menus')->group(function () {
+        Route::get('/', [NavigationMenuController::class, 'index']);
+        Route::post('/', [NavigationMenuController::class, 'store']);
+        Route::get('/parents', [NavigationMenuController::class, 'getParents']);
+        Route::post('/bulk-create-categories', [NavigationMenuController::class, 'bulkCreateFromCategories']);
+        Route::post('/bulk-create-brands', [NavigationMenuController::class, 'bulkCreateFromBrands']);
+        Route::post('/reorder', [NavigationMenuController::class, 'reorder']);
+        Route::get('/{id}', [NavigationMenuController::class, 'show']);
+        Route::put('/{id}', [NavigationMenuController::class, 'update']);
+        Route::delete('/{id}', [NavigationMenuController::class, 'destroy']);
     });
 
     // Orders routes

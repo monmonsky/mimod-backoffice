@@ -256,7 +256,7 @@ class ProductApiController extends Controller
     public function featured(Request $request)
     {
         try {
-            $limit = $request->get('limit', 10);
+            $limit = $request->get('limit', 8);
 
             $products = $this->productRepo->query()
                 ->where('is_featured', true)

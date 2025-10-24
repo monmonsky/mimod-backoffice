@@ -19,20 +19,20 @@ class AppServiceProvider extends ServiceProvider
 
         // Settings Repositories
         // TODO: Uncomment when Settings repositories are created
-        $this->app->bind(
-            \App\Repositories\Contracts\GeneralSettingsRepositoryInterface::class,
-            \App\Repositories\Settings\GeneralSettingsRepository::class
-        );
+        // $this->app->bind(
+        //     \App\Repositories\Contracts\GeneralSettingsRepositoryInterface::class,
+        //     \App\Repositories\Settings\GeneralSettingsRepository::class
+        // );
 
-        $this->app->bind(
-            \App\Repositories\Contracts\PaymentSettingsRepositoryInterface::class,
-            \App\Repositories\Settings\PaymentSettingsRepository::class
-        );
+        // $this->app->bind(
+        //     \App\Repositories\Contracts\PaymentSettingsRepositoryInterface::class,
+        //     \App\Repositories\Settings\PaymentSettingsRepository::class
+        // );
 
-        $this->app->bind(
-            \App\Repositories\Contracts\ShippingSettingsRepositoryInterface::class,
-            \App\Repositories\Settings\ShippingSettingsRepository::class
-        );
+        // $this->app->bind(
+        //     \App\Repositories\Contracts\ShippingSettingsRepositoryInterface::class,
+        //     \App\Repositories\Settings\ShippingSettingsRepository::class
+        // );
 
         $this->app->bind(
             \App\Repositories\Contracts\AccessControl\ModuleRepositoryInterface::class,
@@ -139,10 +139,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Marketing\BundleDealRepository::class
         );
 
-        // Menu Repositories
+        // Appearance / Navigation Menu Repositories
         $this->app->bind(
-            \App\Repositories\Contracts\Menu\MenuRepositoryInterface::class,
-            \App\Repositories\Menu\MenuRepository::class
+            \App\Repositories\Appearance\Navigation\Contracts\MenuRepositoryInterface::class,
+            \App\Repositories\Appearance\Navigation\MenuRepository::class
         );
     }
 
@@ -156,5 +156,30 @@ class AppServiceProvider extends ServiceProvider
             ['partials.sidebar', 'partials.sidebar-dynamic'],
             \App\Http\View\Composers\SidebarComposer::class
         );
+
+        // Laravel Pulse Authorization
+        \Laravel\Pulse\Facades\Pulse::user(fn ($request) => $request->user());
+
+        // Pulse Authorization Gate
+        \Illuminate\Support\Facades\Gate::define('viewPulse', function ($user = null) {
+            // Allow all in local environment
+            if (config('app.env') === 'local') {
+                return true;
+            }
+
+            // In production, require authentication
+            if (!$user) {
+                return false;
+            }
+
+            // Only allow authenticated users (change this for specific roles/emails)
+            return true; // All authenticated users can access
+
+            // Or restrict to specific emails:
+            // return in_array($user->email, ['admin@example.com', 'dev@example.com']);
+
+            // Or restrict to admin role:
+            // return $user->hasRole('admin');
+        });
     }
 }

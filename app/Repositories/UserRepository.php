@@ -131,7 +131,7 @@ class UserRepository implements UserRepositoryInterface
             'name' => $tokenName,
             'token' => $hashedToken,
             'abilities' => json_encode($abilities),
-            'expires_at' => now()->addMinutes(30), // Token expires in 30 minutes
+            'expires_at' => now()->addMinutes(60), // Token expires in 30 minutes
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -147,8 +147,13 @@ class UserRepository implements UserRepositoryInterface
     {
         $hashedToken = hash('sha256', $token);
 
+        // Optimize: Filter out expired tokens in the query
         $tokenData = $this->tokenTable()
             ->where('token', $hashedToken)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+            })
             ->first();
 
         if (!$tokenData) {
@@ -161,9 +166,21 @@ class UserRepository implements UserRepositoryInterface
             return null;
         }
 
-        $this->updateTokenLastUsed($hashedToken);
+        // Optimize: Update last_used_at asynchronously (every 5 minutes max)
+        $this->updateTokenLastUsedThrottled($hashedToken, $tokenData->last_used_at);
 
         return $user;
+    }
+
+    /**
+     * Update token last_used_at with throttling (max once per 5 minutes)
+     */
+    private function updateTokenLastUsedThrottled(string $hashedToken, $lastUsedAt)
+    {
+        // Only update if last update was more than 5 minutes ago
+        if (!$lastUsedAt || now()->diffInMinutes($lastUsedAt) >= 5) {
+            $this->updateTokenLastUsed($hashedToken);
+        }
     }
 
     /**
