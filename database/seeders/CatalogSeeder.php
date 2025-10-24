@@ -23,42 +23,6 @@ class CatalogSeeder extends Seeder
         DB::table('categories')->delete();
         DB::table('brands')->delete();
 
-        // Create Brand: Minimoda
-        $brandId = DB::table('brands')->insertGetId([
-            'name' => 'Minimoda',
-            'slug' => 'minimoda',
-            'description' => 'Premium children clothing brand',
-            'logo' => null,
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        // Create Categories
-        $categoryMini = DB::table('categories')->insertGetId([
-            'name' => 'Mini',
-            'slug' => 'mini',
-            'description' => 'Collection for younger children',
-            'parent_id' => null,
-            'image' => null,
-            'is_active' => true,
-            'sort_order' => 1,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        $categoryModa = DB::table('categories')->insertGetId([
-            'name' => 'Moda',
-            'slug' => 'moda',
-            'description' => 'Collection for older children',
-            'parent_id' => null,
-            'image' => null,
-            'is_active' => true,
-            'sort_order' => 2,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
         // Products for Mini category
         $miniProducts = [
             ['name' => 'Belle Blouse', 'price' => 125000],

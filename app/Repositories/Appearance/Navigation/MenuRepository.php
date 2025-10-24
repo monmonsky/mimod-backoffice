@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Appearance\Navigation;
 
+use App\Events\MenuUpdated;
 use App\Repositories\Appearance\Navigation\Contracts\MenuRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -153,8 +154,8 @@ class MenuRepository implements MenuRepositoryInterface
 
         $id = DB::table('menus')->insertGetId($data);
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('created', $id));
 
         return $this->findById($id);
     }
@@ -184,8 +185,8 @@ class MenuRepository implements MenuRepositoryInterface
 
         DB::table('menus')->where('id', $id)->update($data);
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('updated', $id));
 
         return $this->findById($id);
     }
@@ -204,8 +205,8 @@ class MenuRepository implements MenuRepositoryInterface
 
         $deleted = DB::table('menus')->where('id', $id)->delete();
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('deleted', $id));
 
         return $deleted;
     }
@@ -224,8 +225,8 @@ class MenuRepository implements MenuRepositoryInterface
                 ]);
         }
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('reordered'));
 
         return true;
     }
@@ -253,7 +254,7 @@ class MenuRepository implements MenuRepositoryInterface
             $menuData = [
                 'title' => $data['auto_title'] ? $category->name : ($data['title_prefix'] ?? '') . $category->name,
                 'slug' => ($data['slug_prefix'] ?? '') . $category->slug,
-                'url' => '/category/' . $category->slug,
+                'url' => '/collections/' . $category->slug,
                 'link_type' => 'category',
                 'category_id' => $category->id,
                 'brand_id' => null,
@@ -274,8 +275,8 @@ class MenuRepository implements MenuRepositoryInterface
             $created[] = $this->findById($id);
         }
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('bulk_created_categories'));
 
         return $created;
     }
@@ -324,8 +325,8 @@ class MenuRepository implements MenuRepositoryInterface
             $created[] = $this->findById($id);
         }
 
-        // Clear cache
-        $this->clearMenuCache();
+        // Dispatch event to clear cache
+        event(new MenuUpdated('bulk_created_brands'));
 
         return $created;
     }
@@ -379,7 +380,7 @@ class MenuRepository implements MenuRepositoryInterface
             case 'category':
                 if (isset($data['category_id'])) {
                     $category = DB::table('categories')->where('id', $data['category_id'])->first();
-                    return $category ? '/category/' . $category->slug : '#';
+                    return $category ? '/collections/' . $category->slug : '#';
                 }
                 return '#';
 
@@ -403,13 +404,5 @@ class MenuRepository implements MenuRepositoryInterface
     /**
      * Clear menu cache
      */
-    private function clearMenuCache()
-    {
-        $locations = ['header', 'footer', 'sidebar', 'mobile'];
-
-        foreach ($locations as $location) {
-            Cache::forget("menu_tree_{$location}_active");
-            Cache::forget("menu_tree_{$location}_all");
-        }
-    }
+    // clearMenuCache() method removed - now handled by MenuUpdated event & ClearMenuCache listener
 }

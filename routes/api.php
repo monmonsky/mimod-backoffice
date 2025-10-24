@@ -247,8 +247,6 @@ Route::middleware('auth.sanctum')->group(function () {
         Route::get('/', [NavigationMenuController::class, 'index']);
         Route::post('/', [NavigationMenuController::class, 'store']);
         Route::get('/parents', [NavigationMenuController::class, 'getParents']);
-        Route::post('/bulk-create-categories', [NavigationMenuController::class, 'bulkCreateFromCategories']);
-        Route::post('/bulk-create-brands', [NavigationMenuController::class, 'bulkCreateFromBrands']);
         Route::post('/reorder', [NavigationMenuController::class, 'reorder']);
         Route::get('/{id}', [NavigationMenuController::class, 'show']);
         Route::put('/{id}', [NavigationMenuController::class, 'update']);

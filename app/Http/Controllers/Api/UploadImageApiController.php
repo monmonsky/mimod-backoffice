@@ -42,8 +42,18 @@ class UploadImageApiController extends Controller
      */
     private function getPathFromUrl($url)
     {
+        // If URL is already a relative path (doesn't contain http/https), return as is
+        if (!str_contains($url, 'http://') && !str_contains($url, 'https://')) {
+            return ltrim($url, '/');
+        }
+
         $ftpUrl = env('FTP_URL');
-        return str_replace($ftpUrl . '/', '', $url);
+
+        // Remove the FTP_URL part from the URL
+        $path = str_replace($ftpUrl, '', $url);
+
+        // Remove leading slash if present
+        return ltrim($path, '/');
     }
 
     /**
@@ -495,6 +505,13 @@ class UploadImageApiController extends Controller
                 // Store the file
                 $path = $file->storeAs($directory, $filename, 'ftp');
 
+                Log::info('Uploaded temporary file', [
+                    'path' => $path,
+                    'directory' => $directory,
+                    'filename' => $filename,
+                    'is_temp' => $isTemp
+                ]);
+
                 // Generate URL
                 $url = $this->getFtpUrl($path);
 
@@ -766,9 +783,18 @@ class UploadImageApiController extends Controller
             $movedImages = [];
 
             foreach ($tempPaths as $index => $tempPath) {
+                // Log the temp path being processed
+                Log::info('Processing temp path', [
+                    'index' => $index,
+                    'path' => $tempPath
+                ]);
+
                 // Check if temp file exists
                 if (!Storage::disk('ftp')->exists($tempPath)) {
-                    Log::warning('Temp file not found', ['path' => $tempPath]);
+                    Log::warning('Temp file not found', [
+                        'path' => $tempPath,
+                        'ftp_root' => config('filesystems.disks.ftp.root')
+                    ]);
                     continue; // Skip if file doesn't exist
                 }
 

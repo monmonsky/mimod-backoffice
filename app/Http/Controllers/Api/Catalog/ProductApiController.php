@@ -699,15 +699,16 @@ class ProductApiController extends Controller
                     return $url && strpos($url, '/temp/') !== false;
                 });
 
-                if (!empty($tempUrls)) {
-                    $firstTempUrl = is_string($tempUrls[0]) ? $tempUrls[0] : $tempUrls[0]['url'];
-                    $firstTempPath = str_replace(env('FTP_URL') . '/', '', $firstTempUrl);
-                    $tempDirectory = dirname($firstTempPath);
-                    $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
-                    if (empty($remainingFiles)) {
-                        \Storage::disk('ftp')->deleteDirectory($tempDirectory);
-                    }
-                }
+                // DISABLED: Don't delete temp directory here - handled by separate move API
+                // if (!empty($tempUrls)) {
+                //     $firstTempUrl = is_string($tempUrls[0]) ? $tempUrls[0] : $tempUrls[0]['url'];
+                //     $firstTempPath = str_replace(env('FTP_URL') . '/', '', $firstTempUrl);
+                //     $tempDirectory = dirname($firstTempPath);
+                //     $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
+                //     if (empty($remainingFiles)) {
+                //         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
+                //     }
+                // }
             }
 
             // Get created product with full relations
@@ -872,15 +873,15 @@ class ProductApiController extends Controller
                     $sortOrder++;
                 }
 
-                // Cleanup temp directory
-                if (!empty($tempUrls)) {
-                    $firstTempPath = str_replace(env('FTP_URL') . '/', '', $tempUrls[0]);
-                    $tempDirectory = dirname($firstTempPath);
-                    $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
-                    if (empty($remainingFiles)) {
-                        \Storage::disk('ftp')->deleteDirectory($tempDirectory);
-                    }
-                }
+                // Cleanup temp directory (DISABLED - handled by separate move API)
+                // if (!empty($tempUrls)) {
+                //     $firstTempPath = str_replace(env('FTP_URL') . '/', '', $tempUrls[0]);
+                //     $tempDirectory = dirname($firstTempPath);
+                //     $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
+                //     if (empty($remainingFiles)) {
+                //         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
+                //     }
+                // }
             }
 
             // Log activity

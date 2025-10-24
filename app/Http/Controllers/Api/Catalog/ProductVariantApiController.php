@@ -262,17 +262,17 @@ class ProductVariantApiController extends Controller
                 });
 
                 if (!empty($tempUrls)) {
-                    $firstTempUrl = is_string(reset($tempUrls)) ? reset($tempUrls) : reset($tempUrls)['url'];
-                    $firstTempPath = str_replace(env('FTP_URL') . '/', '', $firstTempUrl);
-                    $tempDirectory = dirname($firstTempPath);
-                    $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
-                    if (empty($remainingFiles)) {
-                        \Storage::disk('ftp')->deleteDirectory($tempDirectory);
-                    }
-                }
-            }
-
-            // Log activity
+//                     $firstTempUrl = is_string(reset($tempUrls)) ? reset($tempUrls) : reset($tempUrls)['url'];
+//                     $firstTempPath = str_replace(env('FTP_URL') . '/', '', $firstTempUrl);
+//                     $tempDirectory = dirname($firstTempPath);
+//                     $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
+//                     if (empty($remainingFiles)) {
+//                         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
+//                     }
+//                 }
+//             }
+// 
+//             // Log activity
             logActivity(
                 'create',
                 "Created variant: {$validated['sku']}",
@@ -441,17 +441,17 @@ class ProductVariantApiController extends Controller
                 }
 
                 // Cleanup temp directory
-                if (!empty($tempUrls)) {
-                    $firstTempPath = str_replace(env('FTP_URL') . '/', '', $tempUrls[0]);
-                    $tempDirectory = dirname($firstTempPath);
-                    $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
-                    if (empty($remainingFiles)) {
-                        \Storage::disk('ftp')->deleteDirectory($tempDirectory);
-                    }
-                }
-            }
-
-            // Log activity
+//                 if (!empty($tempUrls)) {
+//                     $firstTempPath = str_replace(env('FTP_URL') . '/', '', $tempUrls[0]);
+//                     $tempDirectory = dirname($firstTempPath);
+//                     $remainingFiles = \Storage::disk('ftp')->files($tempDirectory);
+//                     if (empty($remainingFiles)) {
+//                         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
+//                     }
+//                 }
+//             }
+// 
+//             // Log activity
             logActivity(
                 'update',
                 "Updated variant: {$validated['sku']}",

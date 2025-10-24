@@ -49,4 +49,5 @@ return Application::configure(basePath: dirname(__DIR__))
             ->at('03:00')
             ->withoutOverlapping();
     })
+    ->withEvents(discover: true)
     ->create();
