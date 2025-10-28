@@ -8,6 +8,7 @@ use App\Http\Responses\GeneralResponse\ResultBuilder;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -39,8 +40,8 @@ class AuthController extends Controller
                 return $this->response->generateResponse($this->responseBuilder);
             }
 
-            // Get user by email
-            $user = $this->userRepository->findByEmail($request->email);
+            // Get user by email with role and modules
+            $user = $this->userRepository->findByEmailWithRoleAndModules($request->email);
 
             // Check if user exists and password is correct
             if (!$user || !Hash::check($request->password, $user->password)) {
@@ -73,10 +74,52 @@ class AuthController extends Controller
             // Log activity - pass user_id explicitly because user is not yet in request
             logActivity('login', "User logged in from {$request->ip()}", 'auth', null, null, $user->id);
 
+            // Get full permissions with details
+            $permissions = [];
+            if ($user->role_id) {
+                $permissionsData = DB::table('role_permissions')
+                    ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+                    ->where('role_permissions.role_id', $user->role_id)
+                    ->select(
+                        'permissions.id',
+                        'permissions.name',
+                        'permissions.display_name',
+                        'permissions.action',
+                        'permissions.module',
+                        'permissions.is_active'
+                    )
+                    ->orderBy('permissions.module', 'asc')
+                    ->orderBy('permissions.action', 'asc')
+                    ->get();
+
+                foreach ($permissionsData as $perm) {
+                    $permissions[] = [
+                        'id' => $perm->id,
+                        'name' => $perm->name,
+                        'display_name' => $perm->display_name,
+                        'action' => $perm->action,
+                        'module' => $perm->module,
+                        'is_active' => (bool) $perm->is_active,
+                    ];
+                }
+            }
+
+            // Build role object
+            $role = null;
+            if ($user->role_id) {
+                $role = [
+                    'id' => $user->role_id,
+                    'name' => $user->role_name,
+                    'display_name' => $user->role_display_name,
+                    'modules' => $user->modules ?? [],
+                ];
+            }
+
             $this->responseBuilder->setMessage("Login successful.");
             $this->responseBuilder->setData([
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'expires_in' => 3600, // Token expires in 1 hour (3600 seconds)
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -85,6 +128,8 @@ class AuthController extends Controller
                     'email_verified_at' => $user->email_verified_at,
                     'phone_verified_at' => $user->phone_verified_at,
                     'two_factor_enabled' => $user->two_factor_enabled,
+                    'role' => $role,
+                    'permissions' => $permissions, // NEW: Full permissions array with details
                 ]
             ]);
 

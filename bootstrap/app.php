@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,11 +11,23 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            // Customer API routes
+            Route::prefix('api/customer')
+                ->middleware('api')
+                ->group(base_path('routes/customer-api.php'));
+
+            // Store API routes (for frontend e-commerce)
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('routes/store-api.php'));
+        }
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\AuthenticateToken::class,
             'auth.sanctum' => \App\Http\Middleware\SanctumAuth::class,
+            'customer.auth' => \App\Http\Middleware\CustomerAuth::class,
             'store.api' => \App\Http\Middleware\StoreApiAuth::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,

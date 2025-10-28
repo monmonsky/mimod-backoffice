@@ -53,101 +53,56 @@ class AiSeoController extends Controller
             // Build tags string
             $tagsStr = !empty($tags) ? implode(', ', $tags) : '';
 
-            // Build prompt for Gemini
+            // Build prompt
             $prompt = $this->buildPrompt($name, $description, $brandName, $categoriesStr, $tagsStr, $ageRange);
 
-            // Call Gemini API
-            $apiKey = config('services.gemini.api_key');
+            // Try AI providers with fallback: Anthropic -> Gemini -> Template
+            $seoData = null;
+            $provider = null;
 
-            if (!$apiKey || $apiKey === 'your_gemini_api_key_here') {
-                $result = (new ResultBuilder())
-                    ->setStatus(false)
-                    ->setStatusCode('500')
-                    ->setMessage('Gemini API key not configured. Please set GEMINI_API_KEY in .env file')
-                    ->setData([]);
-
-                return response()->json($this->response->generateResponse($result), 500);
+            // 1. Try Anthropic Claude (Priority 1)
+            try {
+                $seoData = $this->generateWithAnthropic($prompt);
+                $provider = 'Anthropic Claude';
+            } catch (\Exception $e) {
+                Log::warning('Anthropic API failed, trying Gemini...', ['error' => $e->getMessage()]);
             }
 
-            // Use Gemini API v1 with gemini-pro (stable model)
-            $httpResponse = Http::timeout(30)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                ])
-                ->post("https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={$apiKey}", [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt]
-                            ]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.7,
-                        'topK' => 40,
-                        'topP' => 0.95,
-                        'maxOutputTokens' => 1024,
-                    ]
-                ]);
-
-            if ($httpResponse->failed()) {
-                Log::error('Gemini API Request Failed', [
-                    'status' => $httpResponse->status(),
-                    'body' => $httpResponse->body()
-                ]);
-                throw new \Exception('Failed to generate SEO from AI: ' . $httpResponse->body());
+            // 2. Try Gemini (Priority 2)
+            if (!$seoData) {
+                try {
+                    $seoData = $this->generateWithGemini($prompt);
+                    $provider = 'Google Gemini';
+                } catch (\Exception $e) {
+                    Log::warning('Gemini API failed, using template...', ['error' => $e->getMessage()]);
+                }
             }
 
-            $apiResult = $httpResponse->json();
-
-            // Log full API response for debugging
-            Log::info('Gemini API Response', ['response' => $apiResult]);
-
-            // Extract text from response
-            $generatedText = $apiResult['candidates'][0]['content']['parts'][0]['text'] ?? '';
-
-            if (empty($generatedText)) {
-                Log::error('Empty AI Response', ['api_result' => $apiResult]);
-                throw new \Exception('AI response is empty. Check logs for details.');
+            // 3. Fallback to template
+            if (!$seoData) {
+                Log::info('Using fallback template-based SEO generation');
+                $seoData = $this->generateTemplateSeo($name, $description, $brandName, $categoriesStr, $tagsStr, $ageRange);
+                $provider = 'Template';
             }
-
-            // Parse JSON from generated text
-            $seoData = $this->parseGeneratedSeo($generatedText);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
                 ->setStatusCode('200')
-                ->setMessage('SEO generated successfully')
+                ->setMessage("SEO generated successfully (provider: {$provider})")
                 ->setData($seoData);
 
             return response()->json($this->response->generateResponse($result), 200);
 
         } catch (\Exception $e) {
-            Log::error('AI SEO Generation Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('AI SEO Generation Error: ' . $e->getMessage());
 
-            // Fallback: Generate SEO using template if AI fails
-            try {
-                Log::info('Using fallback template-based SEO generation');
-                $seoData = $this->generateSeoFallback($name, $description, $brandName, $categoriesStr, $tagsStr, $ageRange);
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to generate SEO: ' . $e->getMessage())
+                ->setData([]);
 
-                $result = (new ResultBuilder())
-                    ->setStatus(true)
-                    ->setStatusCode('200')
-                    ->setMessage('SEO generated successfully (using template)')
-                    ->setData($seoData);
-
-                return response()->json($this->response->generateResponse($result), 200);
-            } catch (\Exception $fallbackError) {
-                $result = (new ResultBuilder())
-                    ->setStatus(false)
-                    ->setStatusCode('500')
-                    ->setMessage('Failed to generate SEO: ' . $e->getMessage())
-                    ->setData([]);
-
-                return response()->json($this->response->generateResponse($result), 500);
-            }
+            return response()->json($this->response->generateResponse($result), 500);
         }
     }
 
@@ -269,5 +224,108 @@ class AiSeoController extends Controller
             'description' => $metaDesc,
             'keywords' => implode(', ', $keywords)
         ];
+    }
+
+    /**
+     * Generate SEO with Anthropic Claude API
+     */
+    private function generateWithAnthropic($prompt)
+    {
+        $apiKey = config('services.anthropic.api_key');
+
+        if (!$apiKey) {
+            throw new \Exception('Anthropic API key not configured');
+        }
+
+        $response = Http::timeout(30)
+            ->withHeaders([
+                'x-api-key' => $apiKey,
+                'anthropic-version' => '2023-06-01',
+                'Content-Type' => 'application/json',
+            ])
+            ->post('https://api.anthropic.com/v1/messages', [
+                'model' => 'claude-3-haiku-20240307',
+                'max_tokens' => 1024,
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => $prompt
+                    ]
+                ]
+            ]);
+
+        if ($response->failed()) {
+            Log::error('Anthropic API Request Failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            throw new \Exception('Anthropic API request failed: ' . $response->body());
+        }
+
+        $result = $response->json();
+        $generatedText = $result['content'][0]['text'] ?? '';
+
+        if (empty($generatedText)) {
+            throw new \Exception('Empty response from Anthropic API');
+        }
+
+        return $this->parseGeneratedSeo($generatedText);
+    }
+
+    /**
+     * Generate SEO with Google Gemini API
+     */
+    private function generateWithGemini($prompt)
+    {
+        $apiKey = config('services.gemini.api_key');
+
+        if (!$apiKey || $apiKey === 'your_gemini_api_key_here') {
+            throw new \Exception('Gemini API key not configured');
+        }
+
+        $response = Http::timeout(30)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $prompt]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 1024,
+                ]
+            ]);
+
+        if ($response->failed()) {
+            Log::error('Gemini API Request Failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            throw new \Exception('Gemini API request failed: ' . $response->body());
+        }
+
+        $result = $response->json();
+        $generatedText = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+        if (empty($generatedText)) {
+            throw new \Exception('Empty response from Gemini API');
+        }
+
+        return $this->parseGeneratedSeo($generatedText);
+    }
+
+    /**
+     * Generate SEO using template
+     */
+    private function generateTemplateSeo($name, $description, $brandName, $categories, $tags, $ageRange)
+    {
+        return $this->generateSeoFallback($name, $description, $brandName, $categories, $tags, $ageRange);
     }
 }

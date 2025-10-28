@@ -7,53 +7,61 @@ use App\Http\Responses\GeneralResponse\Response;
 use App\Http\Responses\GeneralResponse\ResultBuilder;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PermissionApiController extends Controller
 {
     protected $permissionRepo;
     protected $response;
 
-    public function __construct(PermissionRepositoryInterface $permissionRepo, Response $response)
-    {
+    public function __construct(
+        PermissionRepositoryInterface $permissionRepo,
+        Response $response
+    ) {
         $this->permissionRepo = $permissionRepo;
         $this->response = $response;
     }
 
     /**
-     * Get all permissions with filters
+     * Get all permissions with optional filters
      */
     public function index(Request $request)
     {
         try {
-            $query = $this->permissionRepo->query();
+            $query = $this->permissionRepo->query()
+                ->select(
+                    'permissions.*',
+                    'modules.display_name as module_display_name',
+                    'modules.icon as module_icon',
+                    'modules.sort_order as module_sort_order'
+                )
+                ->leftJoin('modules', 'permissions.module', '=', 'modules.name')
+                ->orderBy('modules.sort_order')
+                ->orderBy('permissions.name');
 
             // Filter by module
             if ($request->has('module')) {
-                $query->where('module', $request->module);
+                $query->where('permissions.module', $request->module);
             }
 
-            // Filter by action
-            if ($request->has('action')) {
-                $query->where('action', $request->action);
-            }
-
-            // Filter by status
+            // Filter by active status
             if ($request->has('is_active')) {
-                $query->where('is_active', $request->is_active);
+                $query->where('permissions.is_active', $request->is_active);
             }
 
-            // Search by name
+            // Search by name or display_name
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
-                    $q->where('name', 'ILIKE', '%' . $search . '%')
-                      ->orWhere('display_name', 'ILIKE', '%' . $search . '%');
+                    $q->where('permissions.name', 'ILIKE', '%' . $search . '%')
+                      ->orWhere('permissions.display_name', 'ILIKE', '%' . $search . '%')
+                      ->orWhere('modules.display_name', 'ILIKE', '%' . $search . '%');
                 });
             }
 
             // Pagination
-            $perPage = $request->get('per_page', 50);
-            $permissions = $query->orderBy('module')->orderBy('action')->paginate($perPage);
+            $perPage = $request->get('per_page', 15);
+            $permissions = $query->paginate($perPage);
 
             $result = (new ResultBuilder())
                 ->setStatus(true)
@@ -76,34 +84,63 @@ class PermissionApiController extends Controller
     /**
      * Get permissions grouped by module
      */
-    public function grouped()
+    public function grouped(Request $request)
     {
         try {
-            $permissions = $this->permissionRepo->getAll();
+            $modules = DB::table('modules')
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
 
-            // Group by module
-            $grouped = $permissions->groupBy('module')->map(function ($items, $module) {
-                return [
-                    'module' => $module,
-                    'permissions' => $items->values()
-                ];
-            })->values();
+            $result = [];
 
-            $result = (new ResultBuilder())
+            foreach ($modules as $module) {
+                $query = DB::table('permissions')
+                    ->where('module', $module->name)
+                    ->where('is_active', true)
+                    ->orderBy('name');
+
+                // Apply search filter if provided
+                if ($request->has('search')) {
+                    $search = $request->search;
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'ILIKE', '%' . $search . '%')
+                          ->orWhere('display_name', 'ILIKE', '%' . $search . '%');
+                    });
+                }
+
+                $permissions = $query->get();
+
+                // Only include modules that have permissions
+                if ($permissions->isNotEmpty()) {
+                    $result[] = [
+                        'module' => [
+                            'id' => $module->id,
+                            'name' => $module->name,
+                            'display_name' => $module->display_name,
+                            'icon' => $module->icon,
+                            'group_name' => $module->group_name,
+                        ],
+                        'permissions' => $permissions
+                    ];
+                }
+            }
+
+            $resultBuilder = (new ResultBuilder())
                 ->setStatus(true)
                 ->setStatusCode('200')
                 ->setMessage('Grouped permissions retrieved successfully')
-                ->setData($grouped);
+                ->setData($result);
 
-            return response()->json($this->response->generateResponse($result), 200);
+            return response()->json($this->response->generateResponse($resultBuilder), 200);
         } catch (\Exception $e) {
-            $result = (new ResultBuilder())
+            $resultBuilder = (new ResultBuilder())
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to retrieve grouped permissions: ' . $e->getMessage())
                 ->setData([]);
 
-            return response()->json($this->response->generateResponse($result), 500);
+            return response()->json($this->response->generateResponse($resultBuilder), 500);
         }
     }
 
@@ -113,7 +150,15 @@ class PermissionApiController extends Controller
     public function show($id)
     {
         try {
-            $permission = $this->permissionRepo->findById($id);
+            $permission = DB::table('permissions')
+                ->select(
+                    'permissions.*',
+                    'modules.display_name as module_display_name',
+                    'modules.icon as module_icon'
+                )
+                ->leftJoin('modules', 'permissions.module', '=', 'modules.name')
+                ->where('permissions.id', $id)
+                ->first();
 
             if (!$permission) {
                 $result = (new ResultBuilder())

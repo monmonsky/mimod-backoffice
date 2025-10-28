@@ -194,15 +194,39 @@ class RoleApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            // Prevent editing system roles
+            // Prevent editing system roles (except for Super Admin)
             if ($role->is_system) {
-                $result = (new ResultBuilder())
-                    ->setStatus(false)
-                    ->setStatusCode('400')
-                    ->setMessage('Cannot edit system roles')
-                    ->setData([]);
+                // Check if current user is Super Admin
+                // Get user from request attributes (set by middleware)
+                $currentUser = $request->attributes->get('user');
 
-                return response()->json($this->response->generateResponse($result), 400);
+                // Debug: Check what fields are available
+                $userRole = $currentUser->role ?? $currentUser->role_name ?? null;
+                $isSuperAdmin = $userRole === 'super_admin';
+
+                // Temporary debug logging
+                \Log::info('Role Edit Debug', [
+                    'current_user_id' => $currentUser->id ?? 'null',
+                    'user_role_field' => $userRole,
+                    'is_super_admin' => $isSuperAdmin,
+                    'user_object_keys' => array_keys((array) $currentUser),
+                ]);
+
+                if (!$isSuperAdmin) {
+                    $result = (new ResultBuilder())
+                        ->setStatus(false)
+                        ->setStatusCode('403')
+                        ->setMessage('Only Super Admin can edit system roles. Current role: ' . $userRole)
+                        ->setData([
+                            'debug' => [
+                                'user_role' => $userRole,
+                                'is_super_admin' => $isSuperAdmin,
+                                'available_keys' => array_keys((array) $currentUser),
+                            ]
+                        ]);
+
+                    return response()->json($this->response->generateResponse($result), 403);
+                }
             }
 
             $validator = Validator::make($request->all(), [
@@ -280,15 +304,15 @@ class RoleApiController extends Controller
                 return response()->json($this->response->generateResponse($result), 404);
             }
 
-            // Prevent deleting system roles
+            // Prevent deleting system roles (even for Super Admin - for safety)
             if ($role->is_system) {
                 $result = (new ResultBuilder())
                     ->setStatus(false)
-                    ->setStatusCode('400')
-                    ->setMessage('Cannot delete system roles')
+                    ->setStatusCode('403')
+                    ->setMessage('Cannot delete system roles. System roles are protected and cannot be deleted to maintain system integrity.')
                     ->setData([]);
 
-                return response()->json($this->response->generateResponse($result), 400);
+                return response()->json($this->response->generateResponse($result), 403);
             }
 
             // Check if role has users

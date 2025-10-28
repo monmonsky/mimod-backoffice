@@ -248,10 +248,56 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function getProductVariants($productId)
     {
-        return DB::table('product_variants')
+        $variants = DB::table('product_variants')
             ->where('product_id', $productId)
             ->orderBy('id', 'asc')
             ->get();
+
+        // Attach variant images and attributes for each variant
+        foreach ($variants as $variant) {
+            // Get variant images
+            $variant->images = DB::table('product_variant_images')
+                ->where('variant_id', $variant->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('sort_order', 'asc')
+                ->get();
+
+            // Get variant attributes with their values
+            $variant->attributes = $this->getVariantAttributes($variant->id);
+        }
+
+        return $variants;
+    }
+
+    /**
+     * Get variant attributes with their values
+     */
+    protected function getVariantAttributes($variantId)
+    {
+        return DB::table('product_variant_attributes as pva')
+            ->join('product_attributes as pa', 'pva.product_attribute_id', '=', 'pa.id')
+            ->join('product_attribute_values as pav', 'pva.product_attribute_value_id', '=', 'pav.id')
+            ->where('pva.product_variant_id', $variantId)
+            ->select(
+                'pva.id as pivot_id',
+                'pa.id as attribute_id',
+                'pa.name as attribute_name',
+                'pa.slug as attribute_slug',
+                'pa.type as attribute_type',
+                'pav.id as value_id',
+                'pav.value',
+                'pav.slug as value_slug',
+                'pav.meta'
+            )
+            ->orderBy('pa.sort_order', 'asc')
+            ->get()
+            ->map(function ($attr) {
+                // Decode meta if it's JSON string
+                if (isset($attr->meta) && is_string($attr->meta)) {
+                    $attr->meta = json_decode($attr->meta);
+                }
+                return $attr;
+            });
     }
 
     public function getProductImages($productId)
@@ -431,6 +477,16 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function insertImage(array $data)
     {
+        // Validate: video cannot be set as primary
+        if (isset($data['media_type']) && $data['media_type'] === 'video' && isset($data['is_primary']) && $data['is_primary']) {
+            throw new \Exception('Cannot set video as primary image. Only images can be set as primary.');
+        }
+
+        // If media_type not set, default to 'image'
+        if (!isset($data['media_type'])) {
+            $data['media_type'] = 'image';
+        }
+
         return DB::table('product_images')->insertGetId($data);
     }
 
@@ -446,14 +502,23 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function setPrimaryImage($productId, $imageId)
     {
-        // Remove primary from all images
+        // Check if the image is actually an image, not a video
+        $image = DB::table('product_images')->where('id', $imageId)->first();
+
+        if (!$image || $image->media_type === 'video') {
+            throw new \Exception('Cannot set video as primary image. Only images can be set as primary.');
+        }
+
+        // Remove primary from all images (only for media_type = 'image')
         DB::table('product_images')
             ->where('product_id', $productId)
+            ->where('media_type', 'image')
             ->update(['is_primary' => false]);
 
-        // Set new primary
+        // Set new primary (only if media_type is 'image')
         DB::table('product_images')
             ->where('id', $imageId)
+            ->where('media_type', 'image')
             ->update(['is_primary' => true]);
     }
 
@@ -493,6 +558,16 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function insertVariantImage(array $data)
     {
+        // Validate: video cannot be set as primary
+        if (isset($data['media_type']) && $data['media_type'] === 'video' && isset($data['is_primary']) && $data['is_primary']) {
+            throw new \Exception('Cannot set video as primary image. Only images can be set as primary.');
+        }
+
+        // If media_type not set, default to 'image'
+        if (!isset($data['media_type'])) {
+            $data['media_type'] = 'image';
+        }
+
         return DB::table('product_variant_images')->insertGetId($data);
     }
 
@@ -508,14 +583,23 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function setPrimaryVariantImage($variantId, $imageId)
     {
-        // Remove primary from all images
+        // Check if the image is actually an image, not a video
+        $image = DB::table('product_variant_images')->where('id', $imageId)->first();
+
+        if (!$image || $image->media_type === 'video') {
+            throw new \Exception('Cannot set video as primary image. Only images can be set as primary.');
+        }
+
+        // Remove primary from all images (only for media_type = 'image')
         DB::table('product_variant_images')
             ->where('variant_id', $variantId)
+            ->where('media_type', 'image')
             ->update(['is_primary' => false]);
 
-        // Set new primary
+        // Set new primary (only if media_type is 'image')
         DB::table('product_variant_images')
             ->where('id', $imageId)
+            ->where('media_type', 'image')
             ->update(['is_primary' => true]);
     }
 
@@ -528,6 +612,14 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function getProductIdsByCategory($categoryId)
     {
+        // Support both single category and multiple categories (array)
+        if (is_array($categoryId)) {
+            return DB::table('product_categories')
+                ->whereIn('category_id', $categoryId)
+                ->distinct()
+                ->pluck('product_id');
+        }
+
         return DB::table('product_categories')
             ->where('category_id', $categoryId)
             ->pluck('product_id');

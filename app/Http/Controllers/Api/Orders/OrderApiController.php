@@ -194,15 +194,66 @@ class OrderApiController extends Controller
                 'shipping_province' => 'required|string',
                 'shipping_postal_code' => 'nullable|string',
                 'shipping_phone' => 'required|string',
-                'courier' => 'nullable|string',
-                'shipping_cost' => 'required|numeric|min:0',
-                'payment_method' => 'required|string',
+                'payment_method_id' => 'required|exists:payment_methods,id',
+                'shipping_method_id' => 'nullable|exists:shipping_methods,id',
+                'shipping_cost' => 'nullable|numeric|min:0',
                 'coupon_code' => 'nullable|string',
                 'notes' => 'nullable|string',
                 'shipping_notes' => 'nullable|string',
             ]);
 
             DB::beginTransaction();
+
+            // Get payment method details
+            $paymentMethod = DB::table('payment_methods')->where('id', $validated['payment_method_id'])->first();
+
+            if (!$paymentMethod) {
+                DB::rollBack();
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Payment method not found')
+                    ->setData([]);
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            if (!$paymentMethod->is_active) {
+                DB::rollBack();
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('400')
+                    ->setMessage('Payment method is not available')
+                    ->setData([]);
+                return response()->json($this->response->generateResponse($result), 400);
+            }
+
+            // Get shipping method details (if provided)
+            $shippingMethod = null;
+            $shippingCost = $validated['shipping_cost'] ?? 0;
+
+            if (!empty($validated['shipping_method_id'])) {
+                $shippingMethod = DB::table('shipping_methods')->where('id', $validated['shipping_method_id'])->first();
+
+                if (!$shippingMethod) {
+                    DB::rollBack();
+                    $result = (new ResultBuilder())
+                        ->setStatus(false)
+                        ->setStatusCode('404')
+                        ->setMessage('Shipping method not found')
+                        ->setData([]);
+                    return response()->json($this->response->generateResponse($result), 404);
+                }
+
+                if (!$shippingMethod->is_active) {
+                    DB::rollBack();
+                    $result = (new ResultBuilder())
+                        ->setStatus(false)
+                        ->setStatusCode('400')
+                        ->setMessage('Shipping method is not available')
+                        ->setData([]);
+                    return response()->json($this->response->generateResponse($result), 400);
+                }
+            }
 
             // Generate order number
             $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
@@ -239,11 +290,35 @@ class OrderApiController extends Controller
                 }
             }
 
-            // Calculate tax (if applicable) - assuming 0 for now
-            $taxAmount = 0;
+            // Calculate payment fee
+            $paymentFee = $paymentMethod->fee_fixed + ($subtotal * $paymentMethod->fee_percentage / 100);
+
+            // Calculate tax (payment fee is treated as tax)
+            $taxAmount = $paymentFee;
 
             // Calculate total
-            $totalAmount = $subtotal - $discountAmount + $taxAmount + $validated['shipping_cost'];
+            $totalAmount = $subtotal - $discountAmount + $taxAmount + $shippingCost;
+
+            // Check min/max amount for payment method
+            if ($paymentMethod->min_amount && $totalAmount < $paymentMethod->min_amount) {
+                DB::rollBack();
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('400')
+                    ->setMessage("Minimum order amount for {$paymentMethod->name} is Rp " . number_format($paymentMethod->min_amount))
+                    ->setData([]);
+                return response()->json($this->response->generateResponse($result), 400);
+            }
+
+            if ($paymentMethod->max_amount && $totalAmount > $paymentMethod->max_amount) {
+                DB::rollBack();
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('400')
+                    ->setMessage("Maximum order amount for {$paymentMethod->name} is Rp " . number_format($paymentMethod->max_amount))
+                    ->setData([]);
+                return response()->json($this->response->generateResponse($result), 400);
+            }
 
             // Create order
             $orderData = [
@@ -251,15 +326,15 @@ class OrderApiController extends Controller
                 'customer_id' => $validated['customer_id'],
                 'user_id' => auth()->id(),
                 'status' => 'pending',
-                'payment_method' => $validated['payment_method'],
-                'payment_status' => 'pending',
+                'payment_method' => $paymentMethod->name, // Keep for backward compatibility
+                'payment_status' => 'unpaid',
                 'shipping_address' => $validated['shipping_address'],
                 'shipping_city' => $validated['shipping_city'],
                 'shipping_province' => $validated['shipping_province'],
                 'shipping_postal_code' => $validated['shipping_postal_code'] ?? null,
                 'shipping_phone' => $validated['shipping_phone'],
-                'courier' => $validated['courier'] ?? null,
-                'shipping_cost' => $validated['shipping_cost'],
+                'courier' => $shippingMethod->name ?? null, // Keep for backward compatibility
+                'shipping_cost' => $shippingCost,
                 'subtotal' => $subtotal,
                 'tax_amount' => $taxAmount,
                 'discount_amount' => $discountAmount,
@@ -314,6 +389,59 @@ class OrderApiController extends Controller
                 if ($coupon) {
                     $couponRepo->recordUsage($coupon->id, $validated['customer_id'], $orderId, $discountAmount);
                 }
+            }
+
+            // Create order status history
+            DB::table('order_status_history')->insert([
+                'order_id' => $orderId,
+                'status' => 'pending',
+                'notes' => 'Order created via backoffice',
+                'user_id' => auth()->id() ?? null,
+                'created_at' => now()
+            ]);
+
+            // Create order payment record
+            $expiredAt = null;
+            if ($paymentMethod->expired_duration) {
+                $expiredAt = now()->addMinutes($paymentMethod->expired_duration);
+            }
+
+            DB::table('order_payments')->insert([
+                'order_id' => $orderId,
+                'payment_method_id' => $paymentMethod->id,
+                'payment_channel' => null, // Will be filled by payment gateway
+                'transaction_id' => null, // Will be filled by payment gateway
+                'amount' => $totalAmount,
+                'fee_amount' => $paymentFee,
+                'status' => 'pending',
+                'expired_at' => $expiredAt,
+                'metadata' => json_encode([
+                    'order_number' => $orderNumber,
+                    'payment_method_code' => $paymentMethod->code,
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Create order shipment record (if shipping method provided)
+            if ($shippingMethod) {
+                DB::table('order_shipments')->insert([
+                    'order_id' => $orderId,
+                    'shipping_method_id' => $shippingMethod->id,
+                    'courier_code' => $shippingMethod->code,
+                    'service_code' => $shippingMethod->type,
+                    'tracking_number' => null,
+                    'weight' => 0, // Should be calculated from items
+                    'cost' => $shippingCost,
+                    'estimated_delivery' => $shippingMethod->estimated_delivery ?? null,
+                    'status' => 'pending',
+                    'metadata' => json_encode([
+                        'order_number' => $orderNumber,
+                        'shipping_method_code' => $shippingMethod->code,
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             DB::commit();
@@ -424,15 +552,37 @@ class OrderApiController extends Controller
 
             $oldStatus = $order->status;
 
+            DB::beginTransaction();
+
             // Update status
             $updateData = ['status' => $validated['status']];
 
-            // Auto-set shipped_at when status changed to shipped
+            // Auto-set timestamps based on status
+            if ($validated['status'] === 'processing' && $oldStatus !== 'processing') {
+                $updateData['paid_at'] = now();
+            }
             if ($validated['status'] === 'shipped' && $oldStatus !== 'shipped') {
                 $updateData['shipped_at'] = now();
             }
+            if ($validated['status'] === 'completed' && $oldStatus !== 'completed') {
+                $updateData['completed_at'] = now();
+            }
+            if ($validated['status'] === 'cancelled' && $oldStatus !== 'cancelled') {
+                $updateData['cancelled_at'] = now();
+            }
 
             $this->orderRepo->update($id, $updateData);
+
+            // Create order status history
+            DB::table('order_status_history')->insert([
+                'order_id' => $id,
+                'status' => $validated['status'],
+                'notes' => $validated['notes'] ?? null,
+                'user_id' => auth()->id() ?? null,
+                'created_at' => now()
+            ]);
+
+            DB::commit();
 
             // Log activity
             logActivity('update', "Changed order #{$order->order_number} status from '{$oldStatus}' to '{$validated['status']}'", 'order', (int) $id, [
@@ -454,6 +604,7 @@ class OrderApiController extends Controller
 
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             $result = (new ResultBuilder())
                 ->setStatus(false)
                 ->setStatusCode('422')
@@ -462,6 +613,7 @@ class OrderApiController extends Controller
 
             return response()->json($this->response->generateResponse($result), 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             $result = (new ResultBuilder())
                 ->setStatus(false)
                 ->setStatusCode('500')
@@ -623,6 +775,154 @@ class OrderApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to retrieve customer orders: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get order status history
+     */
+    public function getHistory($id)
+    {
+        try {
+            $order = $this->orderRepo->findById($id);
+
+            if (!$order) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Order not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get order history with user information
+            $history = DB::table('order_status_history')
+                ->leftJoin('users', 'order_status_history.user_id', '=', 'users.id')
+                ->where('order_status_history.order_id', $id)
+                ->select(
+                    'order_status_history.*',
+                    'users.name as user_name'
+                )
+                ->orderBy('order_status_history.created_at', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'order_id' => $item->order_id,
+                        'status' => $item->status,
+                        'notes' => $item->notes,
+                        'user_id' => $item->user_id,
+                        'user_name' => $item->user_name ?? 'System',
+                        'created_at' => $item->created_at
+                    ];
+                });
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Order history retrieved successfully')
+                ->setData($history);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve order history: ' . $e->getMessage());
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get invoice data
+     */
+    public function getInvoice($id)
+    {
+        try {
+            $order = $this->orderRepo->findByIdWithRelations($id);
+
+            if (!$order) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Order not found');
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get customer
+            $customer = DB::table('customers')->where('id', $order->customer_id)->first();
+
+            // Get store settings
+            $storeSettings = DB::table('settings')
+                ->whereIn('key', ['store.info', 'store.contact', 'store.address'])
+                ->get()
+                ->keyBy('key');
+
+            $storeInfo = [
+                'name' => json_decode($storeSettings['store.info']->value ?? '{}', true)['name'] ?? 'Minimoda Store',
+                'email' => json_decode($storeSettings['store.contact']->value ?? '{}', true)['email'] ?? 'info@minimoda.id',
+                'phone' => json_decode($storeSettings['store.contact']->value ?? '{}', true)['phone'] ?? '+62 812 3456 7890',
+                'address' => json_decode($storeSettings['store.address']->value ?? '{}', true)['street'] ?? 'Jakarta, Indonesia',
+            ];
+
+            // Format invoice data
+            $invoiceData = [
+                'invoice' => [
+                    'invoice_number' => $order->order_number,
+                    'invoice_date' => $order->created_at,
+                    'status' => $order->status,
+                    'payment_status' => $order->payment_status
+                ],
+                'store' => $storeInfo,
+                'customer' => [
+                    'name' => $customer->name ?? 'N/A',
+                    'email' => $customer->email ?? null,
+                    'phone' => $customer->phone ?? $order->shipping_phone,
+                    'address' => $order->shipping_address . ', ' . $order->shipping_city . ', ' . $order->shipping_province . ' ' . $order->shipping_postal_code
+                ],
+                'items' => $order->items ?? [],
+                'summary' => [
+                    'subtotal' => (int) $order->subtotal,
+                    'shipping_cost' => (int) $order->shipping_cost,
+                    'tax_amount' => (int) ($order->tax_amount ?? 0),
+                    'discount_amount' => (int) ($order->discount_amount ?? 0),
+                    'total_amount' => (int) $order->total_amount
+                ],
+                'payment' => [
+                    'method' => $order->payment_method,
+                    'status' => $order->payment_status,
+                    'paid_at' => $order->paid_at
+                ],
+                'shipping' => [
+                    'courier' => $order->courier,
+                    'tracking_number' => $order->tracking_number,
+                    'shipped_at' => $order->shipped_at,
+                    'address' => $order->shipping_address,
+                    'city' => $order->shipping_city,
+                    'province' => $order->shipping_province,
+                    'postal_code' => $order->shipping_postal_code,
+                    'phone' => $order->shipping_phone,
+                    'notes' => $order->shipping_notes
+                ],
+                'notes' => $order->notes
+            ];
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Invoice retrieved successfully')
+                ->setData($invoiceData);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve invoice: ' . $e->getMessage());
 
             return response()->json($this->response->generateResponse($result), 500);
         }

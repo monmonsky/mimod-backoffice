@@ -65,7 +65,7 @@ class RajaOngkirService
     /**
      * Make HTTP request to RajaOngkir API
      */
-    protected function makeRequest(string $endpoint, string $method = 'GET', array $data = []): array
+    public function makeRequest(string $endpoint, string $method = 'GET', array $data = []): array
     {
         $apiKey = $this->getApiKey();
         $isKomerce = $this->isKomerceApi();
@@ -474,7 +474,7 @@ class RajaOngkirService
 
     /**
      * Calculate shipping cost
-     * Komerce API: /calculate/district/domestic-cost
+     * Komerce API: /calculate/domestic-cost
      */
     public function calculateCost(array $params): array
     {
@@ -498,9 +498,9 @@ class RajaOngkirService
             'api_url' => $this->getApiUrl(),
         ]);
 
-        // For Komerce API, use district-based calculation
+        // For Komerce API, use domestic-cost calculation
         if ($isKomerce) {
-            $result = $this->makeRequest('/calculate/district/domestic-cost', 'POST', $params);
+            $result = $this->makeRequest('/calculate/domestic-cost', 'POST', $params);
             \Log::info('RajaOngkirService::calculateCost result (Komerce)', [
                 'result' => $result,
             ]);

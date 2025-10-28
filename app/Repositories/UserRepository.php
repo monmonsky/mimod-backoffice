@@ -131,7 +131,7 @@ class UserRepository implements UserRepositoryInterface
             'name' => $tokenName,
             'token' => $hashedToken,
             'abilities' => json_encode($abilities),
-            'expires_at' => now()->addMinutes(60), // Token expires in 30 minutes
+            'expires_at' => now()->addDays(30), // Token expires in 30 days
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -145,7 +145,12 @@ class UserRepository implements UserRepositoryInterface
      */
     public function findByToken(string $token)
     {
-        $hashedToken = hash('sha256', $token);
+        // Laravel Sanctum stores tokens as: {id}|{plainTextToken}
+        // We need to extract the plain text token part after the "|"
+        $parts = explode('|', $token, 2);
+        $plainTextToken = count($parts) === 2 ? $parts[1] : $token;
+
+        $hashedToken = hash('sha256', $plainTextToken);
 
         // Optimize: Filter out expired tokens in the query
         $tokenData = $this->tokenTable()
@@ -435,6 +440,110 @@ class UserRepository implements UserRepositoryInterface
             ->where('user_roles.is_active', true)
             ->select('roles.*', 'user_roles.expires_at')
             ->first();
+    }
+
+    /**
+     * Get user with role and modules (for auth)
+     */
+    public function findByEmailWithRoleAndModules(string $email)
+    {
+        // Get user with role
+        $user = DB::table('users')
+            ->leftJoin('roles', 'users.role_id', '=', 'roles.id')
+            ->where('users.email', $email)
+            ->select(
+                'users.*',
+                'roles.id as role_id',
+                'roles.name as role_name',
+                'roles.display_name as role_display_name',
+                'roles.priority as role_priority'
+            )
+            ->first();
+
+        if (!$user || !$user->role_id) {
+            return $user;
+        }
+
+        // Get role permissions
+        $permissions = DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $user->role_id)
+            ->where('permissions.is_active', true)
+            ->select('permissions.name', 'permissions.module', 'permissions.action')
+            ->get();
+
+        // Get modules accessible by this role based on permissions
+        $permissionModules = $permissions->pluck('module')->unique()->filter()->values();
+
+        // Get modules that match the permissions
+        $modules = DB::table('modules')
+            ->where('is_active', true)
+            ->where('is_visible', true)
+            ->where(function($query) use ($permissionModules) {
+                // Include parent menus (no permission_name)
+                $query->whereNull('permission_name')
+                    // Include menus that have matching permissions
+                    ->orWhere(function($q) use ($permissionModules) {
+                        foreach ($permissionModules as $module) {
+                            $q->orWhere('permission_name', 'LIKE', $module . '.%');
+                        }
+                    });
+            })
+            ->orderBy('sort_order', 'asc')
+            ->select(
+                'id',
+                'name',
+                'display_name',
+                'icon',
+                'route',
+                'permission_name',
+                'parent_id',
+                'group_name',
+                'sort_order',
+                'is_visible',
+                'is_active'
+            )
+            ->get();
+
+        // Build hierarchical structure
+        $moduleTree = [];
+        $modulesById = [];
+
+        foreach ($modules as $module) {
+            $modulesById[$module->id] = $module;
+            $module->children = [];
+
+            // Remove permission_name for response (set to null)
+            $module->permission_name = null;
+        }
+
+        foreach ($modules as $module) {
+            if ($module->parent_id === null) {
+                // Top-level module
+                $moduleTree[] = $module;
+            } else {
+                // Child module
+                if (isset($modulesById[$module->parent_id])) {
+                    // Set group_name to null for children
+                    $module->group_name = null;
+
+                    // Calculate combined sort_order (parent_order * 10 + child_order)
+                    $parentSortOrder = $modulesById[$module->parent_id]->sort_order;
+                    $module->sort_order = ($parentSortOrder * 10) + $module->sort_order;
+
+                    // Don't include children property in child modules
+                    unset($module->children);
+
+                    $modulesById[$module->parent_id]->children[] = $module;
+                }
+            }
+        }
+
+        // Attach to user
+        $user->modules = $moduleTree;
+        $user->permissions = $permissions->pluck('name')->toArray();
+
+        return $user;
     }
 
     /**

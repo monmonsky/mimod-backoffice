@@ -44,9 +44,16 @@ class ProductApiController extends Controller
                 $query->where('products.brand_id', $request->brand_id);
             }
 
-            // Filter by category
+            // Filter by category (supports single or multiple categories)
             if ($request->filled('category_id')) {
-                $productIds = $this->productRepo->getProductIdsByCategory($request->category_id);
+                $categoryId = $request->category_id;
+
+                // Handle comma-separated category IDs (e.g., "1,2,3")
+                if (is_string($categoryId) && strpos($categoryId, ',') !== false) {
+                    $categoryId = array_map('intval', explode(',', $categoryId));
+                }
+
+                $productIds = $this->productRepo->getProductIdsByCategory($categoryId);
                 $query->whereIn('products.id', $productIds);
             }
 

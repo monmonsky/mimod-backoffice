@@ -8,6 +8,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SanctumAuth
 {
+    protected $userRepository;
+
+    public function __construct(\App\Repositories\Contracts\UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -29,8 +36,8 @@ class SanctumAuth
             ], 401);
         }
 
-        // Authenticate using Sanctum
-        $user = $request->user('sanctum');
+        // Get user from token using UserRepository (includes role info)
+        $user = $this->userRepository->findByToken($token);
 
         if (!$user) {
             return response()->json([

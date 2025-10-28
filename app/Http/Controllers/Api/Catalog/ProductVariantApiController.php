@@ -269,10 +269,10 @@ class ProductVariantApiController extends Controller
 //                     if (empty($remainingFiles)) {
 //                         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
 //                     }
-//                 }
-//             }
-// 
-//             // Log activity
+                }
+            }
+
+            // Log activity
             logActivity(
                 'create',
                 "Created variant: {$validated['sku']}",
@@ -449,9 +449,9 @@ class ProductVariantApiController extends Controller
 //                         \Storage::disk('ftp')->deleteDirectory($tempDirectory);
 //                     }
 //                 }
-//             }
-// 
-//             // Log activity
+            }
+
+            // Log activity
             logActivity(
                 'update',
                 "Updated variant: {$validated['sku']}",
@@ -904,6 +904,269 @@ class ProductVariantApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to batch generate: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get all variant attributes
+     */
+    public function getVariantAttributes()
+    {
+        try {
+            $attributes = DB::table('product_variant_attributes')
+                ->join('product_variants', 'product_variants.id', '=', 'product_variant_attributes.product_variant_id')
+                ->join('product_attributes', 'product_attributes.id', '=', 'product_variant_attributes.product_attribute_id')
+                ->join('product_attribute_values', 'product_attribute_values.id', '=', 'product_variant_attributes.product_attribute_value_id')
+                ->select(
+                    'product_variant_attributes.*',
+                    'product_variants.sku as variant_sku',
+                    'product_attributes.name as attribute_name',
+                    'product_attribute_values.value as attribute_value'
+                )
+                ->get();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant attributes retrieved successfully')
+                ->setData($attributes);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve variant attributes: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Store variant attribute
+     */
+    public function storeVariantAttribute(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'product_variant_id' => 'required|integer|exists:product_variants,id',
+                'product_attribute_id' => 'required|integer|exists:product_attributes,id',
+                'product_attribute_value_id' => 'required|integer|exists:product_attribute_values,id'
+            ]);
+
+            // Check if this combination already exists
+            $exists = DB::table('product_variant_attributes')
+                ->where('product_variant_id', $validated['product_variant_id'])
+                ->where('product_attribute_id', $validated['product_attribute_id'])
+                ->exists();
+
+            if ($exists) {
+                // Update instead of insert
+                DB::table('product_variant_attributes')
+                    ->where('product_variant_id', $validated['product_variant_id'])
+                    ->where('product_attribute_id', $validated['product_attribute_id'])
+                    ->update([
+                        'product_attribute_value_id' => $validated['product_attribute_value_id'],
+                        'updated_at' => now()
+                    ]);
+
+                $message = 'Variant attribute updated successfully';
+            } else {
+                // Insert new
+                $validated['created_at'] = now();
+                $validated['updated_at'] = now();
+
+                DB::table('product_variant_attributes')->insert($validated);
+
+                $message = 'Variant attribute created successfully';
+            }
+
+            // Get the created/updated record
+            $variantAttribute = DB::table('product_variant_attributes')
+                ->where('product_variant_id', $validated['product_variant_id'])
+                ->where('product_attribute_id', $validated['product_attribute_id'])
+                ->first();
+
+            // Get related data
+            $variantAttribute->variant = DB::table('product_variants')
+                ->where('id', $validated['product_variant_id'])
+                ->first();
+
+            $variantAttribute->attribute = DB::table('product_attributes')
+                ->where('id', $validated['product_attribute_id'])
+                ->first();
+
+            $variantAttribute->attribute_value = DB::table('product_attribute_values')
+                ->where('id', $validated['product_attribute_value_id'])
+                ->first();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('201')
+                ->setMessage($message)
+                ->setData($variantAttribute);
+
+            return response()->json($this->response->generateResponse($result), 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to store variant attribute: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get variant attributes by variant ID
+     */
+    public function getVariantAttributesByVariant($variantId)
+    {
+        try {
+            $attributes = DB::table('product_variant_attributes')
+                ->join('product_attributes', 'product_attributes.id', '=', 'product_variant_attributes.product_attribute_id')
+                ->join('product_attribute_values', 'product_attribute_values.id', '=', 'product_variant_attributes.product_attribute_value_id')
+                ->where('product_variant_attributes.product_variant_id', $variantId)
+                ->select(
+                    'product_variant_attributes.*',
+                    'product_attributes.name as attribute_name',
+                    'product_attributes.type as attribute_type',
+                    'product_attribute_values.value as attribute_value'
+                )
+                ->get();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant attributes retrieved successfully')
+                ->setData($attributes);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve variant attributes: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Update variant attribute
+     */
+    public function updateVariantAttribute(Request $request, $id)
+    {
+        try {
+            $variantAttribute = DB::table('product_variant_attributes')->where('id', $id)->first();
+
+            if (!$variantAttribute) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant attribute not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            $validated = $request->validate([
+                'product_attribute_value_id' => 'required|integer|exists:product_attribute_values,id'
+            ]);
+
+            $validated['updated_at'] = now();
+            DB::table('product_variant_attributes')->where('id', $id)->update($validated);
+
+            // Get updated record
+            $updated = DB::table('product_variant_attributes')
+                ->where('id', $id)
+                ->first();
+
+            // Get related data
+            $updated->variant = DB::table('product_variants')
+                ->where('id', $updated->product_variant_id)
+                ->first();
+
+            $updated->attribute = DB::table('product_attributes')
+                ->where('id', $updated->product_attribute_id)
+                ->first();
+
+            $updated->attribute_value = DB::table('product_attribute_values')
+                ->where('id', $updated->product_attribute_value_id)
+                ->first();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant attribute updated successfully')
+                ->setData($updated);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('422')
+                ->setMessage('Validation failed')
+                ->setData(['errors' => $e->errors()]);
+
+            return response()->json($this->response->generateResponse($result), 422);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to update variant attribute: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Delete variant attribute
+     */
+    public function deleteVariantAttribute($id)
+    {
+        try {
+            $variantAttribute = DB::table('product_variant_attributes')->where('id', $id)->first();
+
+            if (!$variantAttribute) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Variant attribute not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            DB::table('product_variant_attributes')->where('id', $id)->delete();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Variant attribute deleted successfully')
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to delete variant attribute: ' . $e->getMessage())
                 ->setData([]);
 
             return response()->json($this->response->generateResponse($result), 500);

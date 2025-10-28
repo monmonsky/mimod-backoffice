@@ -92,35 +92,22 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Orders\OrderRepository::class
         );
 
-        // Customers Repositories
+        // Customer Authentication Repository (for frontend customers)
+        $this->app->bind(
+            \App\Repositories\Contracts\CustomerRepositoryInterface::class,
+            \App\Repositories\CustomerRepository::class
+        );
+
+        // Customer Address Repository
+        $this->app->bind(
+            \App\Repositories\Contracts\CustomerAddressRepositoryInterface::class,
+            \App\Repositories\CustomerAddressRepository::class
+        );
+
+        // Customers Repositories (for backoffice)
         $this->app->bind(
             \App\Repositories\Contracts\Customers\CustomerRepositoryInterface::class,
             \App\Repositories\Customers\CustomerRepository::class
-        );
-
-        $this->app->bind(
-            \App\Repositories\Contracts\Customers\CustomerSegmentRepositoryInterface::class,
-            \App\Repositories\Customers\CustomerSegmentRepository::class
-        );
-
-        $this->app->bind(
-            \App\Repositories\Contracts\Customers\CustomerGroupRepositoryInterface::class,
-            \App\Repositories\Customers\CustomerGroupRepository::class
-        );
-
-        $this->app->bind(
-            \App\Repositories\Contracts\Customers\LoyaltyProgramRepositoryInterface::class,
-            \App\Repositories\Customers\LoyaltyProgramRepository::class
-        );
-
-        $this->app->bind(
-            \App\Repositories\Contracts\Customers\LoyaltyTransactionRepositoryInterface::class,
-            \App\Repositories\Customers\LoyaltyTransactionRepository::class
-        );
-
-        $this->app->bind(
-            \App\Repositories\Contracts\Customers\ProductReviewRepositoryInterface::class,
-            \App\Repositories\Customers\ProductReviewRepository::class
         );
 
         // Marketing Repositories
@@ -129,14 +116,16 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Marketing\CouponRepository::class
         );
 
+        // Payment Repositories
         $this->app->bind(
-            \App\Repositories\Contracts\Marketing\FlashSaleRepositoryInterface::class,
-            \App\Repositories\Marketing\FlashSaleRepository::class
+            \App\Repositories\Contracts\Payment\PaymentMethodRepositoryInterface::class,
+            \App\Repositories\Payment\PaymentMethodRepository::class
         );
 
+        // Shipping Repositories
         $this->app->bind(
-            \App\Repositories\Contracts\Marketing\BundleDealRepositoryInterface::class,
-            \App\Repositories\Marketing\BundleDealRepository::class
+            \App\Repositories\Contracts\Shipping\ShippingMethodRepositoryInterface::class,
+            \App\Repositories\Shipping\ShippingMethodRepository::class
         );
 
         // Appearance / Navigation Menu Repositories

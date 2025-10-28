@@ -45,10 +45,7 @@ class CategoryApiController extends Controller
                 ->setStatus(true)
                 ->setStatusCode('200')
                 ->setMessage('Categories retrieved successfully')
-                ->setData([
-                    'categories' => $categories,
-                    'statistics' => $statistics
-                ]);
+                ->setData([$categories]);
 
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Exception $e) {
