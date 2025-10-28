@@ -2,6 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('auth.signin');
-});
+// Route::get('/', function () {
+//     die('unautohorized');
+// })->name('login');

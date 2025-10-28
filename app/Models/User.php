@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -45,4 +46,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Note: This project uses Repository Pattern instead of Eloquent relationships
+     * Role and permissions are loaded via:
+     * - UserRepository->getUserWithRole($userId)
+     * - Helper functions: hasPermission(), currentUser(), etc.
+     *
+     * DO NOT add role() or permissions() relationships here as they will cause errors
+     * because App\Models\Role does not exist.
+     */
 }

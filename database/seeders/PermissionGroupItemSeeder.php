@@ -1,0 +1,170 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class PermissionGroupItemSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        DB::table('permission_group_items')->truncate();
+
+        $groupItems = [];
+
+        // Dashboard Management Group
+        $dashboardManagement = DB::table('permission_groups')
+            ->where('name', 'dashboard_management')
+            ->first();
+
+        if ($dashboardManagement) {
+            $dashboardPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'dashboard.%')
+                ->get();
+
+            foreach ($dashboardPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $dashboardManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Access Control Management Group
+        $accessControlManagement = DB::table('permission_groups')
+            ->where('name', 'access_control_management')
+            ->first();
+
+        if ($accessControlManagement) {
+            $accessControlPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'access-control.%')
+                ->get();
+
+            foreach ($accessControlPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $accessControlManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Settings Management Group
+        $settingsManagement = DB::table('permission_groups')
+            ->where('name', 'settings_management')
+            ->first();
+
+        if ($settingsManagement) {
+            $settingsPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'settings.%')
+                ->get();
+
+            foreach ($settingsPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $settingsManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Catalog Management Group
+        $catalogManagement = DB::table('permission_groups')
+            ->where('name', 'catalog_management')
+            ->first();
+
+        if ($catalogManagement) {
+            $catalogPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'catalog.%')
+                ->get();
+
+            foreach ($catalogPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $catalogManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Orders Management Group
+        $ordersManagement = DB::table('permission_groups')
+            ->where('name', 'orders_management')
+            ->first();
+
+        if ($ordersManagement) {
+            $ordersPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'orders.%')
+                ->get();
+
+            foreach ($ordersPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $ordersManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Customers Management Group
+        $customersManagement = DB::table('permission_groups')
+            ->where('name', 'customers_management')
+            ->first();
+
+        if ($customersManagement) {
+            $customersPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'customers.%')
+                ->get();
+
+            foreach ($customersPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $customersManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Marketing Management Group
+        $marketingManagement = DB::table('permission_groups')
+            ->where('name', 'marketing_management')
+            ->first();
+
+        if ($marketingManagement) {
+            $marketingPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'marketing.%')
+                ->get();
+
+            foreach ($marketingPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $marketingManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        // Reports Management Group
+        $reportsManagement = DB::table('permission_groups')
+            ->where('name', 'reports_management')
+            ->first();
+
+        if ($reportsManagement) {
+            $reportsPermissions = DB::table('permissions')
+                ->where('name', 'LIKE', 'reports.%')
+                ->get();
+
+            foreach ($reportsPermissions as $permission) {
+                $groupItems[] = [
+                    'group_id' => $reportsManagement->id,
+                    'permission_id' => $permission->id,
+                ];
+            }
+        }
+
+        if (!empty($groupItems)) {
+            DB::table('permission_group_items')->insert($groupItems);
+        }
+
+        $this->command->info('Permission group items seeded successfully.');
+    }
+}

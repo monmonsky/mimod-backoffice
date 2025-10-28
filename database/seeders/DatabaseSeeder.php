@@ -13,11 +13,44 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            // 1. Seed roles first (required by users)
+            RoleSeeder::class,
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            // 2. Seed users (requires roles)
+            UserSeeder::class,
+
+            // 3. Seed modules (required by role_modules)
+            ModuleSeeder::class,
+
+            // 4. Seed permission groups
+            PermissionGroupSeeder::class,
+
+            // 5. Seed permissions
+            PermissionSeeder::class,
+
+            // 6. Seed permission group items (requires permission_groups and permissions)
+            PermissionGroupItemSeeder::class,
+
+            // 7. Seed role permissions (requires roles and permissions)
+            RolePermissionSeeder::class,
+
+            // 8. Seed role modules (requires roles and modules)
+            RoleModuleSeeder::class,
+
+            // 9. Seed settings
+            SettingsSeeder::class,
+
+            // 10. Seed catalog data (categories, brands, products)
+            CategorySeeder::class,
+            BrandSeeder::class,
+            ProductSeeder::class,
+
+            // 11. Seed customers (required by orders)
+            CustomerSeeder::class,
+
+            // 12. Seed orders (requires customers and products)
+            OrderSeeder::class,
         ]);
     }
 }
