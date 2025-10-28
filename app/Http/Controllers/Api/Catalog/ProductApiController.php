@@ -1148,4 +1148,50 @@ class ProductApiController extends Controller
         }
     }
 
+    /**
+     * Get all active products for sitemap
+     * Returns minimal data: id, name, slug, primary_image, updated_at
+     */
+    public function sitemap()
+    {
+        try {
+            $products = $this->productRepo->query()
+                ->select('products.id', 'products.name', 'products.slug', 'products.updated_at')
+                ->where('products.status', 'active')
+                ->orderBy('products.updated_at', 'desc')
+                ->get();
+
+            // Attach primary image for each product
+            foreach ($products as $product) {
+                $primaryImage = \DB::table('product_images')
+                    ->select('url')
+                    ->where('product_id', $product->id)
+                    ->where('is_primary', true)
+                    ->first();
+
+                $product->image = $primaryImage ? $primaryImage->url : null;
+            }
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Products for sitemap retrieved successfully')
+                ->setData($products);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \Log::error('ProductApiController@sitemap error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve products for sitemap: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
 }

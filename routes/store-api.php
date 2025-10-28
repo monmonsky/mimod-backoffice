@@ -30,6 +30,8 @@ Route::middleware('store.api')->prefix('store')->group(function () {
     Route::prefix('products')->group(function () {
         Route::get('/', [ProductApiController::class, 'index'])
             ->middleware('store.api:products:read');
+        Route::get('/sitemap', [ProductApiController::class, 'sitemap'])
+            ->middleware('store.api:products:read');
         Route::get('/{id}', [ProductApiController::class, 'show'])
             ->middleware('store.api:products:read');
     });
@@ -43,6 +45,8 @@ Route::middleware('store.api')->prefix('store')->group(function () {
         Route::get('/tree', [CategoryApiController::class, 'tree'])
             ->middleware('store.api:categories:read');
         Route::get('/parents', [CategoryApiController::class, 'parents'])
+            ->middleware('store.api:categories:read');
+        Route::get('/sitemap', [CategoryApiController::class, 'sitemap'])
             ->middleware('store.api:categories:read');
         Route::get('/{id}', [CategoryApiController::class, 'show'])
             ->middleware('store.api:categories:read');

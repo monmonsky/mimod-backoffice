@@ -479,4 +479,39 @@ class CategoryApiController extends Controller
             return response()->json($this->response->generateResponse($result), 500);
         }
     }
+
+    /**
+     * Get all active categories for sitemap
+     * Returns minimal data: id, name, slug, updated_at
+     */
+    public function sitemap()
+    {
+        try {
+            $categories = $this->categoryRepo->query()
+                ->select('id', 'name', 'slug', 'updated_at')
+                ->where('is_active', true)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Categories for sitemap retrieved successfully')
+                ->setData($categories);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \Log::error('CategoryApiController@sitemap error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve categories for sitemap: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
 }
