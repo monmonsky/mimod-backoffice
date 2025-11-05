@@ -37,8 +37,13 @@ class UserActivityApiController extends Controller
 
             // Add current user priority for filtering
             $currentUser = currentUser();
-            if ($currentUser && isset($currentUser['role_priority'])) {
-                $filters['current_user_priority'] = $currentUser['role_priority'];
+            if ($currentUser) {
+                // Handle both array and object response from currentUser()
+                if (is_array($currentUser) && isset($currentUser['role_priority'])) {
+                    $filters['current_user_priority'] = $currentUser['role_priority'];
+                } elseif (is_object($currentUser) && isset($currentUser->role_priority)) {
+                    $filters['current_user_priority'] = $currentUser->role_priority;
+                }
             }
 
             $activities = $this->activityRepo->getAll($filters);
@@ -191,8 +196,13 @@ class UserActivityApiController extends Controller
 
             // Add current user priority for filtering
             $currentUser = currentUser();
-            if ($currentUser && isset($currentUser['role_priority'])) {
-                $filters['current_user_priority'] = $currentUser['role_priority'];
+            if ($currentUser) {
+                // Handle both array and object response from currentUser()
+                if (is_array($currentUser) && isset($currentUser['role_priority'])) {
+                    $filters['current_user_priority'] = $currentUser['role_priority'];
+                } elseif (is_object($currentUser) && isset($currentUser->role_priority)) {
+                    $filters['current_user_priority'] = $currentUser->role_priority;
+                }
             }
 
             $activities = $this->activityRepo->exportLogs($filters);
