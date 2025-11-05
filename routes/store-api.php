@@ -28,10 +28,27 @@ Route::middleware('store.api')->prefix('store')->group(function () {
     // PRODUCTS
     // ============================================
     Route::prefix('products')->group(function () {
+        // Get all products with advanced filters (size, color, price, stock, category, etc.)
         Route::get('/', [ProductApiController::class, 'index'])
             ->middleware('store.api:products:read');
+
+        // Filter products with POST method (recommended for complex filters)
+        Route::post('/filter', [ProductApiController::class, 'filter'])
+            ->middleware('store.api:products:read');
+
+        // Get products for sitemap
         Route::get('/sitemap', [ProductApiController::class, 'sitemap'])
             ->middleware('store.api:products:read');
+
+        // Get products by category slug with filters (GET method)
+        Route::get('/category/{categorySlug}', [ProductApiController::class, 'byCategorySlug'])
+            ->middleware('store.api:products:read');
+
+        // Filter products by category slug (POST method - recommended)
+        Route::post('/category/filter', [ProductApiController::class, 'filterByCategorySlug'])
+            ->middleware('store.api:products:read');
+
+        // Get single product by slug or ID
         Route::get('/{id}', [ProductApiController::class, 'show'])
             ->middleware('store.api:products:read');
     });

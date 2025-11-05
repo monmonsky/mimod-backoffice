@@ -888,4 +888,145 @@ class ProductRepository implements ProductRepositoryInterface
             $product->images = $imagesByProduct->get($product->id, collect([]))->values();
         }
     }
+
+    /**
+     * Get products with advanced filters including variant attributes
+     */
+    public function getProductsWithAdvancedFilters($filters = [], $perPage = 15)
+    {
+        $query = $this->table()
+            ->select('products.*', 'brands.name as brand_name')
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id');
+
+        // Search filter
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function($q) use ($search) {
+                $q->where('products.name', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('products.slug', 'ILIKE', '%' . $search . '%')
+                  ->orWhere('products.description', 'ILIKE', '%' . $search . '%');
+            });
+        }
+
+        // Status filter
+        if (!empty($filters['status'])) {
+            $query->where('products.status', $filters['status']);
+        }
+
+        // Brand filter
+        if (!empty($filters['brand_id'])) {
+            $query->where('products.brand_id', $filters['brand_id']);
+        }
+
+        // Category filter (support single or multiple)
+        if (!empty($filters['category_id'])) {
+            $categoryId = $filters['category_id'];
+            if (is_string($categoryId) && strpos($categoryId, ',') !== false) {
+                $categoryId = array_map('intval', explode(',', $categoryId));
+            }
+            $productIds = $this->getProductIdsByCategory($categoryId);
+            $query->whereIn('products.id', $productIds);
+        }
+
+        // Price range filter
+        if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+            $query->whereExists(function($subQuery) use ($filters) {
+                $subQuery->select(DB::raw(1))
+                    ->from('product_variants')
+                    ->whereColumn('product_variants.product_id', 'products.id');
+
+                if (!empty($filters['min_price'])) {
+                    $subQuery->where('product_variants.price', '>=', $filters['min_price']);
+                }
+                if (!empty($filters['max_price'])) {
+                    $subQuery->where('product_variants.price', '<=', $filters['max_price']);
+                }
+            });
+        }
+
+        // Size filter
+        if (!empty($filters['size'])) {
+            $sizes = is_array($filters['size']) ? $filters['size'] : explode(',', $filters['size']);
+            $query->whereExists(function($subQuery) use ($sizes) {
+                $subQuery->select(DB::raw(1))
+                    ->from('product_variants')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->whereIn('product_variants.size', $sizes);
+            });
+        }
+
+        // Color filter
+        if (!empty($filters['color'])) {
+            $colors = is_array($filters['color']) ? $filters['color'] : explode(',', $filters['color']);
+            $query->whereExists(function($subQuery) use ($colors) {
+                $subQuery->select(DB::raw(1))
+                    ->from('product_variants')
+                    ->whereColumn('product_variants.product_id', 'products.id')
+                    ->whereIn('product_variants.color', $colors);
+            });
+        }
+
+        // Stock filter
+        if (!empty($filters['in_stock'])) {
+            if ($filters['in_stock'] === 'true' || $filters['in_stock'] === true || $filters['in_stock'] === '1') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('product_variants.stock_quantity', '>', 0);
+                });
+            }
+        }
+
+        // Stock status filter (in_stock, low_stock, out_of_stock)
+        if (!empty($filters['stock_status'])) {
+            if ($filters['stock_status'] === 'in_stock') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('stock_quantity', '>', 10);
+                });
+            } elseif ($filters['stock_status'] === 'low_stock') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->whereBetween('stock_quantity', [1, 10]);
+                });
+            } elseif ($filters['stock_status'] === 'out_of_stock') {
+                $query->whereNotExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_variants')
+                        ->whereColumn('product_variants.product_id', 'products.id')
+                        ->where('stock_quantity', '>', 0);
+                });
+            }
+        }
+
+        // Featured filter
+        if (isset($filters['is_featured'])) {
+            $query->where('products.is_featured', $filters['is_featured']);
+        }
+
+        // Sorting
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortOrder = $filters['sort_order'] ?? 'desc';
+
+        if ($sortBy === 'price') {
+            // Sort by minimum variant price
+            $query->leftJoin(
+                DB::raw('(SELECT product_id, MIN(price) as min_price FROM product_variants GROUP BY product_id) as variant_prices'),
+                'products.id',
+                '=',
+                'variant_prices.product_id'
+            )->orderBy('variant_prices.min_price', $sortOrder);
+        } elseif ($sortBy === 'name') {
+            $query->orderBy('products.name', $sortOrder);
+        } else {
+            $query->orderBy('products.' . $sortBy, $sortOrder);
+        }
+
+        return $query->paginate($perPage);
+    }
 }
