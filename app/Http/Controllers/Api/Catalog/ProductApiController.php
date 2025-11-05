@@ -20,109 +20,23 @@ class ProductApiController extends Controller
     }
 
     /**
-     * Get all products with filters and statistics
+     * Get all products with filters and statistics (GET method)
+     * Supports advanced filters: size, color, stock, price, category, etc.
      */
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['search', 'status', 'brand_id', 'category_id', 'is_featured']);
+            // Get all filters including variant filters
+            $filters = $request->only([
+                'search', 'status', 'brand_id', 'category_id', 'is_featured',
+                'min_price', 'max_price', 'size', 'color', 'in_stock', 'stock_status',
+                'sort_by', 'sort_order'
+            ]);
 
-            $query = $this->productRepo->query();
-
-            // Filter by status
-            if ($request->filled('status')) {
-                $query->where('products.status', $request->status);
-            }
-
-            // Filter by featured
-            if ($request->filled('is_featured')) {
-                $query->where('products.is_featured', $request->is_featured);
-            }
-
-            // Filter by brand
-            if ($request->filled('brand_id')) {
-                $query->where('products.brand_id', $request->brand_id);
-            }
-
-            // Filter by category (supports single or multiple categories)
-            if ($request->filled('category_id')) {
-                $categoryId = $request->category_id;
-
-                // Handle comma-separated category IDs (e.g., "1,2,3")
-                if (is_string($categoryId) && strpos($categoryId, ',') !== false) {
-                    $categoryId = array_map('intval', explode(',', $categoryId));
-                }
-
-                $productIds = $this->productRepo->getProductIdsByCategory($categoryId);
-                $query->whereIn('products.id', $productIds);
-            }
-
-            // Search by name or SKU (SKU is in product_variants table)
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('products.name', 'ILIKE', '%' . $search . '%')
-                      ->orWhereExists(function($subQuery) use ($search) {
-                          $subQuery->select(\DB::raw(1))
-                              ->from('product_variants')
-                              ->whereRaw('product_variants.product_id = products.id')
-                              ->where('product_variants.sku', 'ILIKE', '%' . $search . '%');
-                      });
-                });
-            }
-
-            // Filter by stock status
-            if ($request->filled('stock_status')) {
-                $stockStatus = $request->stock_status;
-                if ($stockStatus === 'in_stock') {
-                    $query->whereExists(function($subQuery) {
-                        $subQuery->select(\DB::raw(1))
-                            ->from('product_variants')
-                            ->whereRaw('product_variants.product_id = products.id')
-                            ->havingRaw('COALESCE(SUM(product_variants.stock_quantity), 0) > 10');
-                    });
-                } elseif ($stockStatus === 'low_stock') {
-                    $query->whereExists(function($subQuery) {
-                        $subQuery->select(\DB::raw(1))
-                            ->from('product_variants')
-                            ->whereRaw('product_variants.product_id = products.id')
-                            ->havingRaw('COALESCE(SUM(product_variants.stock_quantity), 0) BETWEEN 1 AND 10');
-                    });
-                } elseif ($stockStatus === 'out_of_stock') {
-                    $query->whereExists(function($subQuery) {
-                        $subQuery->select(\DB::raw(1))
-                            ->from('product_variants')
-                            ->whereRaw('product_variants.product_id = products.id')
-                            ->havingRaw('COALESCE(SUM(product_variants.stock_quantity), 0) <= 0');
-                    });
-                }
-            }
-
-            // Filter by price range
-            if ($request->filled('min_price')) {
-                $query->whereExists(function($subQuery) use ($request) {
-                    $subQuery->select(\DB::raw(1))
-                        ->from('product_variants')
-                        ->whereRaw('product_variants.product_id = products.id')
-                        ->where('product_variants.price', '>=', $request->min_price);
-                });
-            }
-
-            if ($request->filled('max_price')) {
-                $query->whereExists(function($subQuery) use ($request) {
-                    $subQuery->select(\DB::raw(1))
-                        ->from('product_variants')
-                        ->whereRaw('product_variants.product_id = products.id')
-                        ->where('product_variants.price', '<=', $request->max_price);
-                });
-            }
-
-            // Pagination
             $perPage = $request->get('per_page', 20);
-            $products = $query->select('products.*', 'brands.name as brand_name')
-                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
-                ->orderBy('products.created_at', 'desc')
-                ->paginate($perPage);
+
+            // Use advanced filters method
+            $products = $this->productRepo->getProductsWithAdvancedFilters($filters, $perPage);
 
             // Load full relationships (categories, variants with images, images)
             $items = $products->items();
@@ -143,6 +57,57 @@ class ProductApiController extends Controller
             return response()->json($this->response->generateResponse($result), 200);
         } catch (\Exception $e) {
             \Log::error('ProductApiController@index error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve products: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Filter products with POST method
+     * Supports advanced filters: size, color, stock, price, category, etc.
+     */
+    public function filter(Request $request)
+    {
+        try {
+            // Get all filters from request body
+            $filters = $request->only([
+                'search', 'status', 'brand_id', 'category_id', 'is_featured',
+                'min_price', 'max_price', 'size', 'color', 'in_stock', 'stock_status',
+                'sort_by', 'sort_order'
+            ]);
+
+            $perPage = $request->get('per_page', 20);
+
+            // Use advanced filters method
+            $products = $this->productRepo->getProductsWithAdvancedFilters($filters, $perPage);
+
+            // Load full relationships (categories, variants with images, images)
+            $items = $products->items();
+            $this->productRepo->attachFullRelations(collect($items));
+
+            // Get statistics
+            $statistics = $this->getStatistics();
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Products retrieved successfully')
+                ->setData([
+                    'products' => $products,
+                    'statistics' => $statistics
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \Log::error('ProductApiController@filter error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
 
@@ -350,6 +315,151 @@ class ProductApiController extends Controller
                 ->setStatus(false)
                 ->setStatusCode('500')
                 ->setMessage('Failed to retrieve products by brand: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Get products by category slug (GET method)
+     * Supports all variant filters: size, color, price, stock, etc.
+     */
+    public function byCategorySlug($categorySlug, Request $request)
+    {
+        try {
+            // Find category by slug
+            $categoryRepo = app(\App\Repositories\Catalog\CategoryRepository::class);
+            $category = $categoryRepo->findBySlug($categorySlug);
+
+            if (!$category) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Category not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get all filters including variant filters
+            $filters = $request->only([
+                'search', 'status', 'brand_id', 'is_featured',
+                'min_price', 'max_price', 'size', 'color', 'in_stock', 'stock_status',
+                'sort_by', 'sort_order'
+            ]);
+
+            // Add category filter
+            $filters['category_id'] = $category->id;
+
+            // Default to active products for store frontend
+            if (!isset($filters['status'])) {
+                $filters['status'] = 'active';
+            }
+
+            $perPage = $request->get('per_page', 20);
+
+            // Use advanced filters method
+            $products = $this->productRepo->getProductsWithAdvancedFilters($filters, $perPage);
+
+            // Load full relationships (categories, variants with images, images)
+            $items = $products->items();
+            $this->productRepo->attachFullRelations(collect($items));
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Products by category retrieved successfully')
+                ->setData([
+                    'category' => $category,
+                    'products' => $products
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \Log::error('ProductApiController@byCategorySlug error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve products by category: ' . $e->getMessage())
+                ->setData([]);
+
+            return response()->json($this->response->generateResponse($result), 500);
+        }
+    }
+
+    /**
+     * Filter products by category slug (POST method)
+     * Supports all variant filters: size, color, price, stock, etc.
+     */
+    public function filterByCategorySlug(Request $request)
+    {
+        try {
+            // Validate required field
+            $validated = $request->validate([
+                'category_slug' => 'required|string'
+            ]);
+
+            // Find category by slug
+            $categoryRepo = app(\App\Repositories\Catalog\CategoryRepository::class);
+            $category = $categoryRepo->findBySlug($validated['category_slug']);
+
+            if (!$category) {
+                $result = (new ResultBuilder())
+                    ->setStatus(false)
+                    ->setStatusCode('404')
+                    ->setMessage('Category not found')
+                    ->setData([]);
+
+                return response()->json($this->response->generateResponse($result), 404);
+            }
+
+            // Get all filters from request body
+            $filters = $request->only([
+                'search', 'status', 'brand_id', 'is_featured',
+                'min_price', 'max_price', 'size', 'color', 'in_stock', 'stock_status',
+                'sort_by', 'sort_order'
+            ]);
+
+            // Add category filter
+            $filters['category_id'] = $category->id;
+
+            // Default to active products for store frontend
+            if (!isset($filters['status'])) {
+                $filters['status'] = 'active';
+            }
+
+            $perPage = $request->get('per_page', 20);
+
+            // Use advanced filters method
+            $products = $this->productRepo->getProductsWithAdvancedFilters($filters, $perPage);
+
+            // Load full relationships (categories, variants with images, images)
+            $items = $products->items();
+            $this->productRepo->attachFullRelations(collect($items));
+
+            $result = (new ResultBuilder())
+                ->setStatus(true)
+                ->setStatusCode('200')
+                ->setMessage('Products by category retrieved successfully')
+                ->setData([
+                    'category' => $category,
+                    'products' => $products
+                ]);
+
+            return response()->json($this->response->generateResponse($result), 200);
+        } catch (\Exception $e) {
+            \Log::error('ProductApiController@filterByCategorySlug error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $result = (new ResultBuilder())
+                ->setStatus(false)
+                ->setStatusCode('500')
+                ->setMessage('Failed to retrieve products by category: ' . $e->getMessage())
                 ->setData([]);
 
             return response()->json($this->response->generateResponse($result), 500);

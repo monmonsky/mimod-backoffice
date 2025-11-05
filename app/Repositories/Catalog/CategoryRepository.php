@@ -276,4 +276,15 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return $this->table()->max('sort_order') ?? 0;
     }
+
+    public function findBySlug($slug)
+    {
+        return $this->table()
+            ->select(
+                'categories.*',
+                DB::raw('(SELECT COUNT(*) FROM products WHERE products.id IN (SELECT product_id FROM product_categories WHERE category_id = categories.id)) as product_count')
+            )
+            ->where('slug', $slug)
+            ->first();
+    }
 }
